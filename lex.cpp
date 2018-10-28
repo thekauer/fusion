@@ -13,7 +13,6 @@
 
 
 
-#define add_op(e) tokens.push_back(Lexem((e),nullptr));
 
 
 
@@ -25,10 +24,10 @@ void Lexer::tabcount() {
 		i++;
 	}
 	if (ltcount < tcount) {
-		add_op(Gi);
+		tokens.emplace_back(new Lexem(Gi));
 	}
 	if (tcount < ltcount) {
-		add_op(Li);
+		tokens.emplace_back(new Lexem(Li));
 	}
 
 
@@ -102,7 +101,7 @@ void Lexer::is_op() {
 		}
 		i++;
 	}
-	add_op(((_Lexem)l));
+	tokens.emplace_back(new Lexem((_Lexem)l));
 }
 
 void Lexer::is_kw_or_id() {
@@ -123,10 +122,10 @@ void Lexer::is_kw_or_id() {
 	std::map<u64, int>::const_iterator k = keywords.find(hash);
 
 	if (k != keywords.cend()) {
-		tokens.push_back(Lexem(Kw, new Keyword((Keyword)k->second)));
+		tokens.emplace_back(new Key_Word((Keyword)k->second));
 	}
 	else {
-		tokens.push_back(Lexem(Id, new u64(hash)));
+		tokens.emplace_back(new I_d(hash));
 	}
 
 
@@ -138,7 +137,7 @@ void Lexer::is_char() {
 	if (code[i] == '\'') {
 		if (i < len - 2) {
 			if (code[i + 2] == '\'') {
-				tokens.push_back(Lexem(LitChar, new char(code[i + 1])));
+				tokens.emplace_back(new Lit_Char(code[i + 1]));
 			}
 		}
 		i++; //jump over ending '
@@ -156,7 +155,7 @@ void Lexer::is_string() {
 			}
 		}
 		i++; // jump over the ending "
-		tokens.push_back(Lexem(LitString, new std::string(s)));
+		tokens.emplace_back(new Lit_String(s));
 	}
 }
 
@@ -173,7 +172,7 @@ void Lexer::is_hex() {
 				}
 			}
 
-			tokens.push_back(Lexem(LitHex, new long(strtol(s.c_str(), NULL, 16))));
+			tokens.emplace_back(new Lit_Hex(strtol(s.c_str(), NULL, 16)));
 		}
 	}
 }
@@ -189,9 +188,9 @@ void Lexer::is_num() {
 			i++;
 		}
 		if (f)
-			tokens.push_back(Lexem(LitFloat, new float(atof(s.c_str()))));
+			tokens.emplace_back(new Lit_Float(atof(s.c_str())));
 		else
-			tokens.push_back(Lexem(LitInt, new float(atoi(s.c_str()))));
+			tokens.emplace_back(new Lit_Int(atoi(s.c_str())));
 
 	}
 }
@@ -202,7 +201,7 @@ void Lexer::is_true() {
 			code[i + 1] == 'r'  &&
 			code[i + 2] == 'u'  &&
 			code[i + 3] == 'e'
-			) tokens.push_back(Lexem(LitBool, new bool(true)));
+			) tokens.emplace_back(new Lit_Bool(true));
 		i += 4;
 	}
 }
@@ -214,7 +213,7 @@ void Lexer::is_false() {
 			code[i + 2] == 'l'	&&
 			code[i + 3] == 's'	&&
 			code[i + 4] == 'e'
-			) tokens.push_back(Lexem(LitBool, new bool(false)));
+			) tokens.emplace_back(new Lit_Bool(false));
 		i += 5;
 	}
 }
@@ -238,7 +237,7 @@ bool Lexer::get_int(int& res) {
 				s += code[i];
 				i++;
 			}
-			tokens.push_back(Lexem(LitFloat, new float(atof(s.c_str()))));
+			tokens.emplace_back(new Lit_Float(atof(s.c_str())));
 			return false;
 		}
 
@@ -305,9 +304,10 @@ void Lexer::is_range() {
 	}
 }
 
+
 void Lexer::is_lit() {
-	is_range();
-	return;
+	//is_range();  EZ MÁR INKÁBB PARSE
+	//return;
 	is_char();
 	return;
 	is_string();
@@ -321,12 +321,17 @@ void Lexer::is_lit() {
 	is_false();
 	return;
 }
-
+void Lexer::consume_whitespaces() {
+	while ((code[i] == ' ' || code[i] == '\t') && i < len)
+		i++;
+}
 
 void Lexer::lex() {
 	while (i < len) {
+		tabcount();
+
 		while (code[i] != '\n' && i < len) {
-			tabcount();
+			consume_whitespaces();
 
 			is_lit(); //MUST GO FIRST
 			is_op();
@@ -336,17 +341,16 @@ void Lexer::lex() {
 
 
 
-			add_op(N);
 			i++;
 		}
+		tokens.emplace_back(new Lexem(N));
 
 		i++;
 	}
 }
 
 
-std::vector<Lexem> Lexer::GetTokens() {
+std::vector<std::unique_ptr<Lexem>> Lexer::GetTokens() {
 	return tokens;
 }
 
-#undef add_op

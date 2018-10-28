@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <memory>
 #define EqOffset 13;
 /*
 hash = offset_basis
@@ -168,18 +169,46 @@ const std::map<const u64, /*Keyword*/int> keywords = {
 
 struct Lexem {
 	_Lexem type;
-	void* val;
-	Lexem(_Lexem type, void* val) : type(type), val(val) {};
-	~Lexem() {
-		if (val)
-			delete val;
-	}
+	Lexem(_Lexem type) : type(type) {};
+	
+};
+struct Lit_Int :public Lexem {
+	int val;
+	Lit_Int(int val) : Lexem(LitInt), val(val) {};
+};
+struct Lit_Char: public Lexem {
+	char val;
+	Lit_Char(char val) : Lexem(LitChar), val(val) {};
+};
+struct Lit_Hex : public Lexem {
+	long val;
+	Lit_Hex(long val) : Lexem(LitHex), val(val) {};
+};
+struct Lit_Bool : public Lexem {
+	bool val;
+	Lit_Bool(bool val) : Lexem(LitBool), val(val) {};
+};
+struct Lit_String : public Lexem {
+	std::string val;
+	Lit_String(std::string val) : Lexem(LitString), val(val) {};
+};
+struct Lit_Float : public Lexem {
+	double val;
+	Lit_Float(double val) : Lexem(LitFloat), val(val) {};
+};
+struct Key_Word : public Lexem {
+	Keyword val;
+	Key_Word(Keyword val) : Lexem(Kw), val(val) {};
+};
+struct I_d : public Lexem {
+	u64 val;
+	I_d(u64 val) : Lexem(Id), val(val) {};
 };
 
 
 
 class Lexer {
-	std::vector<Lexem> tokens;
+	std::vector<std::unique_ptr<Lexem>> tokens;
 	int i = 0, tcount = 0, ltcount = 0, len;
 	std::string code;
 	typedef void(Lexer::*lexfn)();
@@ -198,12 +227,13 @@ class Lexer {
 	void is_false();
 	bool get_int(int& res);
 	void is_range();
+	void consume_whitespaces();
 
 	void is_lit();
 public:
 	Lexer() = default;
 	Lexer(std::string code) : code(code), len(code.size()) {};
 	void lex();
-	std::vector<Lexem> GetTokens();
+	std::vector<std::unique_ptr<Lexem>> GetTokens();
 
 };
