@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include "lexiter.h"
 #define EqOffset 13;
 /*
 hash = offset_basis
@@ -63,6 +64,7 @@ enum _Lexem {
 	Lc,
 	Rc,// }
 
+	Comma,
 	Dot,
 	Range,
 	Elipsis,
@@ -206,34 +208,26 @@ struct I_d : public Lexem {
 };
 
 
+	typedef std::unique_ptr<Lexem> token_t;
 
-class Lexer {
-	std::vector<std::unique_ptr<Lexem>> tokens;
-	int i = 0, tcount = 0, ltcount = 0, len;
-	std::string code;
-	typedef void(Lexer::*lexfn)();
+	
 
 
+class Lexer : Iterator {
+public:
+	std::vector<token_t> tokens;
+	int tcount = 0, ltcount = 0;
 
-	void tabcount();
-	void is_op();
-	void is_kw_or_id();
-
+	
+public:
+	
 	void is_char();
-	void is_string();
-	void is_hex();
-	void is_num();
-	void is_true();
-	void is_false();
-	bool get_int(int& res);
-	void is_range();
-	void consume_whitespaces();
 
-	void is_lit();
+
 public:
 	Lexer() = default;
-	Lexer(std::string code) : code(code), len(code.size()) {};
+	Lexer(std::string code) : Iterator(code) {};
 	void lex();
-	std::vector<std::unique_ptr<Lexem>> GetTokens();
+	std::vector<token_t>& GetTokens();
 
 };
