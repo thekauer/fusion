@@ -6,7 +6,6 @@ class Iterator {
 	std::string code;
 	size_t len;
 	char next = '\0', nextnext = '\0';
-	bool caniter = true;
 	void increment();
 
 public:
@@ -14,10 +13,9 @@ public:
 	Iterator() = delete;
 	Iterator(std::string code);
 	char pop();
+	void pop(unsigned int);
 	char peek();
 	char peek(unsigned int);
-	char peek_next();
-	char peek_next_next();
 	bool can_iter();
 
 };

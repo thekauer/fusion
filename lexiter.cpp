@@ -12,7 +12,6 @@ Iterator::Iterator(std::string code) : code(code), len(code.size())
 {
 	switch (len) {
 	case 0:
-		caniter = false;
 		break;
 	case 1:
 		nextnext = '\0'; next = '\0';
@@ -30,22 +29,12 @@ Iterator::Iterator(std::string code) : code(code), len(code.size())
 char Iterator::pop()
 {
 	char res = '\0';
-	if (i <= len - 3) {
-		next = code[i + 1];
-		nextnext = code[i + 2];
+	if (i < len -1) {
 		res = code[i];
 		increment();
 		return res;
 	}
-	else {
-
-		if (i == len - 2) {
-			next = code[i + 1];
-			nextnext = '\0';
-			res = code[i];
-			increment();
-			return res;
-		}
+	
 		if (i == len - 1) {
 			next = nextnext = '\0';
 			res = code[i];
@@ -53,14 +42,18 @@ char Iterator::pop()
 			if (code[i] == '\n') { line++; col = 0; }
 			else col++;
 			//NO INCREMENTING
-			caniter = false;
 			return res;
 		}
 
-	}
 	return res;
 }
 
+
+void Iterator::pop(unsigned int n) {
+	for(unsigned int i=0;i<n;i++) {
+		pop();
+	}
+}
 
 char Iterator::peek()
 {
@@ -72,23 +65,14 @@ char Iterator::peek()
 
 char Iterator::peek(unsigned int n)
 {
-	if (i < len - n - 1) {
+	if (i+n-1 < len - 1) {
 		return code[i + n];
 	}
 	return '\0';
 }
 
-char Iterator::peek_next()
-{
-	return next;
-}
-
-char Iterator::peek_next_next()
-{
-	return nextnext;
-}
 
 bool Iterator::can_iter()
 {
-	return caniter;
+	return (i<len-1);
 }

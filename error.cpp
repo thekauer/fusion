@@ -26,6 +26,9 @@ void Error::print()
 	case Lint:
 		res = "Lint";
 		break;
+	case Note:
+		res="Note";
+		break;
 	}
 	res += " in file \""+file+"\" at <" + std::to_string(line) + ","+std::to_string(col)+">: "+msg;
 	std::cout << res << std::endl;

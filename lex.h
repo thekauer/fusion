@@ -4,6 +4,8 @@
 #include <map>
 #include <memory>
 #include "lexiter.h"
+#include <string.h>
+#include "error.h"
 #define EqOffset 13;
 /*
 hash = offset_basis
@@ -22,7 +24,7 @@ typedef uint64_t u64;
 const static u64 offset = 14695981039346656037;
 const static u64 prime = 1099511628211;
 
-/*constexpr*/ u64 hash(const char const * s);
+/*constexpr*/ u64 hash(const char * s);
 
 struct Range_t {
 	enum Inf_e {
@@ -217,17 +219,23 @@ class Lexer : Iterator {
 public:
 	std::vector<token_t> tokens;
 	int tcount = 0, ltcount = 0;
-
+	std::vector<Error> errors;
+	std::string fname;
 	
-public:
-	
+	void tabcount();
 	void is_char();
+	void consume_newline();
+	void consume_space();
 
+public:
+	void is_num();
+	void is_bool();
 
 public:
 	Lexer() = default;
-	Lexer(std::string code) : Iterator(code) {};
+	Lexer(std::string fname,std::string code) : fname(fname),Iterator(code) {};
 	void lex();
 	std::vector<token_t>& GetTokens();
+	std::vector<Error>& GetErrors();
 
 };
