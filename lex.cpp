@@ -50,21 +50,74 @@ void Lexer::is_char()
 }
 
 
+void Lexer::is_kw_or_id() {
+	u64 hash=offset;
+	if(isalpha(peek())) {
+		hash^=pop();
+		hash*=prime;
+		while(isalpha(peek()) || isdigit(peek())) {
+			hash^=pop();
+			hash*=prime;
+		}
+		/* FIX MEE PLS*/
+		std::map<u64,int>::const_iterator* res = keywords.find(hash);
+		if(res) {
+			add(new Key_Word(res->second));
+		} else {
+			add(new I_d(hash));
+		}
+
+	}
+}
+
+
 
 void Lexer::is_num() {
 	std::string s="";
 	bool f=false;
 
-	if(peek()=='-') s+=pop();
+
+	/*0b810100 BUG CAUSES infinite loop */
+	if(peek()=='0')  {
+		if(peek(1)=='x') {
+			pop(2);
+			while(isxdigit(peek())) {
+				s+=pop();
+			}
+			add(new Lit_Hex(strtol(s.c_str(),NULL,16)));
+			return;
+		}
+		if(peek(1)=='b') {
+			pop(2);
+			while(peek()=='0' || peek()=='1' || peek()=='_') {
+				if(peek()=='_')pop();
+				s+=pop();
+			}
+			add(new Lit_Int(strtol(s.c_str(),NULL,2)));
+			return;
+
+		}
+	}
+
+	//1. is of type int not float!!!
+
+	if(peek()=='-' || isdigit(peek())) {
+		s+=pop();
 	while(isdigit(peek()) || (!f && peek()=='.')) {
-		/*TODO: FIX 1.. bug  */
-		if(peek()=='.' && !f) f=true;
+		if(f && peek()=='.') break;
+		if(peek()=='.' && !f ) {
+			if(isdigit(peek(1))) f=true;
+			else break;
+		}
 		s+=pop();
 	}
 	if(f)
 		add(new Lit_Float(atof(s.c_str())));
 	else
 		add(new Lit_Int(atoi(s.c_str())));
+}
+
+
 
 
 }
@@ -103,6 +156,7 @@ void Lexer::lex() {
 		is_char();
 		is_bool();
 		is_num();
+		is_kw_or_id();
 		consume_space();
 		
 	}

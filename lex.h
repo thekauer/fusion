@@ -226,10 +226,12 @@ public:
 	void is_char();
 	void consume_newline();
 	void consume_space();
+	void is_bool();
 
 public:
 	void is_num();
-	void is_bool();
+	void is_kw_or_id();
+
 
 public:
 	Lexer() = default;
