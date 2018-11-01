@@ -58,7 +58,7 @@ enum _Lexem {
 	LitFloat,
 	LitInt,
 
-
+	//ops start
 	Lp,
 	Rp,// )
 	Lb,
@@ -107,6 +107,8 @@ enum _Lexem {
 
 				AndAnd,
 				OrOr,
+				AddAdd,
+				SubSub
 
 
 };
@@ -173,40 +175,41 @@ const std::map<const u64, /*Keyword*/int> keywords = {
 
 struct Lexem {
 	_Lexem type;
-	Lexem(_Lexem type) : type(type) {};
+	unsigned int column, lineno;
+	Lexem(_Lexem type,unsigned int col,unsigned int line) : type(type),column(col),lineno(line) {};
 	
 };
 struct Lit_Int :public Lexem {
 	int val;
-	Lit_Int(int val) : Lexem(LitInt), val(val) {};
+	Lit_Int(int, unsigned int col, unsigned int line) : Lexem(LitInt,col,line), val(val) {};
 };
 struct Lit_Char: public Lexem {
 	char val;
-	Lit_Char(char val) : Lexem(LitChar), val(val) {};
+	Lit_Char(char val, unsigned int col, unsigned int line) : Lexem(LitChar,col,line), val(val) {};
 };
 struct Lit_Hex : public Lexem {
 	long val;
-	Lit_Hex(long val) : Lexem(LitHex), val(val) {};
+	Lit_Hex(long val, unsigned int col, unsigned int line) : Lexem(LitHex,col,line), val(val) {};
 };
 struct Lit_Bool : public Lexem {
 	bool val;
-	Lit_Bool(bool val) : Lexem(LitBool), val(val) {};
+	Lit_Bool(bool val, unsigned int col, unsigned int line) : Lexem(LitBool,col,line), val(val) {};
 };
 struct Lit_String : public Lexem {
 	std::string val;
-	Lit_String(std::string val) : Lexem(LitString), val(val) {};
+	Lit_String(std::string val, unsigned int col, unsigned int line) : Lexem(LitString,col,line), val(val) {};
 };
 struct Lit_Float : public Lexem {
 	double val;
-	Lit_Float(double val) : Lexem(LitFloat), val(val) {};
+	Lit_Float(double val, unsigned int col, unsigned int line) : Lexem(LitFloat,col,line), val(val) {};
 };
 struct Key_Word : public Lexem {
 	Keyword val;
-	Key_Word(Keyword val) : Lexem(Kw), val(val) {};
+	Key_Word(Keyword val, unsigned int col, unsigned int line) : Lexem(Kw,col,line), val(val) {};
 };
 struct I_d : public Lexem {
 	u64 val;
-	I_d(u64 val) : Lexem(Id), val(val) {};
+	I_d(u64 val, unsigned int col, unsigned int line) : Lexem(Id,col,line), val(val) {};
 };
 
 
@@ -227,10 +230,12 @@ public:
 	void consume_newline();
 	void consume_space();
 	void is_bool();
+	void is_kw_or_id();
+	void is_string();
+	void is_op();
 
 public:
 	void is_num();
-	void is_kw_or_id();
 
 
 public:

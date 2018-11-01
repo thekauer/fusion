@@ -61,6 +61,8 @@
 			strify(Eqeq)					,
 			strify(AndAnd)				,
 			strify(OrOr)					,
+			strify(AddAdd)				,
+			strify(SubSub)				,
 
 		};
 		std::cout << lexems[l] << " ";
@@ -72,13 +74,23 @@ int main() {
 
 
 
-	//const std::string test = "fn add(a : i32,b :i32)\n return a+b\n\nfn main()\n print(add(2,3))";
-	const std::string test = "if fn lol";
+	const std::string test = "fn add(a : i32,b :i32)\n return a+b\n\nfn main()\n print(add(2,3))";
+	//const std::string test = "";
 	auto lexer= Lexer("main.fs",test);
 	lexer.lex();
 
 	for(const auto& t : lexer.GetTokens()) {
 		print_lexem(t->type);
+		if (t->type == Kw) {
+			std::cout << "\b::" << ((Key_Word*)t.get())->val << " ";
+		}
+		if (t->type == Id) {
+			std::cout << "\b::" << ((I_d*)t.get())->val << " ";
+		}
+
+		if (t->type == LitString) {
+			std::cout << "\b::\"" << ((Lit_String*)t.get())->val << "\" ";
+		}
 	}
 
 
