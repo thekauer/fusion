@@ -14,4 +14,3 @@ void Parser::parse() {
 Parse_t::Parse_t(Parse_e type) : type(type)
 {
 }
-
