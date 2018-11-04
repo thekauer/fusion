@@ -74,8 +74,8 @@ int main() {
 
 
 
-	const std::string test = "fn add(a : i32,b :i32)\n return a+b\n\nfn main()\n print(add(2,3))";
-	//const std::string test = "";
+	//const std::string test = "fn add(a : i32,b :i32)\n return a+b\n\nfn main()\n print(add(2,3))";
+	const std::string test = "fn a1()\n if(true)\n  if(false)\n   1\n  else\n   2\n else\n  3";
 	auto lexer= Lexer("main.fs",test);
 	lexer.lex();
 

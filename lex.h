@@ -240,7 +240,7 @@ public:
 
 public:
 	Lexer() = default;
-	Lexer(std::string fname,std::string code) : fname(fname),Iterator(code) {};
+	Lexer(std::string fname,std::string code);
 	void lex();
 	std::vector<token_t>& GetTokens();
 	std::vector<Error>& GetErrors();

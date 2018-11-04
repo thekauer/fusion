@@ -1,4 +1,5 @@
 #include "lex.h"
+#define BUG_FIX " \n\n"
 
 /*constexpr*/ u64 hash(const char * s) {
 	u64 hash = offset;
@@ -331,8 +332,14 @@ void Lexer::consume_newline() {
 	while(peek()=='\n') {
 		pop();
 		add(new Lexem(N, col, line));
+		tabcount();
 	}
 
+}
+
+Lexer::Lexer(std::string fname, std::string code) : fname(fname), Iterator(code+BUG_FIX) 
+{
+	
 }
 
 void Lexer::lex() {
