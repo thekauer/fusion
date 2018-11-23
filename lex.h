@@ -215,7 +215,7 @@ struct I_d : public Lexem {
 
 	typedef std::unique_ptr<Lexem> token_t;
 
-	
+void print_lexem(_Lexem);
 
 
 class Lexer : Iterator {
