@@ -44,7 +44,7 @@ Lexem TokenIterator::peek(unsigned int n) {
 }
 
 void Parser::parse_expr() {
-	if(is_typed())
+
 }
 
 bool Parser::is_typed() {
@@ -56,7 +56,7 @@ bool Parser::is_lit() {
 		case LitString:
 		case LitBool:
 		case LitHex:
-		case LiteFloat:
+		case LitFloat:
 		case LitInt:
 			return true;
 		default:
@@ -68,9 +68,9 @@ bool Parser::is_var() {
 	return peek().type == Id;
 }
 bool Parser::is_fn_call() {
-	return peek().type == Id && peek(1).type==Lp // Greedy
+	return peek().type == Id && peek(1).type==Lp; // Greedy
 }
 
 
-Parser::Typed(type_ type) : Ast(Ast::Typed), type(type){};
-Parser::Lit(std::unique_ptr<Lexem> lit) : Typed(Typed::Lit), lit(std::move(lit)){};
+Typed::Typed(type_ type) : Ast(Ast::Typed), type(type){};
+Lit::Lit(std::unique_ptr<Lexem> lit) : Typed(Typed::Lit), lit(std::move(lit)){};

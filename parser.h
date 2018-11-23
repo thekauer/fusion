@@ -112,12 +112,12 @@ struct Typed : Ast {
 	} type;
 
 	Typed(type_ type);
-}
+};
 
 struct Lit : Typed {
 	std::unique_ptr<Lexem> lit;
 	Lit(std::unique_ptr<Lexem> lit);
-}
+};
 
 
 
