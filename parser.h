@@ -1,6 +1,7 @@
 #pragma once
 #include "lex.h"
 
+typedef uint8_t u8;
 
 enum class Parse_e {
 	FnDecl,
@@ -71,7 +72,8 @@ enum class Op {
 struct Ast {
 	enum type_ {
 		Expr,
-		Typed
+		Typed,
+		FnDecl
 	};
 	type_ type;
 	Ast(type_ type);
@@ -120,16 +122,44 @@ struct Lit : Typed {
 };
 
 
+struct FnDecl : Ast {
+	u64 name;
+	struct FnMods {
+		u8 Cte :1;
+		u8 CteQ:1;
+		u8 Inline:1;
+		u8 Static :1;
+		u8 Public :1;
+		u8 Virtual:1;
+		u8 Override:1;
+		u8 Extern :1;
+	} mods;
+	struct FnGenArg {
+		u64 name;
+		FnGenArg(u64 name);
+	};
+	std::vector<FnGenArg> gen_args;
+	struct FnArg {
+		u64 name;
+		u64 type; // FIX ME
+		FnArg(u64 name);
+		FnArg(u64 name,u64 type);
+	};
+	//RETURN TYPE
+	std::vector<std::unique_ptr<Ast>> body;
+	std::vector<FnArg> args;
+	FnDecl();
 
+};
 
 class TokenIterator {     
 	std::vector<token_t>& tokens;
 	unsigned int it;
 	public:
 	 TokenIterator(std::vector<token_t>& tokens);
-     Lexem pop();
-     Lexem peek();
-     Lexem peek(unsigned int n);
+     Lexem* pop();
+     Lexem* peek();
+     Lexem* peek(unsigned int n);
      bool can_iter();
 
 };
@@ -139,7 +169,16 @@ public:
 	Parser(std::vector<token_t>& tokens);
 	void parse();
 private:
-	void parse_expr();
+	std::unique_ptr<Ast> parse_any();
+	std::unique_ptr<Expr> parse_expr();
+	 bool is_op(Lexem* op);
+	 Op parse_op();
+	std::unique_ptr<FnDecl> parse_fn_decl();
+	 FnDecl::FnMods parse_fn_mods();
+	 std::vector<FnDecl::FnGenArg> parse_fn_gen_args();
+	 std::vector<FnDecl::FnArg> parse_fn_args();
+
+
 	 bool is_typed();
 	  bool is_fn_call();
 	  bool is_lit();

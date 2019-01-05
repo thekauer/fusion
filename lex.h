@@ -20,8 +20,9 @@ offset=14695981039346656037;
 
 */
 
+typedef uint8_t u8;
 typedef uint64_t u64;
-const static u64 offset = 14695981039346656037;
+const static u64 offset = 14695981039346656037U;
 const static u64 prime = 1099511628211;
 
 /*constexpr*/ u64 hash(const char * s);
@@ -181,7 +182,7 @@ struct Lexem {
 };
 struct Lit_Int :public Lexem {
 	int val;
-	Lit_Int(int, unsigned int col, unsigned int line) : Lexem(LitInt,col,line), val(val) {};
+	Lit_Int(int val, unsigned int col, unsigned int line) : Lexem(LitInt,col,line), val(val) {};
 };
 struct Lit_Char: public Lexem {
 	char val;
