@@ -67,5 +67,24 @@ yield
 ## Statements
 ### Function Declaration
 ```rust
-inline [cte/cte?] static [pub/priv] export extern fn snake_case_name<T,U: Atomic + Add>(a /*infered*/, b : T/*simple generic*/,c : U/*must implement Atomic and Add*/,d : X /*inherited from a class/struct*/,e : Atomic /*must implement atomic*/,f : i32 /*standart old style*/,g .../*varadic params of any type*/) -> typeof(U+i32)/*can be left out as it is infered*/ assert [f>0] 
+inline [cte/cte?] static [pub/priv] export extern fn snake_case_name<T=float /*default generic*/,U: Atomic + Add>(a /*infered*/, b : T/*simple generic*/,c : U/*must implement Atomic and Add*/,d : X /*inherited from a class/struct*/,e : Atomic /*must implement atomic*/,f : i32 /*standart old style*/,g .../*varadic params of any type,must be last arg*/ /* could have type like g... : T*/ /* can be defaulted like g... = [0]*/) -> typeof(U+i32)/*can be left out as it is infered*/ assert [f>0] 
   return c+f;
+```
+
+### Lambda Functions
+```rust
+[cte/cte?] inline |a,b| return a+b (1,3)
+```
+
+### Class Declaration
+```rust
+class CamelCaseName<X> : BaseClass,Trait,AbstractClass
+```
+
+### Enum Declaration
+```rust
+enum CameCaseName<T> : size_type
+  TypedArg(arg:T),
+  NonType,
+  ManyTypes(first_args : i32,second_arg : float,char/*arg name isn't neceserry)
+```
