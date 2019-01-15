@@ -127,5 +127,6 @@ _ = 3 // variable droped
 my_pair = Pair(3,2) // Pair type inferred
 my_regex= (regex)"a*" // regex type infered
 my_long_struct_with_initazialer : Bigstrict ={3,true,2.2,'a'}
+my_tuple = (3,true)
 ```
 
