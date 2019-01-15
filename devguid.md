@@ -67,7 +67,7 @@ yield
 ## Statements
 ### Function Declaration
 ```rust
-async inline [cte/cte?] static [pub/priv] export extern fn snake_case_name<T=float /*default generic*/,U: Atomic + Add>(a /*infered*/, b : T/*simple generic*/,c : U/*must implement Atomic and Add*/,d : X /*inherited from a class/struct*/,e : Atomic /*must implement atomic*/,f : i32 /*standart old style*/,g .../*varadic params of any type,must be last arg*/ /* could have type like g... : T*/ /* can be defaulted like g... = [0]*/) -> typeof(U+i32)/*can be left out as it is infered*/ assert [f>0] 
+async inline [cte/cte?] static [pub/priv] export extern fn snake_case_name<T=float /*default generic*/,U: Atomic + Add>(a /*infered*/, b : T/*simple generic*/,c : U/*must implement Atomic and Add*/,d : X /*inherited from a class/struct*/,e : Atomic /*must implement atomic*/,f : i32 /*standart old style*/,g .../*varadic params of any type,must be last arg*/ /* could have type like g... : T*/ /* can be defaulted like g... = [0]*/) -> typeof(U+i32)/*can be left out as it is infered*/ assert [f>0] where T : Ord /*T implements ord*/
   return c+f;
 ```
 
@@ -88,7 +88,7 @@ enum CameCaseName<T> : size_type
   NonType,
   ManyTypes(first_args : i32,second_arg : float,char/*arg name isn't neceserry)
 ```
-## Range Expression
+### Range Expression
 ```rust
 //with bounds excluding 5 including 1
 1..5
@@ -113,3 +113,19 @@ arr[..:2]
 //or
 10..:-1
 ```
+
+### Variable declaration
+```rust
+a:int = 3 // standard declaration
+a=3 // int is inferred
+a= |a,b| return a+b // fn<T:Add,U:Add>(T,U)-> typeof(T+U)
+a= [true,false,true] // vec<bool> inferred
+a : arr<_> = [true,false,ture] // arr<bool> infered
+_ = 3 // variable droped
+(first,second) = some_pair // desructive declaration
+(first,_) = some_pair //we don't care about the second variable in the pair
+my_pair = Pair(3,2) // Pair type inferred
+my_regex= (regex)"a*" // regex type infered
+my_long_struct_with_initazialer : Bigstrict ={3,true,2.2,'a'}
+```
+
