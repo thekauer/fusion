@@ -1,6 +1,6 @@
 # Developer guid
 ## Valid keywords 
-```
+```cpp
 as
 asm
 assert
