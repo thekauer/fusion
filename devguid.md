@@ -67,5 +67,5 @@ yield
 ## Statements
 ### Function Declaration
 ```rust
-inline [cte/cte?] static [pub/priv] export extern fn snake_case_name<T,U: Atomic + Add>(a /*infered*/, b : T/*simple generic,c : U/*must implement Atomic and Add*/,d : X /*inherited from a class/struct*/,e : Atomic /*must implement atomic*/,f : i32 /*standart old style*/,g .../*varadic params of any type*/) -> typeof(U+i32)/*can be left out as it is infered*/ assert [f>0] 
+inline [cte/cte?] static [pub/priv] export extern fn snake_case_name<T,U: Atomic + Add>(a /*infered*/, b : T/*simple generic*/,c : U/*must implement Atomic and Add*/,d : X /*inherited from a class/struct*/,e : Atomic /*must implement atomic*/,f : i32 /*standart old style*/,g .../*varadic params of any type*/) -> typeof(U+i32)/*can be left out as it is infered*/ assert [f>0] 
   return c+f;
