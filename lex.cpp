@@ -1,434 +1,302 @@
 #include "lex.h"
-#define BUG_FIX " \n\n"
+#include <map>
 
-/*constexpr*/ u64 hash(const char * s) {
-	u64 hash = offset;
-	for (size_t i = 0; i < strlen(s); i++) {
-		hash ^= s[i];
-		hash *= prime;
+ptr hash(const std::string& str){
+    
+	u32 h = 123456;
+	u32 len = str.size();
+	const u8* key = (const u8*)(&str[0]);
+	if (len > 3) {
+		const u32* key_x4 = (const uint32_t*)(&str[0]);
+		size_t i = len >> 2;
+		do {
+			u32 k = *key_x4++;
+			k *= 0xcc9e2d51;
+			k = (k << 15) | (k >> 17);
+			k *= 0x1b873593;
+			h ^= k;
+			h = (h << 13) | (h >> 19);
+			h = h * 5 + 0xe6546b64;
+		} while (--i);
+		key = (const u8*)key_x4;
 	}
-	return hash;
+	if (len & 3) {
+		size_t i = len & 3;
+		u32 k = 0;
+		key = &key[i - 1];
+		do {
+			k <<= 8;
+			k |= *key--;
+		} while (--i);
+		k *= 0xcc9e2d51;
+		k = (k << 15) | (k >> 17);
+		k *= 0x1b873593;
+		h ^= k;
+	}
+	h ^= len;
+	h ^= h >> 16;
+	h *= 0x85ebca6b;
+	h ^= h >> 13;
+	h *= 0xc2b2ae35;
+	h ^= h >> 16;
+	return h;
+}
+
+enum Eq : unsigned char {
+    Not=64,
+    Hashtag,
+    Mod,
+    Lp,
+    Rp,
+    Mul,
+    Add,
+    Sub,
+    Comma,
+    Dot,
+    Div,
+    DoubleDot,
+    SemiColon,
+    Gt, //<
+    Lt, // >
+    Eq,
+    Questionmark, 
+    Backslash,
+    Lb, //[
+    Rb,// ]
+    Underscore,
+    Triangle, //^
+    Lc, //{
+    Rc, //}
+    Or,
+    Neg, //~
+    Null,
+    Space,
+    Tab,
+    And,
+    //parsing required
+    Quote,
+    Apostrophe,
+    Cr, // carrige return
+    N, //ascii 10 == 0xA
+    Letter=100,
+    Number=128
+};
+static const unsigned eq[128] = {Null,0,0,0,0,0,0,0,0,0,N,0,0,Cr,0,0,
+                                0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                                Space,Not,Quote,Hashtag,0,Mod,And,Apostrophe,Lp,Rp,Mul,Add,Comma,Sub,Dot,Div,
+                                Number,Number,Number,Number,Number,Number,Number,Number,Number,Number,DoubleDot,SemiColon,Lt,Eq,Gt,Questionmark,
+                                0,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,
+                                Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Lb,Backslash,Rb,Triangle,Underscore,
+                                0,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,
+                                Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Lc,Or,Rc,Neg};
+
+static bool is_op(u8 ch) {
+    return ch>=Not && ch<=And;
+}
+static bool is_ws(u8 ch) {
+    return ch==Tab || ch==Space;
+}
+static SourceLocation sl_cast(Lexer* l) {
+    return *reinterpret_cast<SourceLocation*>(l);
+}
+
+static const std::map<ptr,Kw_e> kws {
+        {hash("fn"),Fn}
+    };
+static Kw_e is_kw(ptr h) {
+    auto k = kws.find(h);
+    if(k!=kws.cend()) {
+        return k->second;
+    }
+    return Unk;
+}
+
+Lit Lexer::nolit(const SourceLocation& s,bool f,int base) {
+    llvm::StringRef sr(std::string(s.it,it));
+    int I;
+    double D;
+    if(f) {
+        sr.getAsDouble(D);
+        auto dt = IntegralType(Double,false,Copy);
+        return Lit(dt,static_cast<ptr>(D));
+    } else {
+        sr.getAsInteger(base,I);
+        auto ity =IntegralType(I32,false,Copy);
+        return Lit(ity,static_cast<ptr>(I));
+    }
+}
+
+Lexer::Lexer(const FSFile& file) : SourceLocation(file){};
+Token Lexer::next() {
+    SourceLocation err_loc = sl_cast(this);
+    while(eq[peek()]==Space) {
+        pop();
+    }
+    
+
+
+    u8 ch = eq[peek()];
+    switch (ch)
+    {
+    case Letter: {
+        if(eq[peek()]==Letter || eq[peek()]==Underscore) {
+            pop();
+        }
+        while((eq[peek()]==Letter || eq[peek()]==Number 
+        || eq[peek()]==Underscore)
+        &&can_iter()){pop();}
+        auto e = sl_cast(this);
+        auto s = hash(std::string(err_loc.it,e.it));
+        auto k = is_kw(s);
+        if(k!=Unk) {
+            return Token(k,e);
+        }
+
+        return Token(s,e);
+    }
+    case Number: {
+        //Handle base
+        int base=10;
+        while(eq[peek()]==Number) {
+            pop();
+        }
+        bool is_float=false;
+        if(eq[peek()]==Dot) {
+            pop();
+            is_float=true;
+        }
+        while(eq[peek()]==Number) {
+            pop();
+        }
+        //handle suffix
+        if(is_float) {
+            return Token(Token::Double,nolit(err_loc,is_float,10),err_loc);
+        } else {
+            return Token(Token::I32,nolit(err_loc,is_float,base),err_loc);
+        }
+
+
+    }
+    case N:{
+        line++;
+        pop();
+        while(eq[peek()]==Space) {
+            if(eq[pop()]==Tab);//error;
+        }
+        while(eq[peek()]==Tab) {
+            if(eq[pop()]==Space);//error
+        }
+        if(indent>err_loc.indent) return Token(Token::Gi,sl_cast(this));
+        if(indent<err_loc.indent) return Token(Token::Li,sl_cast(this));
+        return Token(Token::N,err_loc);
+    }
+       
+    
+    default:
+        break;
+    }
+    if(is_op(ch)) {
+        pop();
+        return Token(ch,sl_cast(this));
+    }
+
+}
+char Lexer::lex_escape(const char esc) {
+    auto err_loc = *reinterpret_cast<SourceLocation*>(this);
+     switch (esc)
+            {
+            case 'r':
+                return '\r';
+                break;
+            case 'n':
+                return '\n';
+                break;
+            case '\\':
+                return '\\';
+                break;
+            case 'b':
+                return '\b';
+                break;
+            case '\'':
+                return '\'';
+                break;
+            case '\"':
+                return '\"';
+                break;
+            case 't':
+                return '\t';
+                break;
+            case 'v':
+                return '\v';
+                break;
+            default:
+                //cerror(ERR_UNKNOWN_ESCAPE,err_loc,"Unknown escape character.");
+                break;
+            }
 }
 
 
 
-//#define add(e) tokens.push_back(std::unique_ptr<Lexem>( std::move((e)) ))
-//#define add(e) tokens.push_back(std::move(std::unique_ptr<Lexem>((e))))
-#define add(e) tokens.push_back(std::move(token_t((e))))
-#define strify(t) #t
 
-void print_lexem(_Lexem l) {
-		const std::string
- lexems[] = {
-		    strify(N)					,
-			strify(Gi)					, 
-			strify(Li)					, 
-			strify(Kw)					, 
-			strify(Id)					,
-			strify(LitChar)				,
-			strify(LitString)			,
-			strify(LitBool)				,
-			strify(LitHex)				,
-			strify(LitFloat)				,
-			strify(LitInt)				,
-			strify(Lp)					,
-			strify(Rp)					,
-			strify(Lb)					,
-			strify(Rb)					,
-			strify(Lc)					,
-			strify(Rc)					,
-			strify(Comma)				,
-			strify(Dot)					,
-			strify(Range)				,
-			strify(Elipsis)				,
-			strify(DoubleDot)			,
-			strify(DoubleDoubleDot)		,
-			strify(RightArrow)			, 
-			strify(Add)					,
-			strify(Sub)					,
-			strify(Mul)					,
-			strify(Div)					,
-			strify(Mod)					,
-			strify(Neg)					,
-			strify(Not)					,
-			strify(And)					,
-			strify(Or)					,
-			strify(Xor)					,
-			strify(Less)					,
-			strify(Greater)				,
-			strify(Eq)					,
-			strify(Addeq)				,
-			strify(Subeq)				,
-			strify(Muleq)				,
-			strify(Diveq)				,
-			strify(Modeq)				,
-			strify(Negeq)				,
-			strify(Noteq)				,
-			strify(Andeq)				,
-			strify(Oreq)					,
-			strify(Xoreq)				,
-			strify(Lesseq)				,
-			strify(Greatereq)			,
-			strify(Eqeq)					,
-			strify(AndAnd)				,
-			strify(OrOr)					,
-			strify(AddAdd)				,
-			strify(SubSub)				,
-
-		};
-		std::cout << lexems[l] << " ";
-	}
-
-
-
-void Lexer::tabcount() {
-	while(peek()=='\t' || peek()==' ') {
-		if(peek()=='\t') {
-			tcount+=4;
-		} else {
-			tcount+=1;
-		}
-		pop();
-	} 
-	if(tcount > ltcount) {
-		add(new Lexem(Gi,col,line));
-	}
-	if(tcount < ltcount) {
-		add(new Lexem(Li, col, line));
-	}
-	ltcount = tcount;
-	tcount =0;
-
+INLINE constexpr char SourceLocation::peek(const int n) {
+    switch (n)
+    {
+    case 0:
+        return peek_();
+        break;
+    case 1:
+        return peek_next();
+        break;
+    case 2:
+        return peek_nextnext();
+        break;
+    
+    default:
+        return peek_nth(n);
+    }
 }
 
-void Lexer::is_char()
-{
-	if (peek() == '\'') {
-		pop();
-		add(new Lit_Char(pop(), col, line));
-		if(pop()!='\'') {
-			errors.push_back(Error(fname,line,col,Error::Err,"Expected a closing \' in char literal."));
-		}
-		
-	}
+INLINE char SourceLocation::peek_nth(int n) {
+    return *it+n;
+}
+
+INLINE char SourceLocation::peek_() {
+    return current;
+}
+
+INLINE char SourceLocation::peek_next() {
+    return next;
+}
+
+INLINE char SourceLocation::peek_nextnext() {
+    return nextnext;
+}
+
+INLINE char SourceLocation::pop(int n) {
+    char r=peek(n-1);
+    it+=n;
+    col++;
+    prefetch((const char*)&it);
+    current=next;
+    next=nextnext;
+    if (can_iter()) {
+        nextnext = *it;
+    }
+    return r;
 }
 
 
-void Lexer::is_kw_or_id() {
-	u64 hash=offset;
-	if(isalpha(peek())) {
-		hash^=pop();
-		hash*=prime;
-		while(isalpha(peek()) || isdigit(peek())) {
-			hash^=pop();
-			hash*=prime;
-		}
-		auto res = keywords.find(hash);
-		if(res!=keywords.cend()) {
-			add(new Key_Word((Keyword)res->second, col, line));
-		} else {
-			add(new I_d(hash, col, line));
-		}
-
-	}
-}
-
-
-
-void Lexer::is_num() {
-	std::string s="";
-	bool f=false;
-
-
-	/*0b810100 BUG CAUSES infinite loop  (non 0-1)*/
-	if(peek()=='0')  {
-		if(peek(1)=='x') {
-			pop(2);
-			while(isxdigit(peek())) {
-				s+=pop();
-			}
-			add(new Lit_Hex(strtol(s.c_str(),NULL,16), col, line));
-			return;
-		}
-		if(peek(1)=='b') {
-			pop(2);
-			while(peek()=='0' || peek()=='1' || peek()=='_') {
-				if(peek()=='_')pop();
-				s+=pop();
-			}
-			add(new Lit_Int(strtol(s.c_str(),NULL,2), col, line));
-			return;
-
-		}
-	}
-
-	//1. is of type int not float!!!
-
-	if((peek()=='-' && isdigit(peek(1))) || isdigit(peek())) {
-		s+=pop();
-	while(isdigit(peek()) || (!f && peek()=='.')) {
-		if(f && peek()=='.') break;
-		if(peek()=='.' && !f ) {
-			if(isdigit(peek(1))) f=true;
-			else break;
-		}
-		s+=pop();
-	}
-	if(f)
-		add(new Lit_Float(atof(s.c_str()), col, line));
-	else
-		add(new Lit_Int(atoi(s.c_str()), col, line));
+INLINE bool SourceLocation::can_iter() {
+    return it!=end;
 }
 
 
 
 
-}
 
-void Lexer::is_op() {
-	switch (peek())
-	{
-	case '(':add(new Lexem(Lp,col,line)); pop();break;
-	case '[':add(new Lexem(Lb,col,line)); pop();break;
-	case '{':add(new Lexem(Lc,col,line)); pop();break;
-	case ')':add(new Lexem(Rp,col,line)); pop();break;
-	case ']':add(new Lexem(Rb,col,line)); pop();break;
-	case '}':add(new Lexem(Rc,col,line)); pop();break;
+SourceLocation::SourceLocation(const FSFile& file) : file(file),line(1),col(1),indent(0),it(file.code.begin()),end(file.code.end()) {
+    current=*it;
+    next=*(it++);
+    nextnext=*(it++);
 
-	case '.':
-		if (peek(1) == '.') {
-			if (peek(2) == '.') { add(new Lexem(Elipsis, col, line)); pop(3); }
-			else { add(new Lexem(Range, col, line)); pop(2); }
-		}
-		else { add(new Lexem(Dot, col, line)); pop(); }
-		break;
-
-	case ':':
-		if (peek(1) == ':') {
-			add(new Lexem(DoubleDoubleDot, col, line)); pop(2);}
-		else { add(new Lexem(DoubleDot, col, line)); pop(); }
-		break;
-
-	case ',': add(new Lexem(Comma, col, line)); pop(); break;
-
-
-
-
-
-	case '+':
-		if (peek(1) == '=') { add(new Lexem(Addeq, col, line)); pop(2); break; }
-		if (peek(1) == '+') {
-			add(new Lexem(AddAdd, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Add, col, line)); pop(); break;
-		}
-
-	case '-':
-		if (peek(1) == '>') {
-			add(new Lexem(RightArrow, col, line)); pop(2); break;
-		}
-		if (peek(1) == '-') {
-			add(new Lexem(SubSub, col, line)); pop(2); break;
-		}
-		if (peek(1) == '=') {
-			add(new Lexem(Subeq, col, line)); pop(2); break;
-		}
-		else { add(new Lexem(Sub, col, line)); pop(); break; }
-	case '/':
-		if (peek(1) == '=') { add(new Lexem(Diveq, col, line)); pop(2); break; }
-		else { add(new Lexem(Div, col, line)); pop(); break; }
-	case '*':
-		if (peek(1) == '=') {
-			add(new Lexem(Muleq, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Mul, col, line)); pop(); break;
-		}
-	case '%':
-		if (peek(1) == '=') {
-			add(new Lexem(Modeq, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Mod, col, line)); pop(); break;
-		}
-	case '~':
-		if (peek(1) == '=') {
-			add(new Lexem(Negeq, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Neg, col, line)); pop(); break;
-		}
-
-	case '!':
-		if (peek(1) == '=') {
-			add(new Lexem(Noteq, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Not, col, line)); pop(); break;
-		}
-	case '&':
-		if (peek(1) == '=') { add(new Lexem(Andeq, col, line)); pop(2); break; }
-		if (peek(1) == '&') {
-			add(new Lexem(AndAnd, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(And, col, line)); pop(); break;
-		}
-	case '|':
-		if (peek(1) == '=') { add(new Lexem(Oreq, col, line)); pop(2); break; }
-		if (peek(1) == '|') {
-			add(new Lexem(OrOr, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Or, col, line)); pop(); break;
-		}
-	case '^':
-		if (peek(1) == '=') {
-			add(new Lexem(Xoreq, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Xor, col, line)); pop(); break;
-		}
-	case '<':
-		if (peek(1) == '=') {
-			add(new Lexem(Lesseq, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Less, col, line)); pop(); break;
-		}
-	case '>':
-		if (peek(1) == '=') {
-			add(new Lexem(Greatereq, col, line)); pop(2); break;
-		}
-		else {
-			add(new Lexem(Greater, col, line)); pop(); break;
-		}
-	case '=':
-		if (peek(1) == '=') {
-			add(new Lexem(Eqeq, col, line)); pop(2); break;
-		}
-		else{
-			add(new Lexem(Eq, col, line)); pop(2); break;
-		}
-
-		break;
-
-
-
-
-
-	default:
-		break;
-	}
-}
-
-
-
-void Lexer::is_string() {
-	//WHEN Testing " is \\\" !!!!!
-	if (peek() == '\"') {
-		std::string buff = "";
-		pop();
-		while (peek() != '\"' && can_iter()) {
-			if (peek() == '\\') {
-				pop();
-				switch (pop())
-				{
-				case 'n':
-					buff += '\n';
-					break;
-				case '\"':
-					buff += '\"';
-					break;
-				case 't':
-					buff += '\t';
-					break;
-				case 'b':
-					buff += '\b';
-					break;
-				case 'r':
-					buff += '\r';
-					break;
-				case '?':
-					buff += '\?';
-					break;
-				case '\'':
-					buff += '\'';
-					break;
-
-				default:
-					break;
-				}
-
-			}
-				buff += pop();
-
-		}
-		pop();
-		add(new Lit_String(buff, col, line));
-	}
-}
-
-
-void Lexer::consume_space() {
-	while(peek()=='\t' || peek()==' ') {
-		pop();
-	}
-}
-
-
-void Lexer::is_bool() {
-	if(peek()=='t' && peek(1)=='r' && peek(2)=='u'
-		&& peek(3) =='e' && !isalpha(peek(4))) {
-		pop(4);
-		add(new Lit_Bool(true, col, line));
-	} 
-	if(peek()=='f' &&peek(1)=='a'&&peek(2)=='l'&&peek(3)=='s'&&peek(4)=='e'&&!isalpha(peek(5))) {
-		pop(5);
-		add(new Lit_Bool(false, col, line));
-	}
-}
-
-void Lexer::consume_newline() {
-
-	while(peek()=='\n') {
-		pop();
-		add(new Lexem(N, col, line));
-		tabcount();
-	}
-
-}
-
-Lexer::Lexer(std::string fname, std::string code) : fname(fname), Iterator(code+BUG_FIX) 
-{
-	
-}
-
-void Lexer::lex() {
-	while(can_iter()) {
-		
-		consume_newline();
-		//tabcount();
-		is_char();
-		is_string();
-		is_bool();
-		is_num();
-		is_kw_or_id();
-		is_op();
-		consume_space();
-		
-	}
-
-		
-	
-}
-
-
-std::vector<token_t>& Lexer::GetTokens() {
-	return tokens;
-}
-
-std::vector<Error>& Lexer::GetErrors() {
-	return errors;
 }
