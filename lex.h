@@ -13,21 +13,15 @@
 
 ptr hash(const std::string& str);
 class SourceLocation {
-    private:
-    char current,next,nextnext;
     public:
-    const FSFile& file;
+    FSFile& file;
     int line,col,indent;
     std::string::const_iterator it,end;
-    SourceLocation(const FSFile& file);
-    INLINE constexpr char peek(const int n=0);
-    INLINE char pop(int n=1);
+    SourceLocation(FSFile& file);
+    INLINE char peek(const int n=0);
+    INLINE char pop();
     INLINE bool can_iter();
-    private:
-    INLINE char peek_();
-    INLINE char peek_next();
-    INLINE char peek_nextnext();
-    INLINE char peek_nth(int n);
+    SourceLocation& operator=(const SourceLocation& other);
 };
 
 
@@ -50,19 +44,7 @@ struct Token {
     Li,
 
 
-    Char,
-    String,
-    I32,
-    I16,
-    I64,
-    Bool,
-    Float,
-    Double,
-    USize,
-    U8,
-    U16,
-    U32,
-    U64,
+    Lit,
 
     Not=64,
     Hashtag,
@@ -99,23 +81,28 @@ struct Token {
     SourceLocation sl;
     
     union {
-        Lit value;
+        ::Lit value;
         ptr hash;
         Kw_e kw;
     };
     Token(Type type,SourceLocation sl) : type(type),sl(sl){};
     Token(u8 c,SourceLocation sl) : type(static_cast<Type>(c)),sl(sl){};
-    Token(Type type,Lit val,SourceLocation sl) :type(type),value(val),sl(sl){};
+    Token(::Lit val,SourceLocation sl) :type(Lit),value(val),sl(sl){};
     Token(ptr hash,SourceLocation sl) :type(Id),hash(hash),sl(sl){};
     Token(Kw_e kw ,SourceLocation sl) : type(Kw),sl(sl){};
+    Token& operator=(const Token& other);
 };
-
+template<typename T>
+static SourceLocation sl_cast(T* l) {
+    return *reinterpret_cast<SourceLocation*>(l);
+}
 
 
 class Lexer :public SourceLocation{
 public:
-    Lexer(const FSFile& file);
+    Lexer(FSFile& file);
     Token next();
+    void test();
 private:
     char lex_escape(const char esc);
     Lit nolit(const SourceLocation& s,bool f,int base);

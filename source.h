@@ -7,9 +7,10 @@
 
 
 struct FSFile {
-    const std::string path;
-    const std::string code;
+    std::string path;
+    std::string code;
     FSFile(const std::string path,const std::string code) :path(path),code(code){};
+    FSFile& operator=(const FSFile& other);
     const std::string get_line(int line) const; 
 };
 class SourceManager {

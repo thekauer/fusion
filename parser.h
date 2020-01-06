@@ -2,45 +2,64 @@
 #include "lex.h"
 #include "type.h"
 #include <memory>
+#include "error.h"
 
-class AstExpr {
-    public:
-    enum type_ {
+    enum class AstType :unsigned char{
         FnDecl,
         FnCall,
-        FnProto
-    }type;
-    AstExpr(type_ type): type(type){};
+        FnProto,
+        BinExpr,
+        ValExpr
+    };
+class AstExpr {
+    public:
+    AstType type;
+    AstExpr(AstType type): type(type){};
         
        
 };
 struct FnProto : AstExpr {
     Type ret;
     std::vector<Type> args;
+    ptr name;
     template<typename... Ts>
-    FnProto(Type ret, Ts... type) :AstExpr(AstExpr::FnProto),ret(ret),args({type...})  {};
+    FnProto(ptr name,Type ret, Ts... type) :
+    AstExpr(AstType::FnProto),name(name),ret(ret),args({type...})  {};
 };
 
 struct FnDecl : AstExpr {
-    ptr name;
-    //args
-    //std::unique_ptr<AstExpr> body{};
-    FnDecl(const ptr& name) : name(name),AstExpr(AstExpr::FnDecl){};
+    std::unique_ptr<FnProto> proto;
+    std::unique_ptr<AstExpr> body;
+    FnDecl(std::unique_ptr<FnProto> prototype,std::unique_ptr<AstExpr> body) : 
+    proto(move(proto)),body(move(body)),AstExpr(AstType::FnDecl){};
     
 };
 
 struct FnCall : AstExpr {
     ptr name;
     //args
-    FnCall(const ptr& name) : name(name), AstExpr(AstExpr::FnCall) {};
+    FnCall(const ptr& name) : name(name), AstExpr(AstType::FnCall) {};
     
 };
+struct BinExpr : AstExpr {
+    std::unique_ptr<AstExpr> lhs,rhs;
+    Token::Type op;
+    BinExpr(Token::Type op,std::unique_ptr<AstExpr> lhs,std::unique_ptr<AstExpr> rhs) :
+    op(op),lhs(move(lhs)),rhs(move(rhs)),AstExpr(AstType::BinExpr){};
+};
+struct ValExpr :AstExpr {
+    Lit val;
+    ValExpr(Lit val) : AstExpr(AstType::ValExpr),val(val){}
+};
 
-
-
-
+int pre(Token::Type op);
 class Parser : Lexer {
 public:
-    Parser(const FSFile& file) : Lexer(file){};
+    Token expect(Token::Type ty,const std::string& tk);
+    Parser(FSFile& file) : Lexer(file){};
     std::unique_ptr<FnProto> parse_fnproto();
+    std::unique_ptr<FnDecl> parse_fndecl();
+    std::unique_ptr<AstExpr> parse_primary();
+    std::unique_ptr<FnCall> parse_fncall();
+    std::unique_ptr<AstExpr> parse_binary(std::unique_ptr<AstExpr> lhs,int p=0);
 };

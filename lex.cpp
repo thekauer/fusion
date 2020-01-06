@@ -96,16 +96,14 @@ static bool is_op(u8 ch) {
 static bool is_ws(u8 ch) {
     return ch==Tab || ch==Space;
 }
-static SourceLocation sl_cast(Lexer* l) {
-    return *reinterpret_cast<SourceLocation*>(l);
-}
+
 
 static const std::map<ptr,Kw_e> kws {
         {hash("fn"),Fn}
     };
 static Kw_e is_kw(ptr h) {
     auto k = kws.find(h);
-    if(k!=kws.cend()) {
+    if(k!=kws.end()) {
         return k->second;
     }
     return Unk;
@@ -126,7 +124,27 @@ Lit Lexer::nolit(const SourceLocation& s,bool f,int base) {
     }
 }
 
-Lexer::Lexer(const FSFile& file) : SourceLocation(file){};
+Token& Token::operator=(const Token& other) {
+    type=other.type;
+    sl=other.sl;
+    switch (other.type)
+    {
+    case Lit:
+        value=other.value;
+        break;
+    case Kw:
+        kw=other.kw;
+    case Id:
+        hash=other.hash;
+    
+    default:
+        break;
+    }
+    return *this;
+
+}
+
+Lexer::Lexer(FSFile& file) : SourceLocation(file){};
 Token Lexer::next() {
     SourceLocation err_loc = sl_cast(this);
     while(eq[peek()]==Space) {
@@ -146,13 +164,13 @@ Token Lexer::next() {
         || eq[peek()]==Underscore)
         &&can_iter()){pop();}
         auto e = sl_cast(this);
-        auto s = hash(std::string(err_loc.it,e.it));
-        auto k = is_kw(s);
+        auto s =std::string(err_loc.it,e.it);
+        auto h = hash(s);
+        auto k = is_kw(h);
         if(k!=Unk) {
             return Token(k,e);
         }
-
-        return Token(s,e);
+        return Token(h,e);
     }
     case Number: {
         //Handle base
@@ -170,15 +188,16 @@ Token Lexer::next() {
         }
         //handle suffix
         if(is_float) {
-            return Token(Token::Double,nolit(err_loc,is_float,10),err_loc);
+            return Token(nolit(err_loc,is_float,10),err_loc);
         } else {
-            return Token(Token::I32,nolit(err_loc,is_float,base),err_loc);
+            return Token(nolit(err_loc,is_float,base),err_loc);
         }
 
 
     }
     case N:{
         line++;
+        col=1;
         pop();
         while(eq[peek()]==Space) {
             if(eq[pop()]==Tab);//error;
@@ -186,8 +205,8 @@ Token Lexer::next() {
         while(eq[peek()]==Tab) {
             if(eq[pop()]==Space);//error
         }
-        if(indent>err_loc.indent) return Token(Token::Gi,sl_cast(this));
-        if(indent<err_loc.indent) return Token(Token::Li,sl_cast(this));
+        if(indent<col) return Token(Token::Gi,sl_cast(this));
+        if(indent>col) return Token(Token::Li,sl_cast(this));
         return Token(Token::N,err_loc);
     }
        
@@ -238,50 +257,15 @@ char Lexer::lex_escape(const char esc) {
 
 
 
-INLINE constexpr char SourceLocation::peek(const int n) {
-    switch (n)
-    {
-    case 0:
-        return peek_();
-        break;
-    case 1:
-        return peek_next();
-        break;
-    case 2:
-        return peek_nextnext();
-        break;
-    
-    default:
-        return peek_nth(n);
-    }
+INLINE  char SourceLocation::peek(const int n) {
+    return *it;
 }
 
-INLINE char SourceLocation::peek_nth(int n) {
-    return *it+n;
-}
-
-INLINE char SourceLocation::peek_() {
-    return current;
-}
-
-INLINE char SourceLocation::peek_next() {
-    return next;
-}
-
-INLINE char SourceLocation::peek_nextnext() {
-    return nextnext;
-}
-
-INLINE char SourceLocation::pop(int n) {
-    char r=peek(n-1);
-    it+=n;
+INLINE char SourceLocation::pop() {
+    char r=*it;
     col++;
-    prefetch((const char*)&it);
-    current=next;
-    next=nextnext;
-    if (can_iter()) {
-        nextnext = *it;
-    }
+    prefetch(&it);
+    it++;
     return r;
 }
 
@@ -291,12 +275,22 @@ INLINE bool SourceLocation::can_iter() {
 }
 
 
+void Lexer::test() {
+    while(can_iter()) {
+        std::cout<<pop();
+    }
+}
 
 
+SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),indent(0),it(file.code.begin()),end(file.code.end()) {
+}
 
-SourceLocation::SourceLocation(const FSFile& file) : file(file),line(1),col(1),indent(0),it(file.code.begin()),end(file.code.end()) {
-    current=*it;
-    next=*(it++);
-    nextnext=*(it++);
-
+SourceLocation& SourceLocation::operator=(const SourceLocation& other) {
+    file=other.file;
+    line=other.line;
+    col=other.col;
+    indent=other.indent;
+    it=other.it;
+    end=other.end;
+    return *this;
 }
