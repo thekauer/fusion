@@ -27,18 +27,17 @@ void SourceManager::open_(std::experimental::filesystem::path path) {
 }
 */
 const std::string FSFile::get_line(int line)const {
-    int l=0;
-    auto it = code.begin();
-    for(;it<code.end();it++) {
-        if(*it=='\n') {
-            l++;
+    size_t pos=0;
+    for(int i=0;i<line;i++) {
+        pos=code.find('\n',pos);
+        if(pos==std::string::npos) {
+            //ERROR
+            throw "shit";
         }
-        if(l==line)break;
     }
-    it++;
-    auto b=it;
-    for(;it!=code.end() && *it!='\n';it++);
-    return std::string(b,it); 
+    auto b =&code[pos];
+    auto len = code.find('\n',pos);
+    return std::string(b,len); 
     
 }
 
