@@ -47,3 +47,9 @@ const size_t Type::size() {
     }
     return s;
 }
+
+
+Lit::Lit(int v) {
+    llvm::Type* ty = llvm::IntegerType::get(ctx,32);
+    val =llvm::ConstantInt::get(ty,v,true);
+}

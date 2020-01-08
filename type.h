@@ -2,11 +2,17 @@
 #include <vector>
 #include "compatibility.h"
 #include <memory>
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/ADT/APInt.h"
+#include "llvm/IR/Constants.h"
 enum By_e :unsigned char{
     Copy,
     Ref,
     Ptr
 };
+static llvm::LLVMContext ctx;
 
 enum Type_e :unsigned char{
     Char,
@@ -41,9 +47,9 @@ struct Type  {
 };
 
 struct Lit {
-    IntegralType type=IntegralType(I32,false,Copy);
-    ptr val;
-    Lit(IntegralType type,ptr val):type(type),val(val){};
+    llvm::Constant* val;
+    Lit(llvm::Constant* val):val(val){}
+    Lit(int);
 };
 
 

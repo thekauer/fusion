@@ -6,6 +6,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/IR/Constant.h"
+#include "llvm/IR/LLVMContext.h"
 #include "source.h"
 #include "type.h"
 

@@ -46,7 +46,17 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     return std::make_unique<FnDecl>(move(proto),move(body));
 }
 
+std::unique_ptr<ValExpr> Parser::parse_valexpr() {
+    auto t = next();
+    if(t.type==Token::Lit) {
+        return std::make_unique<ValExpr>(t.value.val);
+    }
+    return nullptr;
+}
+
 std::unique_ptr<AstExpr> Parser::parse_primary() {
+    std::unique_ptr<AstExpr> expr = parse_valexpr();
+    if(expr)return expr;
     return parse_fncall();
 }
 std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,int p){

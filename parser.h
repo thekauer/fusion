@@ -34,6 +34,10 @@ struct FnDecl : AstExpr {
     proto(move(proto)),body(move(body)),AstExpr(AstType::FnDecl){};
     
 };
+struct ValExpr : AstExpr {
+    llvm::Constant* val;
+    ValExpr(llvm::Constant* val) : AstExpr(AstType::ValExpr),val(val){}
+};
 
 struct FnCall : AstExpr {
     ptr name;
@@ -47,10 +51,7 @@ struct BinExpr : AstExpr {
     BinExpr(Token::Type op,std::unique_ptr<AstExpr> lhs,std::unique_ptr<AstExpr> rhs) :
     op(op),lhs(move(lhs)),rhs(move(rhs)),AstExpr(AstType::BinExpr){};
 };
-struct ValExpr :AstExpr {
-    Lit val;
-    ValExpr(Lit val) : AstExpr(AstType::ValExpr),val(val){}
-};
+
 
 int pre(Token::Type op);
 class Parser : Lexer {
@@ -62,4 +63,5 @@ public:
     std::unique_ptr<AstExpr> parse_primary();
     std::unique_ptr<FnCall> parse_fncall();
     std::unique_ptr<AstExpr> parse_binary(std::unique_ptr<AstExpr> lhs,int p=0);
+    std::unique_ptr<ValExpr> parse_valexpr();
 };

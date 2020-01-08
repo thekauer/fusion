@@ -116,11 +116,11 @@ Lit Lexer::nolit(const SourceLocation& s,bool f,int base) {
     if(f) {
         sr.getAsDouble(D);
         auto dt = IntegralType(Double,false,Copy);
-        return Lit(dt,static_cast<ptr>(D));
+        return Lit(D);
     } else {
         sr.getAsInteger(base,I);
         auto ity =IntegralType(I32,false,Copy);
-        return Lit(ity,static_cast<ptr>(I));
+        return Lit(I);
     }
 }
 
