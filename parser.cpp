@@ -83,6 +83,9 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,int p
         return std::make_unique<BinExpr>(op,move(lhs),move(rhs));
     }
     auto np=pre(peek(1).type);//peek
+    if(np==-1) {
+        return std::make_unique<BinExpr>(op,move(lhs),move(rhs));
+    }
     if(tp>=np) {
         return parse_binary(std::make_unique<BinExpr>(op,move(lhs),move(rhs)));
     }
@@ -103,7 +106,7 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
     expect(Token::Lp,"(");
     //args
     std::vector<AstExpr> args;
-    auto arg = parse_valexpr();
+    auto arg = parse_expr();
     expect(Token::Rp,")");
     return std::make_unique<FnCall>(fn_name);
 }

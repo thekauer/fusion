@@ -29,7 +29,7 @@ int main() {
     //auto m = p.parse_fndecl();
     auto m = p.parse_fndecl();
     if(m) {
-        std::cout <<"yeey\n";
+        //std::cout <<"yeey\n";
         m->print_name();
     }
     else std::cout << "ayy";
