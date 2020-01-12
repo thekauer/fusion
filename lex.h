@@ -25,7 +25,7 @@ class SourceLocation {
     SourceLocation& operator=(const SourceLocation& other);
 };
 
-
+bool is_op(u8 ch);
 
 
 enum Kw_e : unsigned char {
@@ -103,7 +103,9 @@ class Lexer :public SourceLocation{
 public:
     Lexer(FSFile& file);
     Token next();
+    void lex();
     void test();
+    std::vector<Token> tokens;
 private:
     char lex_escape(const char esc);
     Lit nolit(const SourceLocation& s,bool f,int base);

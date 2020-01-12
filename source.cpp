@@ -1,5 +1,5 @@
 #include "source.h"
-
+#include "llvm/Support/raw_ostream.h"
 
 
 
@@ -28,7 +28,7 @@ void SourceManager::open_(std::experimental::filesystem::path path) {
 */
 const std::string FSFile::get_line(int line)const {
     size_t pos=0;
-    for(int i=0;i<line;i++) {
+    for(int i=0;i<line-1;i++) {
         pos=code.find('\n',pos);
         if(pos==std::string::npos) {
             //ERROR

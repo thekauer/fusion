@@ -90,7 +90,7 @@ static const unsigned eq[128] = {Null,0,0,0,0,0,0,0,0,0,N,0,0,Cr,0,0,
                                 0,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,
                                 Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Lc,Or,Rc,Neg};
 
-static bool is_op(u8 ch) {
+bool is_op(u8 ch) {
     return ch>=Not && ch<=And;
 }
 static bool is_ws(u8 ch) {
@@ -142,6 +142,11 @@ Token& Token::operator=(const Token& other) {
     }
     return *this;
 
+}
+
+void Lexer::lex() {
+    while(can_iter())
+        tokens.push_back(next());
 }
 
 Lexer::Lexer(FSFile& file) : SourceLocation(file){};

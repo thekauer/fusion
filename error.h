@@ -4,7 +4,8 @@
 
 enum class Error_e : int {
     TabsnSpaces,
-    ExpectedToken
+    ExpectedToken,
+    EmptyFnBody
 };
 [[noreturn]]
 void error(Error_e code,const std::string& msg,const SourceLocation& sl);
