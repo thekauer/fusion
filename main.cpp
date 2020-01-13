@@ -7,6 +7,13 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/TargetRegistry.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/FileSystem.h"
 
 
 
@@ -33,6 +40,49 @@ int main() {
         m->print_name();
     }
     else std::cout << "ayy";
+
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+
+
+    auto targettriple= llvm::sys::getDefaultTargetTriple();
+    mod->setTargetTriple(targettriple);
+    std::string Error;
+    auto Target = llvm::TargetRegistry::lookupTarget(targettriple,Error);
+    if(!Target) {
+        llvm::errs() << Error;
+        return 1;
+    }
+
+    auto CPU="generic";
+    auto Features="";
+    auto RM = llvm::Optional<llvm::Reloc::Model>();
+    llvm::TargetOptions opt;
+    auto TargetMachine = Target->createTargetMachine(targettriple,CPU,Features,opt,RM);
+    mod->setDataLayout(TargetMachine->createDataLayout());
+    auto filename = "main.o";
+    std::error_code EC;
+    llvm::raw_fd_ostream dest(filename,EC,llvm::sys::fs::OF_None);
+
+    if(EC) {
+        llvm::errs() << "could not open file: "<< EC.message();
+    }
+    llvm::legacy::PassManager pass;
+    //llvm::FunctionPassManager pass;
+    auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
+
+    
+
+    if(!TargetMachine->addPassesToEmitFile(pass,dest,nullptr,FileType)) {
+        llvm::errs() << "Could not emit to file";
+        return 1;
+    }
+    m->codegen();
+    pass.run(*mod);
+    dest.flush();
 
     //error(Error_e::ExpectedToken,"works?",err);
     //auto m = p.parse_fndecl();

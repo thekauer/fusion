@@ -78,6 +78,7 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,int p
     if(it==end)return lhs;
     auto op=peek().type;
     //check if op is actually an operator
+    if(pre(op)==-1)return lhs;
     pop();
     auto tp=pre(op);
     auto rhs=parse_primary();

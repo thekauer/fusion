@@ -68,6 +68,11 @@ llvm::Value* FnProto::codegen() {
     llvm::FunctionType* ft = llvm::FunctionType::get(ret_t,fn_args,false);
     llvm::Function* f = llvm::Function::Create(ft,lt,name,mod.get());
     //set arg names
+    unsigned idx=0;
+    for(auto& arg : f->args()) {
+        auto n=((ValExpr*)(args[idx++].get()))->val->getName();
+        arg.setName(n);
+    }
 
     return f;
 
