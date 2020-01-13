@@ -1,6 +1,6 @@
 #pragma once
 #include "lex.h"
-#include "type.h"
+#include "context.h"
 #include <memory>
 #include "error.h"
 
@@ -9,23 +9,28 @@
         FnCall,
         FnProto,
         BinExpr,
-        ValExpr
+        ValExpr,
+        TypeExpr,
+        VarExpr
     };
 class AstExpr {
     public:
     AstType type;
     AstExpr(AstType type): type(type){};
     virtual void print_name() {std::cout <<"AstExpr\n";};
-    //virtual void codegen()=0;
+    virtual llvm::Value* codegen()=0;
        
 };
 struct FnProto : AstExpr {
     std::unique_ptr<AstExpr> ret;
-    std::vector<AstExpr> args;
-    ptr name;
-    FnProto(ptr name,std::unique_ptr<AstExpr> ret) :
+    std::vector<std::unique_ptr<AstExpr>> args;
+    llvm::StringRef name;
+    Linkage linkage =Linkage::Ext;
+    Inline is_inline = Inline::Def;
+    FnProto(llvm::StringRef name,std::unique_ptr<AstExpr> ret) :
     AstExpr(AstType::FnProto),name(name),ret(std::move(ret))  {};
     void print_name() override {std::cout << "FnProto\n";}
+    llvm::Value* codegen() override;
 };
 
 struct FnDecl : AstExpr {
@@ -34,18 +39,34 @@ struct FnDecl : AstExpr {
     FnDecl(std::unique_ptr<FnProto> proto,std::unique_ptr<AstExpr> body) : 
     proto(move(proto)),body(move(body)),AstExpr(AstType::FnDecl){};
     void print_name() override {std::cout <<"FnDecl\n";}
+    llvm::Value* codegen() override;
 };
 struct ValExpr : AstExpr {
     llvm::Constant* val;
     ValExpr(llvm::Constant* val) : AstExpr(AstType::ValExpr),val(val){}
     void print_name()override {std::cout <<"ValExpr\n";}
+    llvm::Value* codegen() override;
 };
 
+struct VarExpr : AstExpr {
+    llvm::StringRef name;
+    VarExpr(llvm::StringRef name) : AstExpr(AstType::VarExpr),name(name){}
+    llvm::Value* codegen() override;
+
+};
+
+struct TypeExpr : AstExpr {
+    llvm::Type* type;
+    TypeExpr(llvm::Type* type) : AstExpr(AstType::TypeExpr),type(type){}
+    llvm::Value* codegen() override;
+};
 struct FnCall : AstExpr {
-    ptr name;
+    llvm::StringRef name;
     //args
-    FnCall(const ptr& name) : name(name), AstExpr(AstType::FnCall) {};
+    std::vector<std::unique_ptr<AstExpr>> args;
+    FnCall(llvm::StringRef name) : name(name), AstExpr(AstType::FnCall) {};
     void print_name() override{std::cout <<"FnCall\n";}
+    llvm::Value* codegen() override;
 };
 struct BinExpr : AstExpr {
     std::unique_ptr<AstExpr> lhs,rhs;
@@ -53,6 +74,7 @@ struct BinExpr : AstExpr {
     BinExpr(Token::Type op,std::unique_ptr<AstExpr> lhs,std::unique_ptr<AstExpr> rhs) :
     op(op),lhs(move(lhs)),rhs(move(rhs)),AstExpr(AstType::BinExpr){};
     void print_name()override {std::cout <<"BinExpr\n";}
+    llvm::Value* codegen() override;
 };
 
 

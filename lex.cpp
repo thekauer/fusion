@@ -1,6 +1,6 @@
 #include "lex.h"
 #include <map>
-
+#include "llvm/IR/Constants.h"
 ptr hash(const std::string& str){
     
 	u32 h = 123456;
@@ -109,18 +109,20 @@ static Kw_e is_kw(ptr h) {
     return Unk;
 }
 
-Lit Lexer::nolit(const SourceLocation& s,bool f,int base) {
+llvm::Constant* Lexer::nolit(const SourceLocation& s,bool f,int base) {
     llvm::StringRef sr(std::string(s.it,it));
     int I;
     double D;
     if(f) {
         sr.getAsDouble(D);
-        auto dt = IntegralType(Double,false,Copy);
-        return Lit(D);
+        
+        return llvm::ConstantInt::get(
+            llvm::IntegerType::getInt32Ty(ctx),
+            llvm::APInt(32,I,true)
+        );
     } else {
         sr.getAsInteger(base,I);
-        auto ity =IntegralType(I32,false,Copy);
-        return Lit(I);
+        return llvm::ConstantFP::get(ctx,llvm::APFloat(D));
     }
 }
 
@@ -135,7 +137,7 @@ Token& Token::operator=(const Token& other) {
     case Kw:
         kw=other.kw;
     case Id:
-        hash=other.hash;
+        str=other.str;
     
     default:
         break;
@@ -175,7 +177,7 @@ Token Lexer::next() {
         if(k!=Unk) {
             return Token(k,e);
         }
-        return Token(h,e);
+        return Token(s,e);
     }
     case Number: {
         //Handle base

@@ -8,7 +8,7 @@
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/LLVMContext.h"
 #include "source.h"
-#include "type.h"
+#include "context.h"
 
 
 
@@ -82,14 +82,14 @@ struct Token {
     SourceLocation sl;
     
     union {
-        ::Lit value;
-        ptr hash;
+        llvm::Constant* value;
+        llvm::StringRef str;
         Kw_e kw;
     };
     Token(Type type,SourceLocation sl) : type(type),sl(sl){};
     Token(u8 c,SourceLocation sl) : type(static_cast<Type>(c)),sl(sl){};
-    Token(::Lit val,SourceLocation sl) :type(Lit),value(val),sl(sl){};
-    Token(ptr hash,SourceLocation sl) :type(Id),hash(hash),sl(sl){};
+    Token(llvm::Constant* val,SourceLocation sl) :type(Lit),value(val),sl(sl){};
+    Token(llvm::StringRef str,SourceLocation sl) :type(Id),str(str),sl(sl){};
     Token(Kw_e kw ,SourceLocation sl) : type(Kw),sl(sl){};
     Token& operator=(const Token& other);
 };
@@ -108,5 +108,5 @@ public:
     std::vector<Token> tokens;
 private:
     char lex_escape(const char esc);
-    Lit nolit(const SourceLocation& s,bool f,int base);
+    llvm::Constant* nolit(const SourceLocation& s,bool f,int base);
 };
