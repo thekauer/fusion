@@ -53,12 +53,8 @@ before_install:
   fi
   export PATH="${TOOLS_DIR}/cmake-${CMAKE_VERSION}/bin:$PATH"
  
-install:
-- ./build-libcxx.sh
-- export LD_LIBRARY_PATH="${LLVM_INSTALL_PREFIX}/lib"
- 
-before_script:
-- source ./init.sh
+
+
 
 script:
 - cake architecture=$ARCH release=$RELEASE --clang-executable="$CC" --libcxx-install-prefix="${LLVM_INSTALL_PREFIX}"
