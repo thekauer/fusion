@@ -83,6 +83,7 @@ int main() {
     m->codegen();
     pass.run(*mod);
     dest.flush();
+    std::cout << "test";
 
     //error(Error_e::ExpectedToken,"works?",err);
     //auto m = p.parse_fndecl();
