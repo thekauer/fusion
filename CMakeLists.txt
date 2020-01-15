@@ -33,17 +33,18 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 file(GLOB fs_SRC
-	"*.h"
-	"*.cpp"
+"*.h"
+"*.cpp"
 )
 # add the executable
 add_executable(fs  ${fs_SRC})
-set(LLVM_LINK_COMPONENTS
-all
 
-)
-llvm_map_components_to_libnames(llvm_libs support core irreader linker support bitwriter object)
-target_link_libraries(fs ${llvm_libs})
+
+llvm_map_components_to_libnames(llvm_libs
+ all
+  )
+
+target_link_libraries(fs LLVM)
 
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard

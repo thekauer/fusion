@@ -17,6 +17,8 @@
 
 
 
+
+
 int main() {
     SourceManager sm;
     sm.open("main.fs");
@@ -40,13 +42,15 @@ int main() {
         m->print_name();
     }
     else std::cout << "ayy";
-
+    
+    /*
+    */
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
     llvm::InitializeAllTargetMCs();
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
-
+    llvm::InitializeNativeTarget();
 
     auto targettriple= llvm::sys::getDefaultTargetTriple();
     mod->setTargetTriple(targettriple);
@@ -76,14 +80,13 @@ int main() {
 
     
 
-    if(!TargetMachine->addPassesToEmitFile(pass,dest,nullptr,FileType)) {
+    if(TargetMachine->addPassesToEmitFile(pass,dest,nullptr,FileType)) {
         llvm::errs() << "Could not emit to file";
         return 1;
     }
     m->codegen();
     pass.run(*mod);
     dest.flush();
-    std::cout << "test";
 
     //error(Error_e::ExpectedToken,"works?",err);
     //auto m = p.parse_fndecl();
