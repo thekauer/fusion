@@ -40,13 +40,12 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
     if(t.type!=Token::Kw)return nullptr;
     pop();
     auto name = expect(Token::Id, "identifier");
-    
     //generics
     expect(Token::Lp,"(");
     //args
     expect(Token::Rp,")");
     //MAybe return type
-    return std::make_unique<FnProto>(name.str,nullptr);   
+    return std::make_unique<FnProto>(name,nullptr);   
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
@@ -63,7 +62,7 @@ std::unique_ptr<ValExpr> Parser::parse_valexpr() {
     auto t = peek();
     if(t.type==Token::Lit) {
         pop();
-        return std::make_unique<ValExpr>(t.value);
+        return std::make_unique<ValExpr>(t.getValue());
     }
     return nullptr;
 }
@@ -105,13 +104,14 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
     if(name.type!=Token::Id) return nullptr;
     pop();
 
-    auto fn_name=name.str;
     expect(Token::Lp,"(");
     //args
     std::vector<AstExpr> args;
     auto arg = parse_expr();
     expect(Token::Rp,")");
-    return std::make_unique<FnCall>(fn_name);
+    return std::make_unique<FnCall>(name);
 }
+
+
 
 

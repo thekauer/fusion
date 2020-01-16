@@ -88,7 +88,32 @@ static const unsigned eq[128] = {Null,0,0,0,0,0,0,0,0,0,N,0,0,Cr,0,0,
                                 0,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,
                                 Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Lb,Backslash,Rb,Triangle,Underscore,
                                 0,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,
-                                Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Lc,Or,Rc,Neg};
+                                Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Letter,Lc,Or,Rc,Neg
+};
+
+
+
+
+Token::Token(Type type,SourceLocation sl) : type(type),sl(sl){};
+Token::Token(u8 c,SourceLocation sl) : type(static_cast<Type>(c)),sl(sl){}
+Token::Token(llvm::Constant* val,SourceLocation sl) : type(Lit),sl(sl),data(val){}
+Token::Token(std::string str,SourceLocation sl) : type(Id),data(str),sl(sl){}
+Token::Token(Kw_e kw,SourceLocation sl): type(Kw),sl(sl){}
+
+llvm::Constant* Token::getValue() const{
+    return std::get<llvm::Constant*>(data);
+}
+std::string Token::getName() const {
+    return std::get<std::string>(data);
+}
+Kw_e Token::getKw() const{
+    return std::get<Kw_e>(data);
+}
+
+
+
+
+
 
 bool is_op(u8 ch) {
     return ch>=Not && ch<=And;
@@ -126,18 +151,29 @@ llvm::Constant* Lexer::nolit(const SourceLocation& s,bool f,int base) {
     }
 }
 
+llvm::Constant* Lexer::stringlit(std::string s) {
+    llvm::Type* i8ty = llvm::IntegerType::getInt8Ty(ctx);
+    llvm::ArrayType* sty = llvm::ArrayType::get(i8ty,s.size()+1);
+    std::vector<llvm::Constant*> vals;
+    for(char c : s) {
+        llvm::Constant* cc = llvm::ConstantInt::get(i8ty,c,true);
+        vals.push_back(cc);
+    }
+    return llvm::ConstantArray::get(sty,vals);
+}
+
 Token& Token::operator=(const Token& other) {
     type=other.type;
     sl=other.sl;
     switch (other.type)
     {
     case Lit:
-        value=other.value;
+        data=other.data;
         break;
     case Kw:
-        kw=other.kw;
+        data=other.data;
     case Id:
-        str=other.str;
+        data=other.data;
     
     default:
         break;
@@ -147,8 +183,9 @@ Token& Token::operator=(const Token& other) {
 }
 
 void Lexer::lex() {
-    while(can_iter())
+    while(can_iter()) {
         tokens.push_back(next());
+    }
 }
 
 Lexer::Lexer(FSFile& file) : SourceLocation(file){};
@@ -157,7 +194,6 @@ Token Lexer::next() {
     while(eq[peek()]==Space) {
         pop();
     }
-    
 
 
     u8 ch = eq[peek()];
@@ -201,6 +237,16 @@ Token Lexer::next() {
         }
 
 
+    }
+    case Quote: {
+        pop(); // pop the quote
+        std::string buff;
+        while(eq[peek()]!=Quote) {
+            buff+=pop();
+        }
+        pop(); // pop the ending quote
+        
+        return Token(stringlit(buff),err_loc);
     }
     case N:{
         line++;

@@ -19,15 +19,16 @@ class AstExpr {
     AstExpr(AstType type): type(type){};
     virtual void print_name() {std::cout <<"AstExpr\n";};
     virtual llvm::Value* codegen()=0;
+    virtual ~AstExpr(){}
        
 };
 struct FnProto : AstExpr {
     std::unique_ptr<AstExpr> ret;
     std::vector<std::unique_ptr<AstExpr>> args;
-    llvm::StringRef name;
+    Token name;
     Linkage linkage =Linkage::Ext;
     Inline is_inline = Inline::Def;
-    FnProto(llvm::StringRef name,std::unique_ptr<AstExpr> ret) :
+    FnProto(Token name,std::unique_ptr<AstExpr> ret) :
     AstExpr(AstType::FnProto),name(name),ret(std::move(ret))  {};
     void print_name() override {std::cout << "FnProto\n";}
     llvm::Value* codegen() override;
@@ -49,8 +50,8 @@ struct ValExpr : AstExpr {
 };
 
 struct VarExpr : AstExpr {
-    llvm::StringRef name;
-    VarExpr(llvm::StringRef name) : AstExpr(AstType::VarExpr),name(name){}
+    std::string name;
+    VarExpr(std::string name) : AstExpr(AstType::VarExpr),name(name){}
     llvm::Value* codegen() override;
 
 };
@@ -61,10 +62,10 @@ struct TypeExpr : AstExpr {
     llvm::Value* codegen() override;
 };
 struct FnCall : AstExpr {
-    llvm::StringRef name;
+    Token name;
     //args
     std::vector<std::unique_ptr<AstExpr>> args;
-    FnCall(llvm::StringRef name) : name(name), AstExpr(AstType::FnCall) {};
+    FnCall(Token name) : name(name), AstExpr(AstType::FnCall) {};
     void print_name() override{std::cout <<"FnCall\n";}
     llvm::Value* codegen() override;
 };

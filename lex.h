@@ -9,7 +9,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "source.h"
 #include "context.h"
-
+#include <variant>
 
 
 ptr hash(const std::string& str);
@@ -80,18 +80,18 @@ struct Token {
 
     } type;
     SourceLocation sl;
-    
-    union {
-        llvm::Constant* value;
-        llvm::StringRef str;
-        Kw_e kw;
-    };
-    Token(Type type,SourceLocation sl) : type(type),sl(sl){};
-    Token(u8 c,SourceLocation sl) : type(static_cast<Type>(c)),sl(sl){};
-    Token(llvm::Constant* val,SourceLocation sl) :type(Lit),value(val),sl(sl){};
-    Token(llvm::StringRef str,SourceLocation sl) :type(Id),str(str),sl(sl){};
-    Token(Kw_e kw ,SourceLocation sl) : type(Kw),sl(sl){};
+
+    Token(Type type,SourceLocation sl);
+    Token(u8 c,SourceLocation sl);
+    Token(llvm::Constant* val,SourceLocation sl);
+    Token(std::string str,SourceLocation sl);
+    Token(Kw_e kw ,SourceLocation sl);
     Token& operator=(const Token& other);
+    llvm::Constant* getValue() const;
+    std::string getName() const;
+    Kw_e getKw() const;
+private:
+    std::variant<llvm::Constant*,std::string,Kw_e> data;
 };
 template<typename T>
 static SourceLocation sl_cast(T* l) {
@@ -109,4 +109,5 @@ public:
 private:
     char lex_escape(const char esc);
     llvm::Constant* nolit(const SourceLocation& s,bool f,int base);
+    llvm::Constant* stringlit(std::string s);
 };
