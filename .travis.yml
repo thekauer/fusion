@@ -81,6 +81,8 @@ before_install:
   # gil
   - pip3 install gil
   - gil update
+  # llvm
+  - git clone https://github.com/llvm/llvm-project.git
 
 # Build scripts
 script: 
