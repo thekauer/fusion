@@ -68,6 +68,7 @@ cache:
   - llvm
 # Build scripts
 script: 
+  - ls
   - mkdir -p build
   - cd build
   - cmake .. 
