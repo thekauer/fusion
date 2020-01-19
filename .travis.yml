@@ -63,12 +63,15 @@ before_install:
   - gil update
   # llvm
   - git clone https://github.com/llvm/llvm-project.git
-
+cache:
+ directories:
+  - llvm
 # Build scripts
 script: 
   - mkdir -p build
   - cd build
   - cmake .. 
+  - ls
   - make
 
 # Don't send notifications on success
