@@ -68,11 +68,12 @@ cache:
   - llvm
 # Build scripts
 script: 
-  - ls
+  - mv /fusion /llvm-project/llvm
+  - cd llvm && ls
+  - cd ..
   - mkdir -p build
   - cd build
   - cmake .. 
-  - ls
   - make
 
 # Don't send notifications on success
