@@ -68,7 +68,9 @@ cache:
   - llvm
 # Build scripts
 script: 
-  - mv /fusion /llvm-project/llvm
+  - cd llvm-project
+  - mv llvm .. 
+  - cd .. 
   - cd llvm && ls
   - cd ..
   - mkdir -p build
