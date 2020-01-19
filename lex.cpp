@@ -94,11 +94,11 @@ static const unsigned eq[128] = {Null,0,0,0,0,0,0,0,0,0,N,0,0,Cr,0,0,
 
 
 
-Token::Token(Type type,SourceLocation sl) : type(type),sl(sl){};
-Token::Token(u8 c,SourceLocation sl) : type(static_cast<Type>(c)),sl(sl){}
-Token::Token(llvm::Constant* val,SourceLocation sl) : type(Lit),sl(sl),data(val){}
-Token::Token(std::string str,SourceLocation sl) : type(Id),data(str),sl(sl){}
-Token::Token(Kw_e kw,SourceLocation sl): type(Kw),sl(sl){}
+Token::Token(Type type,const SourceLocation& sl) : type(type),sl(sl){};
+Token::Token(u8 c,const SourceLocation& sl) : type(static_cast<Type>(c)),sl(sl){}
+Token::Token(llvm::Constant* val,const SourceLocation& sl) : type(Lit),sl(sl),data(val){}
+Token::Token(std::string str,const SourceLocation& sl) : type(Id),data(str),sl(sl){}
+Token::Token(Kw_e kw,const SourceLocation& sl): type(Kw),sl(sl){}
 
 llvm::Constant* Token::getValue() const{
     return std::get<llvm::Constant*>(data);
