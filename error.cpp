@@ -12,7 +12,6 @@ void error(Error_e code,const std::string& msg,const SourceLocation& sl) {
     }
     std::cout << "^\n" <<"\n";
     std::exit(static_cast<int>(code));  
-    throw static_cast<int>(code);
 }
 
 
