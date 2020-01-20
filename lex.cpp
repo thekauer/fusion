@@ -318,7 +318,7 @@ INLINE char SourceLocation::pop() {
     char r=*it;
     col++;
     prefetch(&it);
-    it++;
+    ++it;
     return r;
 }
 
