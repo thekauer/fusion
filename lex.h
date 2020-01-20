@@ -84,7 +84,7 @@ struct Token {
     Token(Type type,const SourceLocation& sl);
     Token(u8 c,const SourceLocation& sl);
     Token(llvm::Constant* val,const SourceLocation& sl);
-    Token(std::string str,const SourceLocation& sl);
+    Token(const std::string& str,const SourceLocation& sl);
     Token(Kw_e kw ,const SourceLocation& sl);
     Token& operator=(const Token& other);
     llvm::Constant* getValue() const;
