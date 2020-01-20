@@ -71,6 +71,7 @@ cache:
   - llvm
 # Build scripts
 script: 
+  - rm -r llvm
   - cd llvm-project
   - mv llvm .. 
   - cd .. 
