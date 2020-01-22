@@ -120,7 +120,8 @@ void create_fs_std_lib(FusionCtx& ctx) {
 
 
 int main() {
-    FusionCtx ctx("test");
+    FusionCtx ctx;
+
     SourceManager sm;
     sm.open("main.fs");
    
@@ -147,7 +148,6 @@ int main() {
     PM.add(llvm::createPrintModulePass(llvm::outs()));
     PM.run(*ctx.mod);
     mod_to_file(ctx.mod.get());
-
         
 
     return 0;

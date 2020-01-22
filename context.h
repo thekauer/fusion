@@ -13,13 +13,11 @@ enum class Inline : unsigned char {
 
 
 struct FusionCtx {
-    std::unique_ptr<llvm::Module> mod;
     std::vector<llvm::Value*> string_table;
     llvm::LLVMContext ctx;
-    llvm::IRBuilder<> builder= llvm::IRBuilder<>(ctx);
+    llvm::IRBuilder<> builder=llvm::IRBuilder<>(ctx);
+    std::unique_ptr<llvm::Module> mod = std::make_unique<llvm::Module>("global",ctx);
     std::map<llvm::StringRef,llvm::Value*> named_values;
-    FusionCtx(llvm::StringRef modname);
-    
     llvm::Type* getI8();
     llvm::Type* getI16();
     llvm::Type* getI32();

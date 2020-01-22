@@ -3,9 +3,6 @@
 
 
 
-FusionCtx::FusionCtx(llvm::StringRef modname) :
- mod(make_unique<llvm::Module>(modname,ctx)) {};
-
 
 
 
