@@ -22,17 +22,17 @@ struct FusionCtx {
     llvm::Type* getI16();
     llvm::Type* getI32();
     llvm::Type* getI64();
-   // llvm::Type* getU8() const;
-   // llvm::Type* getU8() const;
-   // llvm::Type* getU16() const;
-   // llvm::Type* getU32() const;
-   // llvm::Type* getU64() const;
+    // llvm::Type* getU8() const;
+    // llvm::Type* getU8() const;
+    // llvm::Type* getU16() const;
+    // llvm::Type* getU32() const;
+    // llvm::Type* getU64() const;
 
     //llvm::Type* getIS() const;
     //llvm::Type* getUS() const;
 
-   // llvm::Type* getBool() const;
-   // llvm::Type* getChar() const;
+    // llvm::Type* getBool() const;
+    // llvm::Type* getChar() const;
 
 
 };
