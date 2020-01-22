@@ -48,4 +48,4 @@ target_link_libraries(fs LLVM)
 
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard
-set(CMAKE_CXX_FLAGS "-std=c++2a -Wno-extra-tokens -ferror-limit=3")
+set(CMAKE_CXX_FLAGS "-g -std=c++2a -Wno-extra-tokens -ferror-limit=3")
