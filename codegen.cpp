@@ -63,6 +63,8 @@ llvm::Value* FnDecl::codegen(FusionCtx& ctx) {
         ctx.builder.CreateStore(&arg,alloca);
         ctx.named_values[arg.getName()]=alloca;
     }
+
+    body->codegen(ctx);
     /*
     if(proto->ret->codegen()) {
         //return with returntype
