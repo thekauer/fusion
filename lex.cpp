@@ -193,10 +193,10 @@ void Lexer::lex() {
 
 Lexer::Lexer(FSFile& file,FusionCtx& ctx) : SourceLocation(file),ctx(ctx){};
 Token Lexer::next() {
-    SourceLocation err_loc = sl_cast(this);
     while(eq[peek()]==Space) {
         pop();
     }
+    SourceLocation err_loc = sl_cast(this);
 
 
     u8 ch = eq[peek()];
