@@ -54,7 +54,7 @@ int geno(llvm::Module* m) {
     //llvm::FunctionPassManager pass;
     auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
 
-    
+
 
     if(TargetMachine->addPassesToEmitFile(pass,dest,nullptr,FileType)) {
         llvm::errs() << "Could not emit to file";
@@ -71,10 +71,10 @@ std::unique_ptr<llvm::Module> gen_test(FusionCtx& ctx) {
 
     Type* ity =llvm::IntegerType::getInt32Ty(ctx.ctx);
     Type* i8ty = IntegerType::getInt8Ty(ctx.ctx);
-    llvm::FunctionType* printf_ty = llvm::FunctionType::get(ity,{IntegerType::getInt8PtrTy(ctx.ctx)},true);
+    llvm::FunctionType* printf_ty = llvm::FunctionType::get(ity, {IntegerType::getInt8PtrTy(ctx.ctx)},true);
     m->getOrInsertFunction("printf",printf_ty);
 
-    FunctionType* main_ty = FunctionType::get(ity,{},false);
+    FunctionType* main_ty = FunctionType::get(ity, {},false);
     Function* main_fn = Function::Create(main_ty,Function::ExternalLinkage,"main",m.get());
     StringRef main_name = "main";
     //auto main_fn = m->getFunction(main_name);
@@ -84,16 +84,16 @@ std::unique_ptr<llvm::Module> gen_test(FusionCtx& ctx) {
     Constant* c2 = llvm::ConstantInt::get(ity,APInt(32,3,true));
     Value *res = ctx.builder.CreateAdd(c1,c2,"result");
     Constant* shw =ctx.builder.CreateGlobalStringPtr("hello world\n");
-    ctx.builder.CreateCall(m->getFunction("printf"),{shw});
+    ctx.builder.CreateCall(m->getFunction("printf"), {shw});
     ctx.builder.CreateRet(res);
     std::string err;
     auto os =raw_string_ostream(err);
     if(verifyFunction(*main_fn),&os) {
         std::cout <<"nem joh\n";
         std::cout <<err <<"<-- hiba\n";
-        
+
     }
-    
+
     return m;
 
 }
@@ -112,10 +112,10 @@ void create_fs_std_lib(FusionCtx& ctx) {
     Type* ity =llvm::IntegerType::getInt32Ty(ctx.ctx);
     Type* i8ty = IntegerType::getInt8Ty(ctx.ctx);
     Type* void_ty = Type::getVoidTy(ctx.ctx);
-    llvm::FunctionType* printf_ty = llvm::FunctionType::get(ity,{IntegerType::getInt8PtrTy(ctx.ctx)},true);
+    llvm::FunctionType* printf_ty = llvm::FunctionType::get(ity, {IntegerType::getInt8PtrTy(ctx.ctx)},true);
     ctx.mod->getOrInsertFunction("printf",printf_ty);
 
-    
+
 }
 
 
@@ -124,31 +124,31 @@ int main() {
 
     SourceManager sm;
     sm.open("main.fs");
-   
+
     Lexer l(sm.sources[0],ctx);
     l.lex();
     Parser p(l.tokens);
     create_fs_std_lib(ctx);
     //auto m = p.parse_fndecl();
-    
+
     auto m = p.parse_fndecl();
     if(m) {
         m->print_name();
     }
     llvm::Function* f =(llvm::Function*)m->codegen(ctx);
 
-    
+
     //geno(std::move(mod));
 
     auto beg = ctx.mod->getFunctionList().begin();
-    for(;beg!=ctx.mod->getFunctionList().end();beg++) {
+    for(; beg!=ctx.mod->getFunctionList().end(); beg++) {
         std::cout << beg->getName().begin() << "\n";
     }
     llvm::legacy::PassManager PM;
     PM.add(llvm::createPrintModulePass(llvm::outs()));
     PM.run(*ctx.mod);
     mod_to_file(ctx.mod.get());
-        
+
 
     return 0;
 }

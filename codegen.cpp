@@ -25,7 +25,7 @@ llvm::Value* FnProto::codegen(FusionCtx& ctx) {
     //args and set name for them
     llvm::Type* ret_t=nullptr;
     //if(!ret_t) {
-        ret_t =ctx.getI32();
+    ret_t =ctx.getI32();
     //}
     //check linkagetype
     llvm::GlobalValue::LinkageTypes lt=llvm::Function::ExternalLinkage;
@@ -68,8 +68,8 @@ llvm::Value* FnDecl::codegen(FusionCtx& ctx) {
         //return with returntype
     }else {
     */
-        llvm::Constant* def_ret_val = llvm::ConstantInt::get(ctx.getI32(),llvm::APInt(32,0,true));
-        ctx.builder.CreateRet(def_ret_val);
+    llvm::Constant* def_ret_val = llvm::ConstantInt::get(ctx.getI32(),llvm::APInt(32,0,true));
+    ctx.builder.CreateRet(def_ret_val);
     //}
 
     llvm::verifyFunction(*fn);

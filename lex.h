@@ -14,7 +14,7 @@
 
 ptr hash(const std::string& str);
 class SourceLocation {
-    public:
+public:
     FSFile& file;
     int line,col,indent;
     std::string::const_iterator it,end;
@@ -37,46 +37,46 @@ enum Kw_e : unsigned char {
 
 struct Token {
     enum Type :unsigned char {
-    Id,
-    Kw,
+        Id,
+        Kw,
 
-    N,
-    Gi,
-    Li,
+        N,
+        Gi,
+        Li,
 
 
-    Lit,
+        Lit,
 
-    Not=64,
-    Hashtag,
-    Mod,
-    Lp,
-    Rp,
-    Mul,
-    Add,
-    Sub,
-    Comma,
-    Dot,
-    Div,
-    DoubleDot,
-    SemiColon,
-    Gt, //<
-    Lt, // >
-    Eq,
-    Questionmark, 
-    Backslash,
-    Lb, //[
-    Rb,// ]
-    Underscore,
-    Xor, //^
-    Lc, //{
-    Rc, //}
-    Or,
-    Neg, //~
-    Null,
-    Space,
-    Tab,
-    And,
+        Not=64,
+        Hashtag,
+        Mod,
+        Lp,
+        Rp,
+        Mul,
+        Add,
+        Sub,
+        Comma,
+        Dot,
+        Div,
+        DoubleDot,
+        SemiColon,
+        Gt, //<
+        Lt, // >
+        Eq,
+        Questionmark,
+        Backslash,
+        Lb, //[
+        Rb,// ]
+        Underscore,
+        Xor, //^
+        Lc, //{
+        Rc, //}
+        Or,
+        Neg, //~
+        Null,
+        Space,
+        Tab,
+        And,
 
     } type;
     SourceLocation sl;
@@ -85,7 +85,7 @@ struct Token {
     Token(u8 c,const SourceLocation& sl);
     Token(llvm::Constant* val,const SourceLocation& sl);
     Token(const std::string& str,const SourceLocation& sl);
-    Token(Kw_e kw ,const SourceLocation& sl);
+    Token(Kw_e kw,const SourceLocation& sl);
     Token& operator=(const Token& other);
     llvm::Constant* getValue() const;
     std::string getName() const;
@@ -99,7 +99,7 @@ static SourceLocation sl_cast(T* l) {
 }
 
 
-class Lexer :public SourceLocation{
+class Lexer :public SourceLocation {
 public:
     Lexer(FSFile& file,FusionCtx& ctx);
     Token next();
