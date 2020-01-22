@@ -155,11 +155,14 @@ llvm::Constant* Lexer::stringlit(std::string s) {
     llvm::Type* i8ty = llvm::IntegerType::getInt8Ty(ctx.ctx);
     llvm::ArrayType* sty = llvm::ArrayType::get(i8ty,s.size()+1);
     std::vector<llvm::Constant*> vals;
-    for(char c : s) {
-        llvm::Constant* cc = llvm::ConstantInt::get(i8ty,c,true);
-        vals.push_back(cc);
-    }
-    return llvm::ConstantArray::get(sty,vals);
+    llvm::GlobalVariable* gstr = 
+    new llvm::GlobalVariable(*ctx.mod,sty,true,
+    llvm::GlobalValue::PrivateLinkage,0,"str");
+    gstr->setAlignment(1);
+    llvm::Constant* cstr=llvm::ConstantDataArray::getString(ctx.ctx,s,true);
+    gstr->setInitializer(cstr);
+    return llvm::ConstantExpr::getBitCast(gstr,ctx.getI8()->getPointerTo());
+
 }
 
 Token& Token::operator=(const Token& other) {
