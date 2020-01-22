@@ -135,15 +135,12 @@ int main() {
     if(m) {
         m->print_name();
     }
-    llvm::Function* f =(llvm::Function*)m->codegen(ctx);
+    m->codegen(ctx);
 
+    std::cout << "args size: "<<((FnCall*)(m->body.get()))->args.size();
     
     //geno(std::move(mod));
 
-    auto beg = ctx.mod->getFunctionList().begin();
-    for(;beg!=ctx.mod->getFunctionList().end();beg++) {
-        std::cout << beg->getName().begin() << "\n";
-    }
     llvm::legacy::PassManager PM;
     PM.add(llvm::createPrintModulePass(llvm::outs()));
     PM.run(*ctx.mod);

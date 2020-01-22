@@ -66,7 +66,7 @@ llvm::Value* FnDecl::codegen(FusionCtx& ctx) {
 
     body->codegen(ctx);
     /*
-    if(proto->ret->codegen()) {
+    if(proto->ret) {
         //return with returntype
     }else {
     */

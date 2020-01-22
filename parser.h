@@ -66,6 +66,7 @@ struct FnCall : AstExpr {
     //args
     std::vector<std::unique_ptr<AstExpr>> args;
     FnCall(Token name) : name(name), AstExpr(AstType::FnCall) {};
+    FnCall(Token name,std::vector<std::unique_ptr<AstExpr>>&& args): name(name),args(std::move(args)),AstExpr(AstType::FnCall){};
     void print_name() override{std::cout <<"FnCall\n";}
     llvm::Value* codegen(FusionCtx& ctx) override;
 };

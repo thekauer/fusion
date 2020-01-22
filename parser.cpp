@@ -106,10 +106,11 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
 
     expect(Token::Lp,"(");
     //args
-    std::vector<AstExpr> args;
+    std::vector<std::unique_ptr<AstExpr>> args;
     auto arg = parse_expr();
+    args.push_back(std::move(arg));
     expect(Token::Rp,")");
-    return std::make_unique<FnCall>(name);
+    return std::make_unique<FnCall>(name,std::move(args));
 }
 
 
