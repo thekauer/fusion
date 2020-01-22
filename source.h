@@ -4,6 +4,7 @@
 #include "compatibility.h"
 #include <fstream>
 #include <string>
+#include "error.h"
 
 
 struct FSFile {

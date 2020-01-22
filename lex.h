@@ -11,6 +11,7 @@
 #include "context.h"
 #include <variant>
 
+class FSFile;
 
 ptr hash(const std::string& str);
 class SourceLocation {

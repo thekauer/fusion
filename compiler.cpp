@@ -16,8 +16,7 @@
 #include <iomanip>
 void Compiler::compile(int argc,char** argv) {
     if(argc<2) {
-        std::cout << "expected at least one argument";
-        std::exit(1);
+        serror(Error_e::TooFewArgumentsForFs,"expected at least one argument.");
     }
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -28,7 +27,7 @@ void Compiler::compile(int argc,char** argv) {
     //sm.open("main.fs");
     for(int i=1;i<argc;i++) {
         sm.open(argv[i]);
-        Lexer l(sm.sources[0],ctx);
+        Lexer l(sm.sources[i-1],ctx);
         l.lex();
         Parser p(l.tokens);
         auto m = p.parse_fndecl();
@@ -49,6 +48,7 @@ void Compiler::compile(int argc,char** argv) {
     auto dd =(double)duration/1000;
     std::cout << "[" << std::setprecision(4)<< dd << "s]";
 
+    
     /*
     llvm::legacy::PassManager PM;
     PM.add(llvm::createPrintModulePass(llvm::outs()));
@@ -56,7 +56,7 @@ void Compiler::compile(int argc,char** argv) {
     */
 }
 
-void Compiler::generate_obj(llvm::Module* m) {
+void Compiler::generate_obj(llvm::Module* m,const std::string& filename) {
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
@@ -70,8 +70,7 @@ void Compiler::generate_obj(llvm::Module* m) {
     std::string Error;
     auto Target = llvm::TargetRegistry::lookupTarget(targettriple,Error);
     if(!Target) {
-        llvm::errs() << Error;
-        std::exit(1);
+        serror(Error_e::Unk,Error);
     }
 
     auto CPU="generic";
@@ -80,12 +79,12 @@ void Compiler::generate_obj(llvm::Module* m) {
     llvm::TargetOptions opt;
     auto* TargetMachine = Target->createTargetMachine(targettriple,CPU,Features,opt,RM);
     m->setDataLayout(TargetMachine->createDataLayout());
-    auto filename = "main.o";
     std::error_code EC;
     llvm::raw_fd_ostream dest(filename,EC,llvm::sys::fs::OF_None);
 
     if(EC) {
-        llvm::errs() << "could not open file: "<< EC.message();
+        std::string s = "could not open file: "+ EC.message();
+        serror(Error_e::Unk,s);
     }
     llvm::legacy::PassManager pass;
     //llvm::FunctionPassManager pass;
@@ -102,9 +101,9 @@ void Compiler::generate_obj(llvm::Module* m) {
     dest.flush();
 }
 
-void Compiler::mod_to_file(llvm::Module* m) {
+void Compiler::mod_to_file(llvm::Module* m,const std::string& filename) {
     std::error_code ec;
-    llvm::raw_fd_ostream file_stream = llvm::raw_fd_ostream("main.ll",ec);
+    llvm::raw_fd_ostream file_stream = llvm::raw_fd_ostream(filename,ec);
     if(ec)std::cout <<ec.message();
     m->print(file_stream,nullptr);
     file_stream.flush();

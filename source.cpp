@@ -6,7 +6,8 @@
 
 void SourceManager::open(const std::string& path) {
     std::ifstream in(path);
-    if(!in.is_open())std::cout<< "error could not open file";
+    if(!in.is_open())serror(Error_e::FileNExists,std::string("File ") + path + " doesn't exist.");
+    if(path.find(".fs")==path.npos) serror(Error_e::MustbeFsFile,"File must have .fs extension!");
     std::string code((std::istreambuf_iterator<char>(in)),std::istreambuf_iterator<char>());
     in.close();
     sources.push_back(FSFile(path,code+"\0\0"));
