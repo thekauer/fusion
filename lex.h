@@ -101,12 +101,13 @@ static SourceLocation sl_cast(T* l) {
 
 class Lexer :public SourceLocation{
 public:
-    Lexer(FSFile& file);
+    Lexer(FSFile& file,FusionCtx& ctx);
     Token next();
     void lex();
     void test();
     std::vector<Token> tokens;
 private:
+    FusionCtx& ctx;
     char lex_escape(const char esc);
     llvm::Constant* nolit(const SourceLocation& s,bool f,int base);
     llvm::Constant* stringlit(std::string s);

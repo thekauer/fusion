@@ -18,7 +18,7 @@ class AstExpr {
     AstType type;
     AstExpr(AstType type): type(type){};
     virtual void print_name() {std::cout <<"AstExpr\n";};
-    virtual llvm::Value* codegen()=0;
+    virtual llvm::Value* codegen(FusionCtx& ctx)=0;
     virtual ~AstExpr(){}
        
 };
@@ -31,7 +31,7 @@ struct FnProto : AstExpr {
     FnProto(Token name,std::unique_ptr<AstExpr> ret) :
     AstExpr(AstType::FnProto),name(name),ret(std::move(ret))  {};
     void print_name() override {std::cout << "FnProto\n";}
-    llvm::Value* codegen() override;
+    llvm::Value* codegen(FusionCtx& ctx) override;
 };
 
 struct FnDecl : AstExpr {
@@ -40,26 +40,26 @@ struct FnDecl : AstExpr {
     FnDecl(std::unique_ptr<FnProto> proto,std::unique_ptr<AstExpr> body) : 
     proto(move(proto)),body(move(body)),AstExpr(AstType::FnDecl){};
     void print_name() override {std::cout <<"FnDecl\n";}
-    llvm::Value* codegen() override;
+    llvm::Value* codegen(FusionCtx& ctx) override;
 };
 struct ValExpr : AstExpr {
     llvm::Constant* val;
     ValExpr(llvm::Constant* val) : AstExpr(AstType::ValExpr),val(val){}
     void print_name()override {std::cout <<"ValExpr\n";}
-    llvm::Value* codegen() override;
+    llvm::Value* codegen(FusionCtx& ctx) override;
 };
 
 struct VarExpr : AstExpr {
     std::string name;
     VarExpr(std::string name) : AstExpr(AstType::VarExpr),name(name){}
-    llvm::Value* codegen() override;
+    llvm::Value* codegen(FusionCtx& ctx) override;
 
 };
 
 struct TypeExpr : AstExpr {
     llvm::Type* type;
     TypeExpr(llvm::Type* type) : AstExpr(AstType::TypeExpr),type(type){}
-    llvm::Value* codegen() override;
+    llvm::Value* codegen(FusionCtx& ctx) override;
 };
 struct FnCall : AstExpr {
     Token name;
@@ -67,7 +67,7 @@ struct FnCall : AstExpr {
     std::vector<std::unique_ptr<AstExpr>> args;
     FnCall(Token name) : name(name), AstExpr(AstType::FnCall) {};
     void print_name() override{std::cout <<"FnCall\n";}
-    llvm::Value* codegen() override;
+    llvm::Value* codegen(FusionCtx& ctx) override;
 };
 struct BinExpr : AstExpr {
     std::unique_ptr<AstExpr> lhs,rhs;
@@ -75,7 +75,7 @@ struct BinExpr : AstExpr {
     BinExpr(Token::Type op,std::unique_ptr<AstExpr> lhs,std::unique_ptr<AstExpr> rhs) :
     op(op),lhs(move(lhs)),rhs(move(rhs)),AstExpr(AstType::BinExpr){};
     void print_name()override {std::cout <<"BinExpr\n";}
-    llvm::Value* codegen() override;
+    llvm::Value* codegen(FusionCtx& ctx) override;
 };
 
 
