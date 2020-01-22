@@ -142,17 +142,17 @@ llvm::Constant* Lexer::nolit(const SourceLocation& s,bool f,int base) {
         sr.getAsDouble(D);
         
         return llvm::ConstantInt::get(
-            llvm::IntegerType::getInt32Ty(ctx),
+            llvm::IntegerType::getInt32Ty(ctx.ctx),
             llvm::APInt(32,I,true)
         );
     } else {
         sr.getAsInteger(base,I);
-        return llvm::ConstantFP::get(ctx,llvm::APFloat(D));
+        return llvm::ConstantFP::get(ctx.ctx,llvm::APFloat(D));
     }
 }
 
 llvm::Constant* Lexer::stringlit(std::string s) {
-    llvm::Type* i8ty = llvm::IntegerType::getInt8Ty(ctx);
+    llvm::Type* i8ty = llvm::IntegerType::getInt8Ty(ctx.ctx);
     llvm::ArrayType* sty = llvm::ArrayType::get(i8ty,s.size()+1);
     std::vector<llvm::Constant*> vals;
     for(char c : s) {
@@ -188,7 +188,7 @@ void Lexer::lex() {
     }
 }
 
-Lexer::Lexer(FSFile& file) : SourceLocation(file){};
+Lexer::Lexer(FSFile& file,FusionCtx& ctx) : SourceLocation(file),ctx(ctx){};
 Token Lexer::next() {
     SourceLocation err_loc = sl_cast(this);
     while(eq[peek()]==Space) {
