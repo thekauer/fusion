@@ -11,7 +11,8 @@
         BinExpr,
         ValExpr,
         TypeExpr,
-        VarExpr
+        VarExpr,
+        VarDeclExpr,
     };
 class AstExpr {
     public:
@@ -54,11 +55,17 @@ struct ValExpr : AstExpr {
     void pretty_print() override;
 };
 
-struct VarExpr : AstExpr {
+struct VarDeclExpr : AstExpr {
     std::string name;
     llvm::Type* ty=nullptr;
+    VarDeclExpr(const std::string& name) : AstExpr(AstType::VarDeclExpr),name(name){}
+    VarDeclExpr(const std::string& name,llvm::Type* ty) : AstExpr(AstType::VarExpr),name(name),ty(ty){};
+    llvm::Value* codegen(FusionCtx& ctx) override;
+    void pretty_print() override;
+};
+struct VarExpr : AstExpr {
+    std::string name;
     VarExpr(const std::string& name) : AstExpr(AstType::VarExpr),name(name){}
-    VarExpr(const std::string& name,llvm::Type* ty) : AstExpr(AstType::VarExpr),name(name),ty(ty){};
     llvm::Value* codegen(FusionCtx& ctx) override;
     void pretty_print() override;
 };
@@ -97,10 +104,11 @@ private:
     Token pop();
     Token peek(int n=0);
     int indent=0;
+    FusionCtx& ctx;
 public:
     int cnt=0;
     Token expect(Token::Type ty,const std::string& tk);
-    Parser(std::vector<Token>& tokens) : it(tokens.begin()),end(tokens.end()){};
+    Parser(std::vector<Token>& tokens,FusionCtx& ctx) : it(tokens.begin()),end(tokens.end()),ctx(ctx){};
     std::unique_ptr<FnProto>    parse_fnproto();
     std::unique_ptr<FnDecl>     parse_fndecl();
     std::unique_ptr<AstExpr>    parse_primary();
@@ -108,6 +116,6 @@ public:
     std::unique_ptr<AstExpr>    parse_binary(std::unique_ptr<AstExpr> lhs,int p=0);
     std::unique_ptr<ValExpr>    parse_valexpr();
     std::unique_ptr<AstExpr>    parse_expr();
-    std::unique_ptr<VarExpr>    parse_var_decl();
+    std::unique_ptr<VarDeclExpr>    parse_var_decl();
     std::unique_ptr<TypeExpr>   parse_type_expr();
 };

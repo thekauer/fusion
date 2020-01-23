@@ -62,7 +62,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     ++indent;
 
     std::vector<std::unique_ptr<AstExpr>> body;
-    auto expr = parse_primary();
+    auto expr = parse_expr();
     if(!expr)error(Error_e::EmptyFnBody,"Empty function body",peek().sl);
     while(expr) {
         body.push_back(std::move(expr));
@@ -130,10 +130,9 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
     if(peek().type!=Token::Kw) {
      	   return nullptr;
     }
-    llvm::LLVMContext ctx;
 	switch(pop().getKw()) {
 		case Kw_e::I32:
-			return std::make_unique<TypeExpr>(llvm::IntegerType::getInt32Ty(ctx));
+			return std::make_unique<TypeExpr>(ctx.getI32());
 
         default:
             return nullptr;
@@ -141,7 +140,7 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
    	return nullptr;
 }
 
-std::unique_ptr<VarExpr> Parser::parse_var_decl() {
+std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
     if(!(peek().type==Token::Id && peek(1).type==Token::DoubleDot)) {
         return nullptr;
     }
@@ -152,7 +151,7 @@ std::unique_ptr<VarExpr> Parser::parse_var_decl() {
         //error expected type expr
         return nullptr;// return Infer type
     }
-    return std::make_unique<VarExpr>(id.getName(),ty->ty);
+    return std::make_unique<VarDeclExpr>(id.getName(),ty->ty);
 }
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
@@ -201,9 +200,12 @@ void ValExpr::pretty_print() {
     llvm::outs() << "val";
 }
 
-void VarExpr::pretty_print() {
+void VarDeclExpr::pretty_print() {
     ty->print(llvm::outs() << name << " : ");
     llvm::outs()<< "\n";
+}
+void VarExpr::pretty_print() {
+    llvm::outs()<< name;
 }
 void TypeExpr::pretty_print() {
     ty->print(llvm::outs());

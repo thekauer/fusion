@@ -23,6 +23,7 @@ void Compiler::compile(int argc,char** argv) {
     FusionCtx ctx;
     create_fs_std_lib(ctx);
 
+    bool show_llvm=true;
     SourceManager sm;
     //sm.open("main.fs");
     for(int i=1;i<argc;i++) {
@@ -30,7 +31,7 @@ void Compiler::compile(int argc,char** argv) {
         Lexer l(sm.sources[i-1],ctx);
         l.lex();
     
-        Parser p(l.tokens);
+        Parser p(l.tokens,ctx);
     
         
         auto m = p.parse_fndecl();
@@ -57,11 +58,11 @@ void Compiler::compile(int argc,char** argv) {
     std::cout << "[" << std::setprecision(4)<< dd << "s]";
 
     
-    /*
-    llvm::legacy::PassManager PM;
-    PM.add(llvm::createPrintModulePass(llvm::outs()));
-    PM.run(*ctx.mod);
-    */
+    if(show_llvm) {
+        llvm::legacy::PassManager PM;
+        PM.add(llvm::createPrintModulePass(llvm::outs()));
+        PM.run(*ctx.mod);
+    }
 }
 
 void Compiler::generate_obj(llvm::Module* m,const std::string& filename) {

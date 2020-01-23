@@ -88,8 +88,9 @@ llvm::Value* TypeExpr::codegen(FusionCtx& ctx) {
 
 llvm::Value* BinExpr::codegen(FusionCtx& ctx) {
     switch(op) {
-        case Token::Eq:
-            return nullptr;
+        case Token::Eq: {
+            return ctx.builder.CreateLoad(rhs->codegen(ctx),lhs->codegen(ctx)->getName());
+        }
         default:
             return nullptr;
     }
@@ -103,4 +104,13 @@ llvm::Value* VarExpr::codegen(FusionCtx& ctx) {
         return nullptr;
     }
     return ctx.builder.CreateLoad(v,name.data());
+}
+
+llvm::Value* VarDeclExpr::codegen(FusionCtx& ctx) {
+    if(!ty) {
+        serror(Error_e::CouldNotInferType,"Couldn't infer type of expression");
+    }
+    llvm::AllocaInst* val=ctx.builder.CreateAlloca(ty,nullptr,name);
+    ctx.named_values[name]=val;
+    return val;
 }

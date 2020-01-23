@@ -12,7 +12,8 @@ enum class Error_e : int {
     FileNExists,
     MustbeFsFile,
     TooFewArgumentsForFs,
-    UnkEsc
+    UnkEsc,
+    CouldNotInferType
 };
 [[noreturn]]
 void error(Error_e code,const std::string& msg,const SourceLocation& sl);
