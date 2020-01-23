@@ -88,8 +88,11 @@ llvm::Value *TypeExpr::codegen(FusionCtx &ctx) {
 llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
   switch (op) {
   case Token::Eq: {
-    return ctx.builder.CreateLoad(rhs->codegen(ctx),
-                                  lhs->codegen(ctx)->getName());
+    auto *vlhs = lhs->codegen(ctx);
+    auto *vrhs = rhs->codegen(ctx);
+    llvm::Value *var = ctx.named_values[vlhs->getName()];
+    return ctx.builder.CreateStore(vrhs, var);
+    return vrhs;
   }
   default:
     return nullptr;
@@ -111,6 +114,9 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
     serror(Error_e::CouldNotInferType, "Couldn't infer type of expression");
   }
   llvm::AllocaInst *val = ctx.builder.CreateAlloca(ty, nullptr, name);
+  if (ctx.named_values.find(name) != ctx.named_values.end()) {
+    serror(Error_e::Unk, "redaclaration of variable");
+  }
   ctx.named_values[name] = val;
   return val;
 }
