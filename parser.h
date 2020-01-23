@@ -65,13 +65,13 @@ struct VarDeclExpr : AstExpr {
   VarDeclExpr(const std::string &name, llvm::Type *ty)
       : AstExpr(AstType::VarExpr), name(name), ty(ty){};
   llvm::Value *codegen(FusionCtx &ctx) override;
-  void print_name() override {std::cout << "VarDeclExpr\n";}
+  void print_name() override { std::cout << "VarDeclExpr\n"; }
   void pretty_print() override;
 };
 struct VarExpr : AstExpr {
   std::string name;
   VarExpr(const std::string &name) : AstExpr(AstType::VarExpr), name(name) {}
-  void print_name() override {std::cout << "VarExpr\n";}
+  void print_name() override { std::cout << "VarExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
 };
