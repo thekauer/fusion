@@ -90,7 +90,6 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
   case Token::Eq: {
     auto *vlhs = lhs->codegen(ctx);
     auto *vrhs = rhs->codegen(ctx);
-      std::cout<< std::boolalpha << (vrhs->getType()==llvm::Type::getDoubleTy(ctx.ctx));
     if(!vrhs) {
       serror(Error_e::Unk,"No value");
     }
