@@ -151,12 +151,12 @@ llvm::Constant *Lexer::nolit(const SourceLocation &s, bool f, int base) {
   double D = 0.0;
   if (f) {
     sr.getAsDouble(D);
+    return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D));
 
-    return llvm::ConstantInt::get(llvm::IntegerType::getInt32Ty(ctx.ctx),
-                                  llvm::APInt(32, I, true));
   } else {
     sr.getAsInteger(base, I);
-    return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D));
+    return llvm::ConstantInt::get(ctx.getI32(),
+                                  llvm::APInt(32, I, true));
   }
 }
 

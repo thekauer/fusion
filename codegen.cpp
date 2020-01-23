@@ -90,6 +90,11 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
   case Token::Eq: {
     auto *vlhs = lhs->codegen(ctx);
     auto *vrhs = rhs->codegen(ctx);
+      std::cout<< std::boolalpha << (vrhs->getType()==llvm::Type::getDoubleTy(ctx.ctx));
+    if(!vrhs) {
+      serror(Error_e::Unk,"No value");
+    }
+    llvm::Value* init = llvm::ConstantInt::get(ctx.getI32(),llvm::APInt(32,5,true));
     llvm::Value *var = ctx.named_values[vlhs->getName()];
     return ctx.builder.CreateStore(vrhs, var);
     return vrhs;
