@@ -40,6 +40,7 @@ enum Kw_e : unsigned char {
 bool is_op(u8 ch);
 bool is_ws(u8 ch);
 Kw_e is_kw(ptr h);
+bool is_eol(u8 ch);
 
 
 

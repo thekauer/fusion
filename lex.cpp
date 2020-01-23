@@ -122,6 +122,9 @@ bool is_ws(u8 ch) {
     return ch==Tab || ch==Space;
 }
 
+bool is_eol(u8 ch) {
+    return ch==N  || ch==Space;
+}
 
 static const std::map<ptr,Kw_e> kws {
         {hash("fn"),Fn},
@@ -290,7 +293,7 @@ Token Lexer::next() {
                 if(n==Div) {
                     pop(); //pop second /
                     //TODO: check for third /
-                    while(can_iter() && peek()!='\n')pop();
+                    while(can_iter() && !is_eol(eq[peek()]))pop();
                     return next();
                 }
                 //multi comment
