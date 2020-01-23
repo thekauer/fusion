@@ -1,227 +1,224 @@
 #include "parser.h"
 
-#include <csignal>
-#include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Constants.h"
+#include "llvm/IR/LLVMContext.h"
+#include <csignal>
 
-
-Token Parser::pop() {
-    return *it++;
-}
+Token Parser::pop() { return *it++; }
 Token Parser::peek(int n) {
-    cnt++;
-    return *(it+n);
+  cnt++;
+  return *(it + n);
 }
 
-Token Parser::expect(Token::Type ty,const std::string& tk) {
-    auto t = pop();
-    if(t.type!=ty) error(Error_e::ExpectedToken,"Expected a(n) " + tk,
-                             t.sl);
-    return t;
+Token Parser::expect(Token::Type ty, const std::string &tk) {
+  auto t = pop();
+  if (t.type != ty)
+    error(Error_e::ExpectedToken, "Expected a(n) " + tk, t.sl);
+  return t;
 }
 
 int pre(Token::Type op) {
-    switch (op)
-    {
-    case Token::Eq:
-        return 1;
-    case Token::Sub:
-    case Token::Add:
-        return 10;
-    case Token::Mul:
-    case Token::Div:
-        return 20;
+  switch (op) {
+  case Token::Eq:
+    return 1;
+  case Token::Sub:
+  case Token::Add:
+    return 10;
+  case Token::Mul:
+  case Token::Div:
+    return 20;
 
-    default:
-        return -1;
-    }
+  default:
     return -1;
+  }
+  return -1;
 }
-
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
 
-
-    auto t = peek();
-    if(t.type!=Token::Kw)return nullptr;
-    pop();
-    auto name = expect(Token::Id, "identifier");
-    //generics
-    expect(Token::Lp,"(");
-    //args
-    expect(Token::Rp,")");
-    //MAybe return type
-    return std::make_unique<FnProto>(name,nullptr);
+  auto t = peek();
+  if (t.type != Token::Kw)
+    return nullptr;
+  pop();
+  auto name = expect(Token::Id, "identifier");
+  // generics
+  expect(Token::Lp, "(");
+  // args
+  expect(Token::Rp, ")");
+  // MAybe return type
+  return std::make_unique<FnProto>(name, nullptr);
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
-    auto fn_indent = peek().sl.indent;
-    auto proto = parse_fnproto();
-    if(!proto) return nullptr;
-    auto t =expect(Token::Gi,"greater indentation");
-    ++indent;
+  auto fn_indent = peek().sl.indent;
+  auto proto = parse_fnproto();
+  if (!proto)
+    return nullptr;
+  auto t = expect(Token::Gi, "greater indentation");
+  ++indent;
 
-    std::vector<std::unique_ptr<AstExpr>> body;
-    auto expr = parse_expr();
-    if(!expr)error(Error_e::EmptyFnBody,"Empty function body",peek().sl);
-    while(expr) {
-        body.push_back(std::move(expr));
-        if(peek().sl.indent<=fn_indent) {
-            break;
-        }
-        if(peek().type==Token::Gi) {
-            pop();
-            ++indent;
-        }
-        if(peek().type==Token::Li) {
-            pop();
-            --indent;
-        }
-        if(peek().type==Token::N) {
-            pop();
-        }
-        expr=parse_primary();
+  std::vector<std::unique_ptr<AstExpr>> body;
+  auto expr = parse_expr();
+  if (!expr)
+    error(Error_e::EmptyFnBody, "Empty function body", peek().sl);
+  while (expr) {
+    body.push_back(std::move(expr));
+    if (peek().sl.indent <= fn_indent) {
+      break;
     }
-    auto ret= std::make_unique<FnDecl>(move(proto),move(body));
-    return ret;
+    if (peek().type == Token::Gi) {
+      pop();
+      ++indent;
+    }
+    if (peek().type == Token::Li) {
+      pop();
+      --indent;
+    }
+    if (peek().type == Token::N) {
+      pop();
+    }
+    expr = parse_primary();
+  }
+  auto ret = std::make_unique<FnDecl>(move(proto), move(body));
+  return ret;
 }
 
 std::unique_ptr<ValExpr> Parser::parse_valexpr() {
-    auto t = peek();
-    if(t.type==Token::Lit) {
-        pop();
-        return std::make_unique<ValExpr>(t.getValue());
-    }
-    return nullptr;
+  auto t = peek();
+  if (t.type == Token::Lit) {
+    pop();
+    return std::make_unique<ValExpr>(t.getValue());
+  }
+  return nullptr;
 }
 
 std::unique_ptr<AstExpr> Parser::parse_primary() {
-    if(peek().type == Token::N)pop();
-    std::unique_ptr<AstExpr> expr = parse_valexpr();
-    if(expr)return expr;
-    expr = parse_var_decl();
-    if(expr) return expr;
-    return parse_fncall();
-}
-std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,int p) {
-    if(!lhs)return nullptr;
-    if(it==end)return lhs;
-    auto op=peek().type;
-    //check if op is actually an operator
-    if(pre(op)==-1)return lhs;
+  if (peek().type == Token::N)
     pop();
-    auto tp=pre(op);
-    auto rhs=parse_primary();
-    if(it==end) {
-        return std::make_unique<BinExpr>(op,move(lhs),move(rhs));
-    }
-    auto np=pre(peek(1).type);//peek
-    if(np==-1) {
-        return std::make_unique<BinExpr>(op,move(lhs),move(rhs));
-    }
-    if(tp>=np) {
-        return parse_binary(std::make_unique<BinExpr>(op,move(lhs),move(rhs)));
-    }
+  std::unique_ptr<AstExpr> expr = parse_valexpr();
+  if (expr)
+    return expr;
+  expr = parse_var_decl();
+  if (expr)
+    return expr;
+  return parse_fncall();
+}
+std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
+                                              int p) {
+  if (!lhs)
+    return nullptr;
+  if (it == end)
+    return lhs;
+  auto op = peek().type;
+  // check if op is actually an operator
+  if (pre(op) == -1)
+    return lhs;
+  pop();
+  auto tp = pre(op);
+  auto rhs = parse_primary();
+  if (it == end) {
+    return std::make_unique<BinExpr>(op, move(lhs), move(rhs));
+  }
+  auto np = pre(peek(1).type); // peek
+  if (np == -1) {
+    return std::make_unique<BinExpr>(op, move(lhs), move(rhs));
+  }
+  if (tp >= np) {
+    return parse_binary(std::make_unique<BinExpr>(op, move(lhs), move(rhs)));
+  }
 
-    return std::make_unique<BinExpr>(op,move(lhs),parse_binary(move(rhs)));
+  return std::make_unique<BinExpr>(op, move(lhs), parse_binary(move(rhs)));
 }
 
 std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
-    if(peek().type!=Token::Kw) {
-        return nullptr;
-    }
-    switch(pop().getKw()) {
-    case Kw_e::I32:
-        return std::make_unique<TypeExpr>(ctx.getI32());
-
-    default:
-        return nullptr;
-    }
+  if (peek().type != Token::Kw) {
     return nullptr;
+  }
+  switch (pop().getKw()) {
+  case Kw_e::I32:
+    return std::make_unique<TypeExpr>(ctx.getI32());
+
+  default:
+    return nullptr;
+  }
+  return nullptr;
 }
 
 std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
-    if(!(peek().type==Token::Id && peek(1).type==Token::DoubleDot)) {
-        return nullptr;
-    }
-    auto id = pop();
-    pop(); //pop Double dot
-    std::unique_ptr<TypeExpr> ty = parse_type_expr();
-    if(!ty) {
-        //error expected type expr
-        return nullptr;// return Infer type
-    }
-    return std::make_unique<VarDeclExpr>(id.getName(),ty->ty);
+  if (!(peek().type == Token::Id && peek(1).type == Token::DoubleDot)) {
+    return nullptr;
+  }
+  auto id = pop();
+  pop(); // pop Double dot
+  std::unique_ptr<TypeExpr> ty = parse_type_expr();
+  if (!ty) {
+    // error expected type expr
+    return nullptr; // return Infer type
+  }
+  return std::make_unique<VarDeclExpr>(id.getName(), ty->ty);
 }
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
-    auto lhs =parse_primary();
-    return parse_binary(std::move(lhs));
+  auto lhs = parse_primary();
+  return parse_binary(std::move(lhs));
 }
 
 std::unique_ptr<FnCall> Parser::parse_fncall() {
-    auto name = peek();
-    if(name.type!=Token::Id) return nullptr;
-    pop();
+  auto name = peek();
+  if (name.type != Token::Id)
+    return nullptr;
+  pop();
 
-    expect(Token::Lp,"(");
-    //args
-    std::vector<std::unique_ptr<AstExpr>> args;
-    auto arg = parse_expr();
-    args.push_back(std::move(arg));
-    expect(Token::Rp,")");
-    return std::make_unique<FnCall>(name,std::move(args));
+  expect(Token::Lp, "(");
+  // args
+  std::vector<std::unique_ptr<AstExpr>> args;
+  auto arg = parse_expr();
+  args.push_back(std::move(arg));
+  expect(Token::Rp, ")");
+  return std::make_unique<FnCall>(name, std::move(args));
 }
 
-
-
-
-
 void FnProto::pretty_print() {
-    llvm::outs() << "fn " << name.getName() << "(" ;
-    for(const auto& arg : args) {
-        arg->pretty_print();
-        llvm::outs()<<",";
-    }
-    if(args.size()==0)llvm::outs() << "(";
-    llvm::outs() << "\b)";
+  llvm::outs() << "fn " << name.getName() << "(";
+  for (const auto &arg : args) {
+    arg->pretty_print();
+    llvm::outs() << ",";
+  }
+  if (args.size() == 0)
+    llvm::outs() << "(";
+  llvm::outs() << "\b)";
 }
 
 void FnDecl::pretty_print() {
-    proto->pretty_print();
-    llvm::outs() << "\n";
-    for(const auto& b : body) {
-        llvm::outs() << " ";
-        b->pretty_print();
-    }
+  proto->pretty_print();
+  llvm::outs() << "\n";
+  for (const auto &b : body) {
+    llvm::outs() << " ";
+    b->pretty_print();
+  }
 }
 
-void ValExpr::pretty_print() {
-    llvm::outs() << "val";
-}
+void ValExpr::pretty_print() { llvm::outs() << "val"; }
 
 void VarDeclExpr::pretty_print() {
-    ty->print(llvm::outs() << name << " : ");
-    llvm::outs()<< "\n";
+  ty->print(llvm::outs() << name << " : ");
+  llvm::outs() << "\n";
 }
-void VarExpr::pretty_print() {
-    llvm::outs()<< name;
-}
-void TypeExpr::pretty_print() {
-    ty->print(llvm::outs());
-}
+void VarExpr::pretty_print() { llvm::outs() << name; }
+void TypeExpr::pretty_print() { ty->print(llvm::outs()); }
 void FnCall::pretty_print() {
-    llvm::outs() << name.getName() << "(";
-    for(const auto& arg : args) {
-        arg->pretty_print();
-        llvm::outs() << ",";
-    }
-    if(args.size()==0)llvm::outs() << "(";
-    llvm::outs() << "\b)\n";
+  llvm::outs() << name.getName() << "(";
+  for (const auto &arg : args) {
+    arg->pretty_print();
+    llvm::outs() << ",";
+  }
+  if (args.size() == 0)
+    llvm::outs() << "(";
+  llvm::outs() << "\b)\n";
 }
 
 void BinExpr::pretty_print() {
-    lhs->pretty_print();
-    llvm::outs() <<" op ";
-    rhs->pretty_print();
+  lhs->pretty_print();
+  llvm::outs() << " op ";
+  rhs->pretty_print();
 }
