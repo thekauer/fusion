@@ -86,8 +86,6 @@ struct Token {
     Tab,
     And,
 
-    SingleComment,
-    MultiComment,
 
     } type;
     SourceLocation sl;

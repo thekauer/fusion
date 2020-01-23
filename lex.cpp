@@ -283,12 +283,19 @@ Token Lexer::next() {
         break;
     }
     if(is_op(ch)) {
-        pop();
+        pop(); //pop the operator, it is stored in ch
         switch(eq[peek()]) {
-        	case Token::Div:
-        		return Token(Token::SingleComment,err_loc);
-        	case Token::Mul:
-        		return Token(Token::MultiComment,err_loc);
+        	case Div: {
+                auto n = eq[peek()];
+                if(n==Div) {
+                    pop(); //pop second /
+                    //TODO: check for third /
+                    while(can_iter() && peek()!='\n')pop();
+                    return next();
+                }
+                //multi comment
+                break;
+            }
         	default:
         		break;
         }
