@@ -11,7 +11,7 @@
 #include "context.h"
 #include <variant>
 
-class FSFile;
+struct FSFile;
 
 ptr hash(const std::string& str);
 class SourceLocation {
@@ -26,13 +26,20 @@ class SourceLocation {
     SourceLocation& operator=(const SourceLocation& other);
 };
 
-bool is_op(u8 ch);
-
 
 enum Kw_e : unsigned char {
     Unk,
-    Fn
+    Fn,
+    For,
+    I8,
+    I16,
+    I32,
+    I64
 };
+
+bool is_op(u8 ch);
+bool is_ws(u8 ch);
+Kw_e is_kw(ptr h);
 
 
 
@@ -79,6 +86,9 @@ struct Token {
     Tab,
     And,
 
+    SingleComment,
+    MultiComment,
+
     } type;
     SourceLocation sl;
 
@@ -91,8 +101,8 @@ struct Token {
     llvm::Constant* getValue() const;
     std::string getName() const;
     Kw_e getKw() const;
+    std::variant<Kw_e,llvm::Constant*,std::string> data;
 private:
-    std::variant<llvm::Constant*,std::string,Kw_e> data;
 };
 template<typename T>
 static SourceLocation sl_cast(T* l) {

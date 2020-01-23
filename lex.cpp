@@ -97,8 +97,8 @@ static const unsigned eq[128] = {Null,0,0,0,0,0,0,0,0,0,N,0,0,Cr,0,0,
 Token::Token(Type type,const SourceLocation& sl) : type(type),sl(sl){};
 Token::Token(u8 c,const SourceLocation& sl) : type(static_cast<Type>(c)),sl(sl){}
 Token::Token(llvm::Constant* val,const SourceLocation& sl) : type(Lit),sl(sl),data(val){}
-Token::Token(const std::string& str,const SourceLocation& sl) : type(Id),data(str),sl(sl){}
-Token::Token(Kw_e kw,const SourceLocation& sl): type(Kw),sl(sl){}
+Token::Token(const std::string& str,const SourceLocation& sl) : type(Id),sl(sl),data(str){}
+Token::Token(Kw_e kw,const SourceLocation& sl): type(Kw),sl(sl),data(kw){}
 
 llvm::Constant* Token::getValue() const{
     return std::get<llvm::Constant*>(data);
@@ -118,15 +118,20 @@ Kw_e Token::getKw() const{
 bool is_op(u8 ch) {
     return ch>=Not && ch<=And;
 }
-static bool is_ws(u8 ch) {
+bool is_ws(u8 ch) {
     return ch==Tab || ch==Space;
 }
 
 
 static const std::map<ptr,Kw_e> kws {
-        {hash("fn"),Fn}
+        {hash("fn"),Fn},
+        {hash("for"),For},
+        {hash("i8"),I8},
+        {hash("i16"),I16},
+        {hash("i32"),I32},
+        {hash("i64"),I64}
     };
-static Kw_e is_kw(ptr h) {
+Kw_e is_kw(ptr h) {
     auto k = kws.find(h);
     if(k!=kws.end()) {
         return k->second;
@@ -136,8 +141,8 @@ static Kw_e is_kw(ptr h) {
 
 llvm::Constant* Lexer::nolit(const SourceLocation& s,bool f,int base) {
     llvm::StringRef sr(std::string(s.it,it));
-    int I;
-    double D;
+    int I=0;
+    double D=0.0;
     if(f) {
         sr.getAsDouble(D);
         
@@ -215,7 +220,7 @@ Token Lexer::next() {
         auto k = is_kw(h);
         if(k!=Unk) {
             return Token(k,e);
-        }
+        } 
         return Token(s,e);
     }
     case Number: {
@@ -245,6 +250,11 @@ Token Lexer::next() {
         pop(); // pop the quote
         std::string buff;
         while(eq[peek()]!=Quote) {
+            if(eq[peek()]==Backslash) {
+                pop(); //pop backlash
+                buff+=lex_escape(pop());
+                continue;
+            }
             buff+=pop();
         }
         pop(); // pop the ending quote
@@ -256,13 +266,15 @@ Token Lexer::next() {
         col=1;
         pop();
         while(eq[peek()]==Space) {
-            if(eq[pop()]==Tab);//error;
+            pop();
+            col++;
         }
         while(eq[peek()]==Tab) {
-            if(eq[pop()]==Space);//error
+            pop();
+            col++;
         }
-        if(indent<col) return Token(Token::Gi,sl_cast(this));
-        if(indent>col) return Token(Token::Li,sl_cast(this));
+        if(indent<col){ indent=col-1;return Token(Token::Gi,sl_cast(this));}
+        if(indent>col) {indent=col-1;return Token(Token::Li,sl_cast(this));}
         return Token(Token::N,err_loc);
     }
        
@@ -272,9 +284,17 @@ Token Lexer::next() {
     }
     if(is_op(ch)) {
         pop();
+        switch(eq[peek()]) {
+        	case Token::Div:
+        		return Token(Token::SingleComment,err_loc);
+        	case Token::Mul:
+        		return Token(Token::MultiComment,err_loc);
+        	default:
+        		break;
+        }
         return Token(ch,sl_cast(this));
     }
-
+    LLVM_BUILTIN_UNREACHABLE;
 }
 char Lexer::lex_escape(const char esc) {
     auto err_loc = *reinterpret_cast<SourceLocation*>(this);
@@ -305,10 +325,12 @@ char Lexer::lex_escape(const char esc) {
                 return '\v';
                 break;
             default:
-                //cerror(ERR_UNKNOWN_ESCAPE,err_loc,"Unknown escape character.");
+                error(Error_e::UnkEsc,"Unknown escape character.",err_loc);
                 break;
             }
+        return '\0';
 }
+
 
 
 
@@ -338,7 +360,7 @@ void Lexer::test() {
 }
 
 
-SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),indent(0),it(file.code.begin()),end(file.code.end()) {
+SourceLocation::SourceLocation(FSFile& file) : file(file),line(1),col(1),indent(1),it(file.code.begin()),end(file.code.end()) {
 }
 
 SourceLocation& SourceLocation::operator=(const SourceLocation& other) {

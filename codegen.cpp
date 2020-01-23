@@ -49,7 +49,6 @@ llvm::Value* FnDecl::codegen(FusionCtx& ctx) {
 
     auto name = proto->name;
     auto fname = name.getName();
-    //auto* fn = mod->getFunction(fname);
     auto* fn = (llvm::Function*)p;
     if(!fn) {
         std::string err_msg = "unknown function called " + fname;
@@ -64,7 +63,9 @@ llvm::Value* FnDecl::codegen(FusionCtx& ctx) {
         ctx.named_values[arg.getName()]=alloca;
     }
 
-    body->codegen(ctx);
+    for(const auto& p : body) {
+        p->codegen(ctx);
+    }
     /*
     if(proto->ret) {
         //return with returntype
@@ -86,6 +87,12 @@ llvm::Value* TypeExpr::codegen(FusionCtx& ctx) {
 }
 
 llvm::Value* BinExpr::codegen(FusionCtx& ctx) {
+    switch(op) {
+        case Token::Eq:
+            return nullptr;
+        default:
+            return nullptr;
+    }
     return nullptr;
 }
 

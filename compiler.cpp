@@ -29,23 +29,31 @@ void Compiler::compile(int argc,char** argv) {
         sm.open(argv[i]);
         Lexer l(sm.sources[i-1],ctx);
         l.lex();
+    
         Parser p(l.tokens);
+    
+        
         auto m = p.parse_fndecl();
-        if(m) {
-            //m->print_name();
+    
+        std::cout << "\npretty print:\n";
+        m->pretty_print();
+        std::cout << "\n\n";
+        while(m) {
+            m->codegen(ctx);
+
+            m=p.parse_fndecl();
         }
-        m->codegen(ctx);
     }
 
 
 
     
     generate_obj(ctx.mod.get());
-    system("./compile.sh");
     
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
     auto dd =(double)duration/1000;
+    system("./compile.sh");
     std::cout << "[" << std::setprecision(4)<< dd << "s]";
 
     
@@ -113,10 +121,9 @@ void Compiler::mod_to_file(llvm::Module* m,const std::string& filename) {
 void Compiler::create_fs_std_lib(FusionCtx& ctx) {
     using namespace llvm;
     Type* ity =llvm::IntegerType::getInt32Ty(ctx.ctx);
-    Type* i8ty = IntegerType::getInt8Ty(ctx.ctx);
-    Type* void_ty = Type::getVoidTy(ctx.ctx);
     llvm::FunctionType* printf_ty = llvm::FunctionType::get(ity,{IntegerType::getInt8PtrTy(ctx.ctx)},true);
     ctx.mod->getOrInsertFunction("printf",printf_ty);
+
 
     
 }
