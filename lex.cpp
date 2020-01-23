@@ -296,7 +296,13 @@ Token Lexer::next() {
                     while(can_iter() && !is_eol(eq[peek()]))pop();
                     return next();
                 }
-                //multi comment
+                if(n==Mul) {
+                    pop(); //pop the *
+                    //implement Multi COmment in Multi Comment
+                    while(can_iter()&&eq[peek()]!=Div) {
+                        while(can_iter()&&eq[peek()]!=Mul)pop();
+                    }
+                }
                 break;
             }
         	default:
