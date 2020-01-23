@@ -16,7 +16,7 @@ Token Parser::peek(int n) {
 Token Parser::expect(Token::Type ty,const std::string& tk) {
     auto t = pop();
     if(t.type!=ty) error(Error_e::ExpectedToken,"Expected a(n) " + tk,
-    t.sl);
+                             t.sl);
     return t;
 }
 
@@ -31,7 +31,7 @@ int pre(Token::Type op) {
     case Token::Mul:
     case Token::Div:
         return 20;
-    
+
     default:
         return -1;
     }
@@ -39,7 +39,7 @@ int pre(Token::Type op) {
 }
 
 
-std::unique_ptr<FnProto> Parser::parse_fnproto() {    
+std::unique_ptr<FnProto> Parser::parse_fnproto() {
 
 
     auto t = peek();
@@ -51,7 +51,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
     //args
     expect(Token::Rp,")");
     //MAybe return type
-    return std::make_unique<FnProto>(name,nullptr);   
+    return std::make_unique<FnProto>(name,nullptr);
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
@@ -66,7 +66,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     if(!expr)error(Error_e::EmptyFnBody,"Empty function body",peek().sl);
     while(expr) {
         body.push_back(std::move(expr));
-        if(peek().sl.indent<=fn_indent){
+        if(peek().sl.indent<=fn_indent) {
             break;
         }
         if(peek().type==Token::Gi) {
@@ -103,7 +103,7 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
     if(expr) return expr;
     return parse_fncall();
 }
-std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,int p){
+std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,int p) {
     if(!lhs)return nullptr;
     if(it==end)return lhs;
     auto op=peek().type;
@@ -128,16 +128,16 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,int p
 
 std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
     if(peek().type!=Token::Kw) {
-     	   return nullptr;
+        return nullptr;
     }
-	switch(pop().getKw()) {
-		case Kw_e::I32:
-			return std::make_unique<TypeExpr>(ctx.getI32());
+    switch(pop().getKw()) {
+    case Kw_e::I32:
+        return std::make_unique<TypeExpr>(ctx.getI32());
 
-        default:
-            return nullptr;
-    }  
-   	return nullptr;
+    default:
+        return nullptr;
+    }
+    return nullptr;
 }
 
 std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {

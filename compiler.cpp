@@ -26,16 +26,16 @@ void Compiler::compile(int argc,char** argv) {
     bool show_llvm=true;
     SourceManager sm;
     //sm.open("main.fs");
-    for(int i=1;i<argc;i++) {
+    for(int i=1; i<argc; i++) {
         sm.open(argv[i]);
         Lexer l(sm.sources[i-1],ctx);
         l.lex();
-    
+
         Parser p(l.tokens,ctx);
-    
-        
+
+
         auto m = p.parse_fndecl();
-    
+
         std::cout << "\npretty print:\n";
         m->pretty_print();
         std::cout << "\n\n";
@@ -48,16 +48,16 @@ void Compiler::compile(int argc,char** argv) {
 
 
 
-    
+
     generate_obj(ctx.mod.get());
-    
+
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
     auto dd =(double)duration/1000;
     system("./compile.sh");
     std::cout << "[" << std::setprecision(4)<< dd << "s]";
 
-    
+
     if(show_llvm) {
         llvm::legacy::PassManager PM;
         PM.add(llvm::createPrintModulePass(llvm::outs()));
@@ -99,7 +99,7 @@ void Compiler::generate_obj(llvm::Module* m,const std::string& filename) {
     //llvm::FunctionPassManager pass;
     auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
 
-    
+
 
     if(TargetMachine->addPassesToEmitFile(pass,dest,nullptr,FileType)) {
         llvm::errs() << "Could not emit to file";
@@ -122,9 +122,9 @@ void Compiler::mod_to_file(llvm::Module* m,const std::string& filename) {
 void Compiler::create_fs_std_lib(FusionCtx& ctx) {
     using namespace llvm;
     Type* ity =llvm::IntegerType::getInt32Ty(ctx.ctx);
-    llvm::FunctionType* printf_ty = llvm::FunctionType::get(ity,{IntegerType::getInt8PtrTy(ctx.ctx)},true);
+    llvm::FunctionType* printf_ty = llvm::FunctionType::get(ity, {IntegerType::getInt8PtrTy(ctx.ctx)},true);
     ctx.mod->getOrInsertFunction("printf",printf_ty);
 
 
-    
+
 }
