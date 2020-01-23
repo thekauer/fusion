@@ -38,6 +38,7 @@ const std::string FSFile::get_line(int line)const {
     }
     auto b =&code[pos];
     auto len = code.find('\n',pos);
+    //if(len==std::string::npos)len=code.size();
     return std::string(b,len); 
     
 }

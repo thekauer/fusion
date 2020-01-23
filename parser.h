@@ -127,5 +127,6 @@ public:
   std::unique_ptr<ValExpr> parse_valexpr();
   std::unique_ptr<AstExpr> parse_expr();
   std::unique_ptr<VarDeclExpr> parse_var_decl();
+  std::unique_ptr<VarExpr> parse_var();
   std::unique_ptr<TypeExpr> parse_type_expr();
 };
