@@ -13,7 +13,7 @@ Token Parser::peek(int n) {
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
-    error(Error_e::ExpectedToken, "Expected a(n) " + tk, t.sl);
+    serror(Error_e::ExpectedToken, "Expected a(n) " + tk /*, t.sl*/);
   return t;
 }
 
@@ -60,9 +60,10 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   std::vector<std::unique_ptr<AstExpr>> body;
   auto expr = parse_expr();
   if (!expr)
-    error(Error_e::EmptyFnBody, "Empty function body", peek().sl);
+    serror(Error_e::EmptyFnBody, "Empty function body" /*, peek().sl*/);
   while (expr) {
     body.push_back(std::move(expr));
+
     if (peek().sl.indent <= fn_indent) {
       break;
     }
@@ -77,7 +78,8 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     if (peek().type == Token::N) {
       pop();
     }
-    expr = parse_primary();
+
+    expr = parse_expr();
   }
   auto ret = std::make_unique<FnDecl>(move(proto), move(body));
   return ret;
@@ -99,6 +101,9 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   if (expr)
     return expr;
   expr = parse_var_decl();
+  if (expr)
+    return expr;
+  expr = parse_var();
   if (expr)
     return expr;
   return parse_fncall();
@@ -137,7 +142,14 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   switch (pop().getKw()) {
   case Kw_e::I32:
     return std::make_unique<TypeExpr>(ctx.getI32());
-
+  case Kw_e::I8:
+    return std::make_unique<TypeExpr>(ctx.getI8());
+  case Kw_e::I16:
+    return std::make_unique<TypeExpr>(ctx.getI16());
+  case Kw_e::I64:
+    return std::make_unique<TypeExpr>(ctx.getI64());
+  case String:
+    return std::make_unique<TypeExpr>(ctx.getString());
   default:
     return nullptr;
   }
@@ -160,6 +172,8 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
+  if (!lhs)
+    std::cout << "primary null";
   return parse_binary(std::move(lhs));
 }
 
@@ -167,15 +181,25 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
   auto name = peek();
   if (name.type != Token::Id)
     return nullptr;
-  pop();
+  if (peek(1).type != Token::Lp) {
+    return nullptr;
+  }
+  pop(); // pop name
+  pop(); // pop (
 
-  expect(Token::Lp, "(");
   // args
   std::vector<std::unique_ptr<AstExpr>> args;
   auto arg = parse_expr();
   args.push_back(std::move(arg));
   expect(Token::Rp, ")");
   return std::make_unique<FnCall>(name, std::move(args));
+}
+
+std::unique_ptr<VarExpr> Parser::parse_var() {
+  if (peek().type != Token::Id) {
+    return nullptr;
+  }
+  return std::make_unique<VarExpr>(pop().getName());
 }
 
 void FnProto::pretty_print() {

@@ -134,9 +134,10 @@ bool is_ws(u8 ch) { return ch == Tab || ch == Space; }
 
 bool is_eol(u8 ch) { return ch == N || ch == Space; }
 
-static const std::map<ptr, Kw_e> kws{{hash("fn"), Fn},   {hash("for"), For},
-                                     {hash("i8"), I8},   {hash("i16"), I16},
-                                     {hash("i32"), I32}, {hash("i64"), I64}};
+static const std::map<ptr, Kw_e> kws{
+    {hash("fn"), Fn},        {hash("for"), For}, {hash("i8"), I8},
+    {hash("i16"), I16},      {hash("i32"), I32}, {hash("i64"), I64},
+    {hash("string"), String}};
 Kw_e is_kw(ptr h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
@@ -151,12 +152,11 @@ llvm::Constant *Lexer::nolit(const SourceLocation &s, bool f, int base) {
   double D = 0.0;
   if (f) {
     sr.getAsDouble(D);
+    return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D));
 
-    return llvm::ConstantInt::get(llvm::IntegerType::getInt32Ty(ctx.ctx),
-                                  llvm::APInt(32, I, true));
   } else {
     sr.getAsInteger(base, I);
-    return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D));
+    return llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true));
   }
 }
 
@@ -196,7 +196,8 @@ void Lexer::lex() {
   }
 }
 
-Lexer::Lexer(FSFile &file, FusionCtx &ctx) : SourceLocation(file), ctx(ctx){};
+Lexer::Lexer(FSFile &file, FusionCtx &ctx)
+    : SourceLocation(file), file(file), ctx(ctx){};
 Token Lexer::next() {
   while (eq[peek()] == Space) {
     pop();
@@ -260,23 +261,22 @@ Token Lexer::next() {
     return Token(stringlit(buff), err_loc);
   }
   case N: {
-    line++;
-    col = 1;
     pop();
+    auto curr_indent = indent;
     while (eq[peek()] == Space) {
       pop();
-      col++;
+      curr_indent++;
     }
     while (eq[peek()] == Tab) {
       pop();
-      col++;
+      curr_indent++;
     }
-    if (indent < col) {
-      indent = col - 1;
+    if (indent < curr_indent) {
+      indent = curr_indent;
       return Token(Token::Gi, sl_cast(this));
     }
-    if (indent > col) {
-      indent = col - 1;
+    if (indent > curr_indent) {
+      indent = curr_indent;
       return Token(Token::Li, sl_cast(this));
     }
     return Token(Token::N, err_loc);
@@ -342,7 +342,8 @@ char Lexer::lex_escape(const char esc) {
     return '\v';
     break;
   default:
-    error(Error_e::UnkEsc, "Unknown escape character.", err_loc);
+    // serror(Error_e::UnkEsc, "Unknown escape character."/*, err_loc*/);
+    Error::UnkEsc(file, err_loc, esc);
     break;
   }
   return '\0';
@@ -352,7 +353,7 @@ INLINE char SourceLocation::peek(const int n) { return *it; }
 
 INLINE char SourceLocation::pop() {
   char r = *it;
-  col++;
+  pos++;
   prefetch(&it);
   ++it;
   return r;
@@ -367,13 +368,10 @@ void Lexer::test() {
 }
 
 SourceLocation::SourceLocation(FSFile &file)
-    : file(file), line(1), col(1), indent(1), it(file.code.begin()),
-      end(file.code.end()) {}
+    : pos(0), indent(0), it(file.code.begin()), end(file.code.end()) {}
 
 SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
-  file = other.file;
-  line = other.line;
-  col = other.col;
+  pos = other.pos;
   indent = other.indent;
   it = other.it;
   end = other.end;
