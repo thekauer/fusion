@@ -10,7 +10,7 @@
 struct FSFile {
     std::string path;
     std::string code;
-    FSFile(const std::string path,const std::string code) :path(path),code(code){};
+    FSFile(const std::string path,const std::string code) :path(path),code(code) {};
     FSFile& operator=(const FSFile& other);
 };
 class SourceManager {
