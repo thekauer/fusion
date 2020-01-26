@@ -13,7 +13,7 @@ Token Parser::peek(int n) {
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
-    serror(Error_e::ExpectedToken, "Expected a(n) " + tk/*, t.sl*/);
+    serror(Error_e::ExpectedToken, "Expected a(n) " + tk /*, t.sl*/);
   return t;
 }
 
@@ -60,10 +60,10 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   std::vector<std::unique_ptr<AstExpr>> body;
   auto expr = parse_expr();
   if (!expr)
-    serror(Error_e::EmptyFnBody, "Empty function body"/*, peek().sl*/);
+    serror(Error_e::EmptyFnBody, "Empty function body" /*, peek().sl*/);
   while (expr) {
     body.push_back(std::move(expr));
-    
+
     if (peek().sl.indent <= fn_indent) {
       break;
     }
@@ -78,7 +78,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     if (peek().type == Token::N) {
       pop();
     }
-    
+
     expr = parse_expr();
   }
   auto ret = std::make_unique<FnDecl>(move(proto), move(body));
@@ -104,7 +104,7 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   if (expr)
     return expr;
   expr = parse_var();
-  if(expr)
+  if (expr)
     return expr;
   return parse_fncall();
 }
@@ -172,8 +172,8 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if(!lhs)
-  std::cout <<"primary null";
+  if (!lhs)
+    std::cout << "primary null";
   return parse_binary(std::move(lhs));
 }
 
@@ -181,12 +181,11 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
   auto name = peek();
   if (name.type != Token::Id)
     return nullptr;
-  if(peek(1).type!=Token::Lp) {
+  if (peek(1).type != Token::Lp) {
     return nullptr;
   }
-  pop(); //pop name
-  pop(); //pop (
-
+  pop(); // pop name
+  pop(); // pop (
 
   // args
   std::vector<std::unique_ptr<AstExpr>> args;
@@ -196,9 +195,8 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
   return std::make_unique<FnCall>(name, std::move(args));
 }
 
-
 std::unique_ptr<VarExpr> Parser::parse_var() {
-  if(peek().type!=Token::Id) {
+  if (peek().type != Token::Id) {
     return nullptr;
   }
   return std::make_unique<VarExpr>(pop().getName());
