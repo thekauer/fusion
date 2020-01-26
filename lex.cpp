@@ -196,7 +196,7 @@ void Lexer::lex() {
   }
 }
 
-Lexer::Lexer(FSFile &file, FusionCtx &ctx) : SourceLocation(file), ctx(ctx){};
+Lexer::Lexer(FSFile &file, FusionCtx &ctx) : SourceLocation(file),file(file),ctx(ctx){};
 Token Lexer::next() {
   while (eq[peek()] == Space) {
     pop();
@@ -260,23 +260,22 @@ Token Lexer::next() {
     return Token(stringlit(buff), err_loc);
   }
   case N: {
-    line++;
-    col = 1;
     pop();
+    auto curr_indent=indent;
     while (eq[peek()] == Space) {
       pop();
-      col++;
+      curr_indent++;
     }
     while (eq[peek()] == Tab) {
       pop();
-      col++;
+      curr_indent++;
     }
-    if (indent < col) {
-      indent = col - 1;
+    if (indent < curr_indent) {
+      indent = curr_indent;
       return Token(Token::Gi, sl_cast(this));
     }
-    if (indent > col) {
-      indent = col - 1;
+    if (indent > curr_indent) {
+      indent = curr_indent;
       return Token(Token::Li, sl_cast(this));
     }
     return Token(Token::N, err_loc);
@@ -342,7 +341,7 @@ char Lexer::lex_escape(const char esc) {
     return '\v';
     break;
   default:
-    error(Error_e::UnkEsc, "Unknown escape character.", err_loc);
+    serror(Error_e::UnkEsc, "Unknown escape character."/*, err_loc*/);
     break;
   }
   return '\0';
@@ -352,7 +351,7 @@ INLINE char SourceLocation::peek(const int n) { return *it; }
 
 INLINE char SourceLocation::pop() {
   char r = *it;
-  col++;
+  pos++;
   prefetch(&it);
   ++it;
   return r;
@@ -367,15 +366,14 @@ void Lexer::test() {
 }
 
 SourceLocation::SourceLocation(FSFile &file)
-    : file(file), line(1), col(1), indent(1), it(file.code.begin()),
+    : pos(0), indent(0), it(file.code.begin()),
       end(file.code.end()) {}
 
 SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
-  file = other.file;
-  line = other.line;
-  col = other.col;
+  pos = other.pos;
   indent = other.indent;
   it = other.it;
   end = other.end;
   return *this;
 }
+

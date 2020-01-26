@@ -13,7 +13,7 @@ Token Parser::peek(int n) {
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
-    error(Error_e::ExpectedToken, "Expected a(n) " + tk, t.sl);
+    serror(Error_e::ExpectedToken, "Expected a(n) " + tk/*, t.sl*/);
   return t;
 }
 
@@ -60,7 +60,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   std::vector<std::unique_ptr<AstExpr>> body;
   auto expr = parse_expr();
   if (!expr)
-    error(Error_e::EmptyFnBody, "Empty function body", peek().sl);
+    serror(Error_e::EmptyFnBody, "Empty function body"/*, peek().sl*/);
   while (expr) {
     body.push_back(std::move(expr));
     

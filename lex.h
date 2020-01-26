@@ -16,8 +16,7 @@ struct FSFile;
 ptr hash(const std::string& str);
 class SourceLocation {
     public:
-    FSFile& file;
-    int line,col,indent;
+    unsigned int pos,indent;
     std::string::const_iterator it,end;
     SourceLocation(FSFile& file);
     INLINE char peek(const int n=0);
@@ -25,7 +24,6 @@ class SourceLocation {
     INLINE bool can_iter();
     SourceLocation& operator=(const SourceLocation& other);
 };
-
 
 enum Kw_e : unsigned char {
     Unk,
@@ -118,6 +116,7 @@ public:
     std::vector<Token> tokens;
 private:
     FusionCtx& ctx;
+    FSFile& file;
     char lex_escape(const char esc);
     llvm::Constant* nolit(const SourceLocation& s,bool f,int base);
     llvm::Constant* stringlit(std::string s);

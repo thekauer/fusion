@@ -34,7 +34,6 @@ void Compiler::compile(int argc, char **argv) {
     Parser p(l.tokens, ctx);
 
     auto m = p.parse_fndecl();
-
     std::cout << "\npretty print:\n";
     m->pretty_print();
     std::cout << "\n\n";
@@ -46,7 +45,6 @@ void Compiler::compile(int argc, char **argv) {
   }
 
   generate_obj(ctx.mod.get());
-
   auto end = std::chrono::high_resolution_clock::now();
   auto duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start)

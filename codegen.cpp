@@ -5,7 +5,7 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) {
   auto *fn = ctx.mod->getFunction(name.getName());
   if (!fn) {
     std::string err_msg = "unknown function called " + name.getName();
-    error(Error_e::FnNotExsits, err_msg, name.sl);
+    serror(Error_e::FnNotExsits, err_msg/*, name.sl*/);
   }
   std::vector<llvm::Value *> fn_args;
   for (auto &&arg : args) {
@@ -51,7 +51,8 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
   auto *fn = (llvm::Function *)p;
   if (!fn) {
     std::string err_msg = "unknown function called " + fname;
-    error(Error_e::FnNotExsits, err_msg, name.sl);
+    serror(Error_e::FnNotExsits, err_msg/*, name.sl*/);
+    
   }
   llvm::BasicBlock *bb = llvm::BasicBlock::Create(ctx.ctx, "entry", fn);
   ctx.builder.SetInsertPoint(bb);
@@ -93,9 +94,14 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     if(!vrhs) {
       serror(Error_e::Unk,"No value");
     }
-    llvm::Value* init = llvm::ConstantInt::get(ctx.getI32(),llvm::APInt(32,5,true));
     llvm::Value *var = ctx.named_values[vlhs->getName()];
     return ctx.builder.CreateStore(vrhs, var);
+    return vrhs;
+  }
+  case Token::Add: {
+    //fix this
+    llvm::Value* vrhs = rhs->codegen(ctx);
+    ctx.builder.CreateAdd(lhs->codegen(ctx),vrhs,"add");
     return vrhs;
   }
   default:
