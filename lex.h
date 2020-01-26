@@ -32,7 +32,8 @@ enum Kw_e : unsigned char {
     I8,
     I16,
     I32,
-    I64
+    I64,
+    String
 };
 
 bool is_op(u8 ch);

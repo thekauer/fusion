@@ -142,7 +142,14 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   switch (pop().getKw()) {
   case Kw_e::I32:
     return std::make_unique<TypeExpr>(ctx.getI32());
-
+  case Kw_e::I8:
+    return std::make_unique<TypeExpr>(ctx.getI8());
+  case Kw_e::I16:
+    return std::make_unique<TypeExpr>(ctx.getI16());
+  case Kw_e::I64:
+    return std::make_unique<TypeExpr>(ctx.getI64());
+  case String:
+    return std::make_unique<TypeExpr>(ctx.getString());
   default:
     return nullptr;
   }

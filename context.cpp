@@ -17,5 +17,7 @@ llvm::Type* FusionCtx::getI32() {
 llvm::Type* FusionCtx::getI64() {
     return llvm::IntegerType::getInt64Ty(ctx);
 }
-
+llvm::Type* FusionCtx::getString() {
+    return llvm::IntegerType::getInt8PtrTy(ctx);
+}
 
