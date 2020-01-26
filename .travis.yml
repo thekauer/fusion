@@ -13,7 +13,7 @@ jobs:
       env: OS=linux COMPILER=clang CLANG_VERSION=9
       addons:
         apt:
-          sources:) 
+          sources:
             - sourceline: 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic main'
               key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
           packages:
