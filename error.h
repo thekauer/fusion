@@ -31,3 +31,8 @@ enum class Error_e : int {
 [[noreturn]] void error(Error_e code,const FSFile& file,const SourceLocation& sl,const std::string& msg);
 void note(Error_e code,const FSFile& file,const SourceLocation& sl,const std::string& msg);
 void warning(Error_e code,const FSFile& file,const SourceLocation& sl,const std::string& msg);
+
+class Error {
+  public:
+  static void UnkEsc(const FSFile& file,const SourceLocation& sl,const char ch);
+};

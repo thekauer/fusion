@@ -2,6 +2,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/FormattedStream.h"
 #include <string>
+#include <sstream>
 
 /*
 void error(Error_e code,const std::string& msg,const SourceLocation& sl) {
@@ -93,4 +94,13 @@ void note(Error_e code,const FSFile& file,const SourceLocation& sl,const std::st
         std::cout << " ";
     }
     std::cout << "^\n" <<"\n";
+}
+
+
+void Error::UnkEsc(const FSFile& file,const SourceLocation& sl,const char ch) {
+    std::ostringstream os;
+    os << "Unknown escape character \'\\" << ch << "\'.";
+
+
+    error(Error_e::UnkEsc,file,sl,os.str());
 }
