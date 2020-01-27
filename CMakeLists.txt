@@ -37,10 +37,11 @@ file(GLOB fs_SRC
 "*.cpp"
 )
 
-target_include_directories(fs llvm/include) 
+
 # add the executable
 add_executable(fs  ${fs_SRC})
 
+target_include_directories(fs llvm/include) 
 
 llvm_map_components_to_libnames(llvm_libs
  all
