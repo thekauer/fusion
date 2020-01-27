@@ -43,15 +43,14 @@ branches:
 
 # Scripts that run before install
 before_install:
-  - cd
-  - sudo find . - name Value.h
   # clang, libc++, libc++abi
-  - if [ "$OS" != "osx" ] && [ "$COMPILER" = "clang" ]; then export CC="clang-${CLANG_VERSION}" CXX="clang++-${CLANG_VERSION}" LLVM_DIR="/usr/bin/llvm/../lib/cmake" ; fi
+  - if [ "$OS" != "osx" ] && [ "$COMPILER" = "clang" ]; then export CC="clang-${CLANG_VERSION}" CXX="clang++-${CLANG_VERSION}" LLVM_DIR="/usr/include/llvm-9/lib/cmake" ; fi
   # brew, doxygen, graphviz
   - if [ "$OS" == "osx" ]; then brew unlink python@2; fi
   - if [ "$OS" == "osx" ]; then brew update; fi
   - if [ "$OS" == "osx" ]; then brew install doxygen; fi
   - if [ "$OS" == "osx" ]; then brew install graphviz; fi
+  - if [ "$OS" == "osx" ]; then brew install llvm; fi 
   # cmake
   - cmake --version
   # doxygen support
