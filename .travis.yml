@@ -69,7 +69,15 @@ cache:
   - llvm
 # Build scripts
 script: 
-  - llvm-config --version
+  - echo "LLVM config" 
+  - llvm-config --prefix
+  - llvm-config --src-root
+  - llvm-config --obj-root
+  - llvm-config --includedir
+  - llvm-config --bindir
+  - llvm-config --libdir
+  - llvm-config --cxxflags
+  - llvm-config --ldflags
   - rm -r llvm
   - cd llvm-project
   - mv llvm .. 
