@@ -28,7 +28,7 @@ project(fs)
 
 
 find_package(LLVM REQUIRED CONFIG)
-
+SET (LLVM_DIR llvm/cmake/modules) 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
@@ -41,7 +41,6 @@ file(GLOB fs_SRC
 # add the executable
 add_executable(fs  ${fs_SRC})
 
-target_include_directories(fs llvm/include) 
 
 llvm_map_components_to_libnames(llvm_libs
  all
