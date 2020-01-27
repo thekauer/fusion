@@ -36,6 +36,8 @@ file(GLOB fs_SRC
 "*.h"
 "*.cpp"
 )
+include_directories(${LLVM_INCLUDE_DIRS})
+add_definitions(${LLVM_DEFINITIONS})
 
 
 # add the executable
