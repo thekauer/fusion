@@ -36,6 +36,8 @@ file(GLOB fs_SRC
 "*.h"
 "*.cpp"
 )
+
+target_include_directories(fs llvm/include) 
 # add the executable
 add_executable(fs  ${fs_SRC})
 
