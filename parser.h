@@ -83,11 +83,11 @@ struct TypeExpr : AstExpr {
   void pretty_print() override;
 };
 struct FnCall : AstExpr {
-  Token name;
+  std::string name;
   // args
   std::vector<std::unique_ptr<AstExpr>> args;
-  FnCall(Token name) : AstExpr(AstType::FnCall), name(name){};
-  FnCall(Token name, std::vector<std::unique_ptr<AstExpr>> &&args)
+  FnCall(const std::string& name) : AstExpr(AstType::FnCall), name(name){};
+  FnCall(const std::string& name, std::vector<std::unique_ptr<AstExpr>> &&args)
       : AstExpr(AstType::FnCall), name(name), args(std::move(args)){};
   void print_name() override { std::cout << "FnCall\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;

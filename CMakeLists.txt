@@ -13,6 +13,7 @@ file(GLOB fs_SRC
 "*.h"
 "*.cpp"
 )
+#add_subdirectory(lld)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
@@ -25,7 +26,7 @@ llvm_map_components_to_libnames(llvm_libs
  all
   )
 
-target_link_libraries(fs ${llvm_libs})
+target_link_libraries(fs LLVM)
 
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard
