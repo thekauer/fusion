@@ -43,6 +43,8 @@ branches:
 
 # Scripts that run before install
 before_install:
+  - cd
+  sudo find . - name Value.h
   # clang, libc++, libc++abi
   - if [ "$OS" != "osx" ] && [ "$COMPILER" = "clang" ]; then export CC="clang-${CLANG_VERSION}" CXX="clang++-${CLANG_VERSION}" LLVM_DIR="/usr/bin/llvm/../lib/cmake" ; fi
   # brew, doxygen, graphviz
