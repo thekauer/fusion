@@ -1,15 +1,14 @@
 #include "parser.h"
 #include "llvm/IR/Verifier.h"
 
-
-static bool type_check(llvm::Type* lhs ,llvm::Type* rhs) {
-  if(rhs->isPointerTy()) {
+static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
+  if (rhs->isPointerTy()) {
     return rhs->isPointerTy();
   }
-  if(lhs->isIntegerTy()) {
+  if (lhs->isIntegerTy()) {
     return rhs->isIntegerTy();
   }
-  if(lhs->isFloatingPointTy()) {
+  if (lhs->isFloatingPointTy()) {
     return rhs->isFloatingPointTy();
   }
   return false;
@@ -107,8 +106,8 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     if (!vrhs) {
       serror(Error_e::Unk, "No value");
     }
-    if(!type_check(vrhs->getType(),vlhs->getType())) {
-      serror(Error_e::Unk,"types don't match");
+    if (!type_check(vrhs->getType(), vlhs->getType())) {
+      serror(Error_e::Unk, "types don't match");
     }
 
     llvm::Value *var = ctx.named_values[vlhs->getName()];
