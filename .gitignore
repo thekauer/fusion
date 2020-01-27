@@ -2,3 +2,4 @@
 llvm
 build
 .git
+lld
