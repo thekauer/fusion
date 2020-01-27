@@ -50,7 +50,6 @@ before_install:
   - if [ "$OS" == "osx" ]; then brew update; fi
   - if [ "$OS" == "osx" ]; then brew install doxygen; fi
   - if [ "$OS" == "osx" ]; then brew install graphviz; fi
-  - if [ "$OS" == "osx" ]; then brew install llvm; fi 
   - if [ "$OS" == "osx" ]; then export LDFLAGS="-L/usr/local/opt/llvm/lib" CPPFLAGS="-I/usr/local/opt/llvm/include"; fi
   # cmake
   - cmake --version
@@ -70,6 +69,7 @@ cache:
   - llvm
 # Build scripts
 script: 
+  - llvm-config --version
   - rm -r llvm
   - cd llvm-project
   - mv llvm .. 
