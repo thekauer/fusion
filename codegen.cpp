@@ -19,7 +19,7 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) {
   auto *fn = ctx.mod->getFunction(name.getName());
   if (!fn) {
     std::string err_msg = "unknown function called " + name.getName();
-    serror(Error_e::FnNotExsits, err_msg/*, name.sl*/);
+    serror(Error_e::FnNotExsits, err_msg /*, name.sl*/);
   }
   std::vector<llvm::Value *> fn_args;
   for (auto &&arg : args) {
@@ -65,8 +65,7 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
   auto *fn = (llvm::Function *)p;
   if (!fn) {
     std::string err_msg = "unknown function called " + fname;
-    serror(Error_e::FnNotExsits, err_msg/*, name.sl*/);
-    
+    serror(Error_e::FnNotExsits, err_msg /*, name.sl*/);
   }
   llvm::BasicBlock *bb = llvm::BasicBlock::Create(ctx.ctx, "entry", fn);
   ctx.builder.SetInsertPoint(bb);
@@ -105,8 +104,8 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
   case Token::Eq: {
     auto *vlhs = lhs->codegen(ctx);
     auto *vrhs = rhs->codegen(ctx);
-    if(!vrhs) {
-      serror(Error_e::Unk,"No value");
+    if (!vrhs) {
+      serror(Error_e::Unk, "No value");
     }
     if(!type_check(vrhs->getType(),vlhs->getType())) {
       serror(Error_e::Unk,"types don't match");
@@ -117,9 +116,9 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     return vrhs;
   }
   case Token::Add: {
-    //fix this
-    llvm::Value* vrhs = rhs->codegen(ctx);
-    ctx.builder.CreateAdd(lhs->codegen(ctx),vrhs,"add");
+    // fix this
+    llvm::Value *vrhs = rhs->codegen(ctx);
+    ctx.builder.CreateAdd(lhs->codegen(ctx), vrhs, "add");
     return vrhs;
   }
   default:

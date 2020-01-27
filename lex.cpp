@@ -134,11 +134,10 @@ bool is_ws(u8 ch) { return ch == Tab || ch == Space; }
 
 bool is_eol(u8 ch) { return ch == N || ch == Space; }
 
-static const std::map<ptr, Kw_e> kws{{hash("fn"), Fn},   {hash("for"), For},
-                                     {hash("i8"), I8},   {hash("i16"), I16},
-                                     {hash("i32"), I32}, {hash("i64"), I64},
-                                     {hash("string"),String}
-};
+static const std::map<ptr, Kw_e> kws{
+    {hash("fn"), Fn},        {hash("for"), For}, {hash("i8"), I8},
+    {hash("i16"), I16},      {hash("i32"), I32}, {hash("i64"), I64},
+    {hash("string"), String}};
 Kw_e is_kw(ptr h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
@@ -157,8 +156,7 @@ llvm::Constant *Lexer::nolit(const SourceLocation &s, bool f, int base) {
 
   } else {
     sr.getAsInteger(base, I);
-    return llvm::ConstantInt::get(ctx.getI32(),
-                                  llvm::APInt(32, I, true));
+    return llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true));
   }
 }
 
@@ -198,7 +196,8 @@ void Lexer::lex() {
   }
 }
 
-Lexer::Lexer(FSFile &file, FusionCtx &ctx) : SourceLocation(file),file(file),ctx(ctx){};
+Lexer::Lexer(FSFile &file, FusionCtx &ctx)
+    : SourceLocation(file), file(file), ctx(ctx){};
 Token Lexer::next() {
   while (eq[peek()] == Space) {
     pop();
@@ -263,7 +262,7 @@ Token Lexer::next() {
   }
   case N: {
     pop();
-    auto curr_indent=indent;
+    auto curr_indent = indent;
     while (eq[peek()] == Space) {
       pop();
       curr_indent++;
@@ -343,8 +342,8 @@ char Lexer::lex_escape(const char esc) {
     return '\v';
     break;
   default:
-    //serror(Error_e::UnkEsc, "Unknown escape character."/*, err_loc*/);
-    Error::UnkEsc(file,err_loc,esc);
+    // serror(Error_e::UnkEsc, "Unknown escape character."/*, err_loc*/);
+    Error::UnkEsc(file, err_loc, esc);
     break;
   }
   return '\0';
@@ -369,8 +368,7 @@ void Lexer::test() {
 }
 
 SourceLocation::SourceLocation(FSFile &file)
-    : pos(0), indent(0), it(file.code.begin()),
-      end(file.code.end()) {}
+    : pos(0), indent(0), it(file.code.begin()), end(file.code.end()) {}
 
 SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
   pos = other.pos;
@@ -379,4 +377,3 @@ SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
   end = other.end;
   return *this;
 }
-
