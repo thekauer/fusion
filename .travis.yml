@@ -39,8 +39,6 @@ branches:
 before_install:
   # clang, libc++, libc++abi
   - if [ "$OS" != "osx" ] && [ "$COMPILER" = "clang" ]; then export CC="clang-${CLANG_VERSION}" CXX="clang++-${CLANG_VERSION}" LLVM_DIR="/usr/include/llvm-9/lib/cmake" ; fi
-  # brew, doxygen, graphviz
-  - if [ "$OS" == "osx" ]; then brew unlink python@2; fi
   - if [ "$OS" == "osx" ]; then brew update; fi
   - if [ "$OS" == "osx" ]; then brew install llvm; fi
   - if [ "$OS" == "osx" ]; then export LDFLAGS="-L/usr/local/opt/llvm/lib" CPPFLAGS="-I/usr/local/opt/llvm/include"; fi
@@ -51,9 +49,6 @@ before_install:
   - git config --global user.name "Travis CI"
   - git config --global user.email "travis@travis-ci.org"
   - git config --global push.default simple
-  # gil
-  - pip3 install gil
-  - gil update
   # llvm
   - git clone https://github.com/llvm/llvm-project.git
 cache:
