@@ -5,7 +5,7 @@ project(fs)
 
 
 find_package(LLVM REQUIRED CONFIG)
-SET (LLVM_DIR llvm/cmake/modules) 
+SET (LLVM_DIR llvm/cmake/modules)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
