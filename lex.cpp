@@ -180,9 +180,10 @@ Token &Token::operator=(const Token &other) {
     break;
   case Kw:
     data = other.data;
+    break;
   case Id:
     data = other.data;
-
+    break;
   default:
     break;
   }
