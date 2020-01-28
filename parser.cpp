@@ -53,7 +53,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   auto proto = parse_fnproto();
   if (!proto)
     return nullptr;
-  auto t = expect(Token::Gi, "greater indentation");
+  expect(Token::Gi, "greater indentation");
   ++indent;
 
   std::vector<std::unique_ptr<AstExpr>> body;
