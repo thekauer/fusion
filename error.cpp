@@ -51,7 +51,7 @@ RespawnedCode respawn(const FSFile &file, unsigned int pos) {
   return RespawnedCode(line, col, code, file_name);
 }
 [[noreturn]] void error(Error_e code, const FSFile &file,
-                        const SourceLocation &sl, const std::string &msg) {
+  const SourceLocation &sl, const std::string &msg) {
   auto rsc = respawn(file, sl.pos);
   std::string s = ": " + msg + "\n" + rsc.code + "\n";
   llvm::formatted_raw_ostream ro(llvm::outs());
@@ -67,6 +67,21 @@ RespawnedCode respawn(const FSFile &file, unsigned int pos) {
   std::exit(static_cast<int>(code));
 }
 
+static void err_impl(Error_e code,const FSFile& file,const SourceLocation& sl, const std::string& msg,llvm::raw_ostream::Color color,const std::string& title) {
+  auto rsc = respawn(file, sl.pos);
+  std::string s = ": " + msg + "\n" + rsc.code + "\n";
+  llvm::formatted_raw_ostream ro(llvm::outs());
+  ro.changeColor(color, true, false);
+  ro.write(title.c_str(), title.size());
+  ro.resetColor();
+  ro.write(s.c_str(), s.size());
+  for (int i = 0; i < rsc.col; i++) {
+    std::cout << " ";
+  }
+  std::cout << "^\n"
+            << "\n";
+    
+}
 void warning(Error_e code, const FSFile &file, const SourceLocation &sl,
              const std::string &msg) {
   auto rsc = respawn(file, sl.pos);
