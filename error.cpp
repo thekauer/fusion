@@ -68,7 +68,7 @@ RespawnedCode respawn(const FSFile &file, unsigned int pos) {
 }
 
 static void err_impl(Error_e code, const FSFile &file, const SourceLocation &sl,
-                     const std::string &msg, llvm::raw_ostream::Color color,
+                     const std::string &msg, llvm::raw_ostream::Colors color,
                      const std::string &title) {
   auto rsc = respawn(file, sl.pos);
   std::string s = ": " + msg + "\n" + rsc.code + "\n";

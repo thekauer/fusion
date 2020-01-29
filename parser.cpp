@@ -173,8 +173,9 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (!lhs)
+  if (lhs)
     return parse_binary(std::move(lhs));
+  return lhs;
 }
 
 std::unique_ptr<FnCall> Parser::parse_fncall() {
