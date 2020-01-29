@@ -164,7 +164,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
   auto id = pop();
   pop(); // pop Double dot
   std::unique_ptr<TypeExpr> ty = parse_type_expr();
-  //remove this
+  // remove this
   if (!ty) {
     // error expected type expr
     return nullptr; // return Infer type
