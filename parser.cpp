@@ -4,10 +4,12 @@
 #include "llvm/IR/LLVMContext.h"
 #include <csignal>
 
-Token Parser::pop() { if(it==end)return Token(Token::Eof,(--it)->sl);return *it++; }
-Token Parser::peek(int n) {
-  return *(it + n);
+Token Parser::pop() {
+  if (it == end)
+    return Token(Token::Eof, (--it)->sl);
+  return *it++;
 }
+Token Parser::peek(int n) { return *(it + n); }
 
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
@@ -172,7 +174,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
   if (!lhs)
-  return parse_binary(std::move(lhs));
+    return parse_binary(std::move(lhs));
 }
 
 std::unique_ptr<FnCall> Parser::parse_fncall() {

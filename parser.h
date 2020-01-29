@@ -86,8 +86,8 @@ struct FnCall : AstExpr {
   std::string name;
   // args
   std::vector<std::unique_ptr<AstExpr>> args;
-  FnCall(const std::string& name) : AstExpr(AstType::FnCall), name(name){};
-  FnCall(const std::string& name, std::vector<std::unique_ptr<AstExpr>> &&args)
+  FnCall(const std::string &name) : AstExpr(AstType::FnCall), name(name){};
+  FnCall(const std::string &name, std::vector<std::unique_ptr<AstExpr>> &&args)
       : AstExpr(AstType::FnCall), name(name), args(std::move(args)){};
   void print_name() override { std::cout << "FnCall\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
