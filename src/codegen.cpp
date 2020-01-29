@@ -108,6 +108,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     if (!type_check(vrhs->getType(), vlhs->getType())) {
       serror(Error_e::Unk, "types don't match");
     }
+    
 
     llvm::Value *var = ctx.named_values[vlhs->getName()];
     return ctx.builder.CreateStore(vrhs, var);
