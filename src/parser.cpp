@@ -4,11 +4,12 @@
 #include "llvm/IR/LLVMContext.h"
 #include <csignal>
 
-Token Parser::pop() { return *it++; }
-Token Parser::peek(int n) {
-  cnt++;
-  return *(it + n);
+Token Parser::pop() {
+  if (it == end)
+    return Token(Token::Eof, (--it)->sl);
+  return *it++;
 }
+Token Parser::peek(int n) { return *(it + n); }
 
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
@@ -54,7 +55,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   auto proto = parse_fnproto();
   if (!proto)
     return nullptr;
-  auto t = expect(Token::Gi, "greater indentation");
+  expect(Token::Gi, "greater indentation");
   ++indent;
 
   std::vector<std::unique_ptr<AstExpr>> body;
@@ -103,10 +104,10 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   expr = parse_var_decl();
   if (expr)
     return expr;
-  expr = parse_var();
+  expr = parse_fncall();
   if (expr)
     return expr;
-  return parse_fncall();
+  return parse_var();
 }
 std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
                                               int p) {
@@ -163,6 +164,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
   auto id = pop();
   pop(); // pop Double dot
   std::unique_ptr<TypeExpr> ty = parse_type_expr();
+  // remove this
   if (!ty) {
     // error expected type expr
     return nullptr; // return Infer type
@@ -172,9 +174,9 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (!lhs)
-    std::cout << "primary null";
-  return parse_binary(std::move(lhs));
+  if (lhs)
+    return parse_binary(std::move(lhs));
+  return lhs;
 }
 
 std::unique_ptr<FnCall> Parser::parse_fncall() {
@@ -192,14 +194,17 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
   auto arg = parse_expr();
   args.push_back(std::move(arg));
   expect(Token::Rp, ")");
-  return std::make_unique<FnCall>(name, std::move(args));
+  return std::make_unique<FnCall>(name.getName(), std::move(args));
 }
 
 std::unique_ptr<VarExpr> Parser::parse_var() {
-  if (peek().type != Token::Id) {
+  auto name = peek();
+  if (name.type != Token::Id) {
     return nullptr;
   }
-  return std::make_unique<VarExpr>(pop().getName());
+  pop();
+
+  return std::make_unique<VarExpr>(name.getName());
 }
 
 void FnProto::pretty_print() {
@@ -231,7 +236,7 @@ void VarDeclExpr::pretty_print() {
 void VarExpr::pretty_print() { llvm::outs() << name; }
 void TypeExpr::pretty_print() { ty->print(llvm::outs()); }
 void FnCall::pretty_print() {
-  llvm::outs() << name.getName() << "(";
+  llvm::outs() << name << "(";
   for (const auto &arg : args) {
     arg->pretty_print();
     llvm::outs() << ",";

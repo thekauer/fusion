@@ -34,6 +34,7 @@ bool is_eol(u8 ch);
 
 struct Token {
   enum Type : unsigned char {
+    Eof,
     Id,
     Kw,
 

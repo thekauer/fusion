@@ -1,6 +1,5 @@
 #include "parser.h"
 #include "llvm/IR/Verifier.h"
-
 static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
   if (rhs->isPointerTy()) {
     return rhs->isPointerTy();
@@ -15,9 +14,9 @@ static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
 }
 
 llvm::Value *FnCall::codegen(FusionCtx &ctx) {
-  auto *fn = ctx.mod->getFunction(name.getName());
+  auto *fn = ctx.mod->getFunction(name);
   if (!fn) {
-    std::string err_msg = "unknown function called " + name.getName();
+    std::string err_msg = "unknown function called " + name;
     serror(Error_e::FnNotExsits, err_msg /*, name.sl*/);
   }
   std::vector<llvm::Value *> fn_args;

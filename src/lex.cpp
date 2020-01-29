@@ -148,13 +148,12 @@ Kw_e is_kw(ptr h) {
 
 llvm::Constant *Lexer::nolit(const SourceLocation &s, bool f, int base) {
   llvm::StringRef sr(std::string(s.it, it));
-  int I = 0;
-  double D = 0.0;
   if (f) {
+    double D = 0.0;
     sr.getAsDouble(D);
     return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D));
-
   } else {
+    int I = 0;
     sr.getAsInteger(base, I);
     return llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true));
   }
@@ -181,9 +180,10 @@ Token &Token::operator=(const Token &other) {
     break;
   case Kw:
     data = other.data;
+    break;
   case Id:
     data = other.data;
-
+    break;
   default:
     break;
   }
