@@ -9,17 +9,18 @@ SET (LLVM_DIR llvm/cmake/modules)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-file(GLOB fs_SRC
-"*.h"
-"*.cpp"
-)
+
+message(STATUS "llvm include dirs: " ${LLVM_INCLUDE_DIRS})
 #add_subdirectory(lld)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 
+include_directories(fs PRIVATE include)
+file(GLOB FS_SRC "src/*cpp")
+link_directories(include)
 # add the executable
-add_executable(fs  ${fs_SRC})
+add_executable(fs  ${FS_SRC})
 
 
 llvm_map_components_to_libnames(llvm_libs

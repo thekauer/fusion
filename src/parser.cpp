@@ -164,6 +164,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
   auto id = pop();
   pop(); // pop Double dot
   std::unique_ptr<TypeExpr> ty = parse_type_expr();
+  //remove this
   if (!ty) {
     // error expected type expr
     return nullptr; // return Infer type
@@ -173,8 +174,9 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (!lhs)
+  if (lhs)
     return parse_binary(std::move(lhs));
+  return lhs;
 }
 
 std::unique_ptr<FnCall> Parser::parse_fncall() {
