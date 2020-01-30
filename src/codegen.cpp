@@ -29,19 +29,20 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) {
 
 llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   std::vector<llvm::Type *> fn_args;
-  for(auto&& arg : args) {
-    if(arg->type == AstType::VarDeclExpr) {
-      auto vd = reinterpret_cast<VarDeclExpr*>(arg.get());
+  for (auto &&arg : args) {
+    if (arg->type == AstType::VarDeclExpr) {
+      auto vd = reinterpret_cast<VarDeclExpr *>(arg.get());
       fn_args.push_back(vd->ty->codegen(ctx));
       llvm::outs() << "\nVARDECL EYEY\n";
     }
     llvm::outs() << "Typeof arg: " << static_cast<int>(arg->type) << "\n";
-    llvm::outs() << "Typeof vardecl is "<< static_cast<int>(AstType::VarDeclExpr) << "\n";
+    llvm::outs() << "Typeof vardecl is "
+                 << static_cast<int>(AstType::VarDeclExpr) << "\n";
     fn_args.push_back(arg->codegen(ctx)->getType());
   }
 
   /*
-  */
+   */
   // args and set name for them
   llvm::Type *ret_t = nullptr;
   // if(!ret_t) {
@@ -54,13 +55,13 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   llvm::Function *f =
       llvm::Function::Create(ft, lt, name.getName(), ctx.mod.get());
   // set arg names
-  unsigned idx=0;
-  for(auto& arg : f->args()) {
-      auto n=((VarDeclExpr*)(args[idx++].get()))->name;
-      arg.setName(n);
+  unsigned idx = 0;
+  for (auto &arg : f->args()) {
+    auto n = ((VarDeclExpr *)(args[idx++].get()))->name;
+    arg.setName(n);
   }
   /*
-  */
+   */
   return f;
 }
 
@@ -103,7 +104,7 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
 llvm::Value *ValExpr::codegen(FusionCtx &ctx) { return val.val; }
 
 llvm::Value *TypeExpr::codegen(FusionCtx &ctx) {
-  
+
   return reinterpret_cast<llvm::Value *>(ty->codegen(ctx));
 }
 
@@ -148,7 +149,8 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
   if (!ty) {
     serror(Error_e::CouldNotInferType, "Couldn't infer type of expression");
   }
-  llvm::AllocaInst *val = ctx.builder.CreateAlloca(ty->codegen(ctx), nullptr, name);
+  llvm::AllocaInst *val =
+      ctx.builder.CreateAlloca(ty->codegen(ctx), nullptr, name);
   if (ctx.named_values.find(name) != ctx.named_values.end()) {
     serror(Error_e::Unk, "redaclaration of variable");
   }

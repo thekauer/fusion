@@ -123,9 +123,7 @@ Token::Token(const std::string &str, const SourceLocation &sl)
     : type(Id), sl(sl), data(str) {}
 Token::Token(Kw_e kw, const SourceLocation &sl) : type(Kw), sl(sl), data(kw) {}
 
-Lit Token::getValue() const {
-  return std::get<::Lit>(data);
-}
+Lit Token::getValue() const { return std::get<::Lit>(data); }
 std::string Token::getName() const { return std::get<std::string>(data); }
 Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
 
@@ -151,11 +149,13 @@ Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
   if (f) {
     double D = 0.0;
     sr.getAsDouble(D);
-    return Lit(Type::getDouble(),llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D)));
+    return Lit(Type::getDouble(),
+               llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D)));
   } else {
     int I = 0;
     sr.getAsInteger(base, I);
-    return Lit(Type::getI32(),llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true)));
+    return Lit(Type::getI32(),
+               llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true)));
   }
 }
 
@@ -168,7 +168,9 @@ Lit Lexer::stringlit(std::string s) {
   gstr->setAlignment(1);
   llvm::Constant *cstr = llvm::ConstantDataArray::getString(ctx.ctx, s, true);
   gstr->setInitializer(cstr);
-  return Lit(Type::getI8()->toPtr(),(llvm::Constant*)llvm::ConstantExpr::getBitCast(gstr, ctx.getI8()->getPointerTo()));
+  return Lit(Type::getI8()->toPtr(),
+             (llvm::Constant *)llvm::ConstantExpr::getBitCast(
+                 gstr, ctx.getI8()->getPointerTo()));
 }
 
 Token &Token::operator=(const Token &other) {
