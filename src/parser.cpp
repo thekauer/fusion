@@ -151,25 +151,55 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
     return std::make_unique<TypeExpr>(ctx.getI64());
   case String:
     return std::make_unique<TypeExpr>(ctx.getString());
+  case Kw_e::Drop:
+    return std::make_unique<TypeExpr>();
   default:
     return nullptr;
   }
   return nullptr;
 }
 
-std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
-  if (!(peek().type == Token::Id && peek(1).type == Token::DoubleDot)) {
+std::unique_ptr<AstExpr> Parser::parse_infered_var_decl(const std::string& name) {
+  if(peek().type!=Token::Eq) {
+    serror(Error_e::Unk,"You must assign a value to an infered type decl.");  
+  } else {
+    pop(); // pop the =
+    auto val = parse_valexpr();
+    if(!val) {
+      serror(Error_e::Unk,"expected a literal");
+    }
+    auto lhs = std::make_unique<VarDeclExpr>(name,val->val->getType());
+    return std::make_unique<BinExpr>(Token::Eq,std::move(lhs),std::move(val));
+  }
+  return nullptr;
+}
+
+std::unique_ptr<AstExpr> Parser::parse_var_decl() {
+  if (peek().type != Token::Id) {
     return nullptr;
   }
   auto id = pop();
-  pop(); // pop Double dot
-  std::unique_ptr<TypeExpr> ty = parse_type_expr();
-  // remove this
-  if (!ty) {
-    // error expected type expr
-    return nullptr; // return Infer type
+  if(peek().type == Token::DoubleDot) {
+    pop(); // pop Double dot
+    if( (peek().type== Token::Underscore)||(peek().type == Token::Kw && peek().getKw()==Kw_e::Drop) ){
+
+      pop(); //pop the _
+      return parse_infered_var_decl(id.getName());
+    }
+    std::unique_ptr<TypeExpr> ty = parse_type_expr();
+    // remove this
+    if (!ty) {
+      // error expected type expr
+      return nullptr; // return Infer type
+    }
+    return std::make_unique<VarDeclExpr>(id.getName(), ty->ty);
   }
-  return std::make_unique<VarDeclExpr>(id.getName(), ty->ty);
+  if(peek().type==Token::Eq) {
+    return parse_infered_var_decl(id.getName());
+  }
+  
+
+  return nullptr;
 }
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {

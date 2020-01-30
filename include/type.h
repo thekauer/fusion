@@ -2,9 +2,15 @@
 #include <string>
 #include <vector>
 
+
 class Type {
 public:
   enum By : unsigned char { Ref, Ptr, Val } pass;
+  enum TypeKind :unsigned char{
+    Integral,
+    Struct,
+    Tuple
+  }tk;
   bool mut;
   bool optional;
   const unsigned int size;
@@ -15,7 +21,7 @@ public:
   Type *toConst();
   Type *toOptional();
   Type *toNotOption();
-  Type(By pass, bool mut, const unsigned int size, bool optional = false);
+  Type(TypeKind tk,By pass, bool mut, const unsigned int size, bool optional = false);
 
   static const Type *getI8();
   static const Type *getI16();
