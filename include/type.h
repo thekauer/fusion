@@ -19,7 +19,7 @@ public:
 	Type* toConst();
 	Type* toOptional();
 	Type* toNotOption();
-	Type(By pass,bool mut,bool optional=false);
+	Type(By pass,bool mut,const unsigned int size,bool optional=false);
 	
 	static const Type* getI8();
 	static const Type* getI16();
