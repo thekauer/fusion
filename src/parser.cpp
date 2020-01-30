@@ -159,17 +159,18 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   return nullptr;
 }
 
-std::unique_ptr<AstExpr> Parser::parse_infered_var_decl(const std::string& name) {
-  if(peek().type!=Token::Eq) {
-    serror(Error_e::Unk,"You must assign a value to an infered type decl.");  
+std::unique_ptr<AstExpr>
+Parser::parse_infered_var_decl(const std::string &name) {
+  if (peek().type != Token::Eq) {
+    serror(Error_e::Unk, "You must assign a value to an infered type decl.");
   } else {
     pop(); // pop the =
     auto val = parse_valexpr();
-    if(!val) {
-      serror(Error_e::Unk,"expected a literal");
+    if (!val) {
+      serror(Error_e::Unk, "expected a literal");
     }
-    auto lhs = std::make_unique<VarDeclExpr>(name,val->val->getType());
-    return std::make_unique<BinExpr>(Token::Eq,std::move(lhs),std::move(val));
+    auto lhs = std::make_unique<VarDeclExpr>(name, val->val->getType());
+    return std::make_unique<BinExpr>(Token::Eq, std::move(lhs), std::move(val));
   }
   return nullptr;
 }
@@ -179,11 +180,12 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
     return nullptr;
   }
   auto id = pop();
-  if(peek().type == Token::DoubleDot) {
+  if (peek().type == Token::DoubleDot) {
     pop(); // pop Double dot
-    if( (peek().type== Token::Underscore)||(peek().type == Token::Kw && peek().getKw()==Kw_e::Drop) ){
+    if ((peek().type == Token::Underscore) ||
+        (peek().type == Token::Kw && peek().getKw() == Kw_e::Drop)) {
 
-      pop(); //pop the _
+      pop(); // pop the _
       return parse_infered_var_decl(id.getName());
     }
     std::unique_ptr<TypeExpr> ty = parse_type_expr();
@@ -194,10 +196,9 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
     }
     return std::make_unique<VarDeclExpr>(id.getName(), ty->ty);
   }
-  if(peek().type==Token::Eq) {
+  if (peek().type == Token::Eq) {
     return parse_infered_var_decl(id.getName());
   }
-  
 
   return nullptr;
 }

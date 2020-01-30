@@ -79,7 +79,7 @@ struct VarExpr : AstExpr {
 struct TypeExpr : AstExpr {
   llvm::Type *ty;
   TypeExpr(llvm::Type *ty) : AstExpr(AstType::TypeExpr), ty(ty) {}
-  TypeExpr() : AstExpr(AstType::TypeExpr),ty(nullptr){}
+  TypeExpr() : AstExpr(AstType::TypeExpr), ty(nullptr) {}
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
 };
@@ -126,7 +126,7 @@ public:
                                         int p = 0);
   std::unique_ptr<ValExpr> parse_valexpr();
   std::unique_ptr<AstExpr> parse_expr();
-  std::unique_ptr<AstExpr> parse_infered_var_decl(const std::string& name);
+  std::unique_ptr<AstExpr> parse_infered_var_decl(const std::string &name);
   std::unique_ptr<AstExpr> parse_var_decl();
   std::unique_ptr<VarExpr> parse_var();
   std::unique_ptr<TypeExpr> parse_type_expr();

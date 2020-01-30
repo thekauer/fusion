@@ -25,7 +25,17 @@ public:
   SourceLocation &operator=(const SourceLocation &other);
 };
 
-enum Kw_e : unsigned char { Unk, Fn, For, I8, I16, I32, I64, String, Drop/* _ */  };
+enum Kw_e : unsigned char {
+  Unk,
+  Fn,
+  For,
+  I8,
+  I16,
+  I32,
+  I64,
+  String,
+  Drop /* _ */
+};
 
 bool is_op(u8 ch);
 bool is_ws(u8 ch);
