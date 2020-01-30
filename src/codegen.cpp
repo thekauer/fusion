@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "type.h"
 #include "llvm/IR/Verifier.h"
 static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
   if (rhs->isPointerTy()) {
