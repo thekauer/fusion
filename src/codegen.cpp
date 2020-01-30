@@ -29,10 +29,18 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) {
 
 llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   std::vector<llvm::Type *> fn_args;
-  /*
   for(auto&& arg : args) {
-      fn_args.push_back(arg->codegen(ctx)->getType());
+    if(arg->type == AstType::VarDeclExpr) {
+      auto vd = reinterpret_cast<VarDeclExpr*>(arg.get());
+      fn_args.push_back(vd->ty);
+      llvm::outs() << "\nVARDECL EYEY\n";
+    }
+    llvm::outs() << "Typeof arg: " << static_cast<int>(arg->type) << "\n";
+    llvm::outs() << "Typeof vardecl is "<< static_cast<int>(AstType::VarDeclExpr) << "\n";
+    fn_args.push_back(arg->codegen(ctx)->getType());
   }
+
+  /*
   */
   // args and set name for them
   llvm::Type *ret_t = nullptr;
@@ -46,12 +54,12 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   llvm::Function *f =
       llvm::Function::Create(ft, lt, name.getName(), ctx.mod.get());
   // set arg names
-  /*
   unsigned idx=0;
   for(auto& arg : f->args()) {
-      auto n=((ValExpr*)(args[idx++].get()))->val->getName();
+      auto n=((VarDeclExpr*)(args[idx++].get()))->name;
       arg.setName(n);
   }
+  /*
   */
   return f;
 }

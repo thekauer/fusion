@@ -38,16 +38,29 @@ int pre(Token::Type op) {
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
 
   auto t = peek();
-  if (t.type != Token::Kw)
+  if (t.type != Token::Kw && t.getKw()!=Kw_e::Fn)
     return nullptr;
   pop();
   auto name = expect(Token::Id, "identifier");
   // generics
   expect(Token::Lp, "(");
   // args
+  auto arg = parse_arg();
+  std::vector<std::unique_ptr<VarDeclExpr>> args;
+  while(arg) {
+    args.push_back(std::move(arg));
+    if(peek().type==Token::Comma)pop();
+    else {
+      if(peek().type!=Token::Rp) {
+        serror(Error_e::Unk,"expected , or )");
+      }
+    }
+    arg = parse_arg();
+  }
+
   expect(Token::Rp, ")");
   // MAybe return type
-  return std::make_unique<FnProto>(name, nullptr);
+  return std::make_unique<FnProto>(name, std::move(args));
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
@@ -173,6 +186,25 @@ Parser::parse_infered_var_decl(const std::string &name) {
     return std::make_unique<BinExpr>(Token::Eq, std::move(lhs), std::move(val));
   }
   return nullptr;
+}
+std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
+  auto id = peek();
+  if(peek().type!=Token::Id) return nullptr;
+  pop();
+  auto t = peek();
+  if(t.type==Token::Comma || t.type==Token::Rp) {
+    llvm::outs() << "Vardecl made here";
+    return std::make_unique<VarDeclExpr>(id.getName());
+  }
+  if(t.type==Token::DoubleDot) {
+    pop();
+    auto ty = parse_type_expr();
+    if(!ty) {
+      serror(Error_e::Unk,"Unknown type");
+    }
+    return std::make_unique<VarDeclExpr>(id.getName(),ty->ty);
+  }
+  serror(Error_e::Unk,"Parse arg unreachable");
 }
 
 std::unique_ptr<AstExpr> Parser::parse_var_decl() {

@@ -24,14 +24,28 @@ public:
   virtual ~AstExpr() {}
   int indent = 0;
 };
+
+struct VarDeclExpr : AstExpr {
+  std::string name;
+  llvm::Type *ty = nullptr;
+  VarDeclExpr(const std::string &name)
+      : AstExpr(AstType::VarDeclExpr), name(name) {}
+  VarDeclExpr(const std::string &name, llvm::Type *ty)
+      : AstExpr(AstType::VarExpr), name(name), ty(ty){};
+  llvm::Value *codegen(FusionCtx &ctx) override;
+  void print_name() override { std::cout << "VarDeclExpr\n"; }
+  void pretty_print() override;
+};
 struct FnProto : AstExpr {
   std::unique_ptr<AstExpr> ret;
-  std::vector<std::unique_ptr<AstExpr>> args;
+  std::vector<std::unique_ptr<VarDeclExpr>> args;
   Token name;
   Linkage linkage = Linkage::Ext;
   Inline is_inline = Inline::Def;
   FnProto(Token name, std::unique_ptr<AstExpr> ret)
       : AstExpr(AstType::FnProto), ret(std::move(ret)), name(name){};
+  FnProto(Token name,std::vector<std::unique_ptr<VarDeclExpr>>&& args,std::unique_ptr<AstExpr> ret = nullptr) :
+  AstExpr(AstType::FnProto),ret(std::move(ret)),args(std::move(args)),name(name){}
   void print_name() override { std::cout << "FnProto\n"; }
   void pretty_print() override;
   llvm::Value *codegen(FusionCtx &ctx) override;
@@ -54,18 +68,6 @@ struct ValExpr : AstExpr {
   ValExpr(llvm::Constant *val) : AstExpr(AstType::ValExpr), val(val) {}
   void print_name() override { std::cout << "ValExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
-  void pretty_print() override;
-};
-
-struct VarDeclExpr : AstExpr {
-  std::string name;
-  llvm::Type *ty = nullptr;
-  VarDeclExpr(const std::string &name)
-      : AstExpr(AstType::VarDeclExpr), name(name) {}
-  VarDeclExpr(const std::string &name, llvm::Type *ty)
-      : AstExpr(AstType::VarExpr), name(name), ty(ty){};
-  llvm::Value *codegen(FusionCtx &ctx) override;
-  void print_name() override { std::cout << "VarDeclExpr\n"; }
   void pretty_print() override;
 };
 struct VarExpr : AstExpr {
@@ -128,6 +130,7 @@ public:
   std::unique_ptr<AstExpr> parse_expr();
   std::unique_ptr<AstExpr> parse_infered_var_decl(const std::string &name);
   std::unique_ptr<AstExpr> parse_var_decl();
+  std::unique_ptr<VarDeclExpr> parse_arg();
   std::unique_ptr<VarExpr> parse_var();
   std::unique_ptr<TypeExpr> parse_type_expr();
 };
