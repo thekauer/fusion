@@ -17,11 +17,10 @@ struct FusionCtx {
   llvm::Type *getI32();
   llvm::Type *getI64();
   llvm::Type *getString();
-  // llvm::Type* getU8() const;
-  // llvm::Type* getU8() const;
-  // llvm::Type* getU16() const;
-  // llvm::Type* getU32() const;
-  // llvm::Type* getU64() const;
+  // llvm::Type* getU8();
+  // llvm::Type* getU16();
+  // llvm::Type* getU32();
+  // llvm::Type* getU64();
 
   // llvm::Type* getIS() const;
   // llvm::Type* getUS() const;

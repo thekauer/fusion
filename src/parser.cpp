@@ -38,16 +38,30 @@ int pre(Token::Type op) {
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
 
   auto t = peek();
-  if (t.type != Token::Kw)
+  if (t.type != Token::Kw && t.getKw() != Kw_e::Fn)
     return nullptr;
   pop();
   auto name = expect(Token::Id, "identifier");
   // generics
   expect(Token::Lp, "(");
   // args
+  auto arg = parse_arg();
+  std::vector<std::unique_ptr<VarDeclExpr>> args;
+  while (arg) {
+    args.push_back(std::move(arg));
+    if (peek().type == Token::Comma)
+      pop();
+    else {
+      if (peek().type != Token::Rp) {
+        serror(Error_e::Unk, "expected , or )");
+      }
+    }
+    arg = parse_arg();
+  }
+
   expect(Token::Rp, ")");
   // MAybe return type
-  return std::make_unique<FnProto>(name, nullptr);
+  return std::make_unique<FnProto>(name, std::move(args));
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
@@ -101,10 +115,10 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   std::unique_ptr<AstExpr> expr = parse_valexpr();
   if (expr)
     return expr;
-  expr = parse_var_decl();
+  expr = parse_fncall();
   if (expr)
     return expr;
-  expr = parse_fncall();
+  expr = parse_var_decl();
   if (expr)
     return expr;
   return parse_var();
@@ -142,15 +156,13 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   }
   switch (pop().getKw()) {
   case Kw_e::I32:
-    return std::make_unique<TypeExpr>(ctx.getI32());
+    return std::make_unique<TypeExpr>(Type::getI32());
   case Kw_e::I8:
-    return std::make_unique<TypeExpr>(ctx.getI8());
+    return std::make_unique<TypeExpr>(Type::getI8());
   case Kw_e::I16:
-    return std::make_unique<TypeExpr>(ctx.getI16());
+    return std::make_unique<TypeExpr>(Type::getI16());
   case Kw_e::I64:
-    return std::make_unique<TypeExpr>(ctx.getI64());
-  case String:
-    return std::make_unique<TypeExpr>(ctx.getString());
+    return std::make_unique<TypeExpr>(Type::getI64());
   case Kw_e::Drop:
     return std::make_unique<TypeExpr>();
   default:
@@ -169,10 +181,30 @@ Parser::parse_infered_var_decl(const std::string &name) {
     if (!val) {
       serror(Error_e::Unk, "expected a literal");
     }
-    auto lhs = std::make_unique<VarDeclExpr>(name, val->val->getType());
+    auto lhs = std::make_unique<VarDeclExpr>(name, val->val.ty);
     return std::make_unique<BinExpr>(Token::Eq, std::move(lhs), std::move(val));
   }
   return nullptr;
+}
+std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
+  auto id = peek();
+  if (peek().type != Token::Id)
+    return nullptr;
+  pop();
+  auto t = peek();
+  if (t.type == Token::Comma || t.type == Token::Rp) {
+    llvm::outs() << "Vardecl made here";
+    return std::make_unique<VarDeclExpr>(id.getName());
+  }
+  if (t.type == Token::DoubleDot) {
+    pop();
+    auto ty = parse_type_expr();
+    if (!ty) {
+      serror(Error_e::Unk, "Unknown type");
+    }
+    return std::make_unique<VarDeclExpr>(id.getName(), ty->ty);
+  }
+  serror(Error_e::Unk, "Parse arg unreachable");
 }
 
 std::unique_ptr<AstExpr> Parser::parse_var_decl() {
@@ -261,11 +293,11 @@ void FnDecl::pretty_print() {
 void ValExpr::pretty_print() { llvm::outs() << "val"; }
 
 void VarDeclExpr::pretty_print() {
-  ty->print(llvm::outs() << name << " : ");
+  llvm::outs() << name << " : " << ty->getName();
   llvm::outs() << "\n";
 }
 void VarExpr::pretty_print() { llvm::outs() << name; }
-void TypeExpr::pretty_print() { ty->print(llvm::outs()); }
+void TypeExpr::pretty_print() { llvm::outs() << ty->getName(); }
 void FnCall::pretty_print() {
   llvm::outs() << name << "(";
   for (const auto &arg : args) {
