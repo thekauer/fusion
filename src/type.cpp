@@ -10,7 +10,7 @@ static const IntegralType u16_ty = IntegralType(IntegralType::U16,2);
 static const IntegralType u32_ty = IntegralType(IntegralType::U32,4);
 static const IntegralType u64_ty = IntegralType(IntegralType::U64,8);
 
-Type::Type(By pass,bool mut,const unsigned int size,bool optional) : pass(pass),mut(mut),size(size),optional(optional){}
+Type::Type(By pass,bool mut,const unsigned int size,bool optional) : pass(pass),mut(mut),size(size),optional(optional) {}
 
 Type* Type::toVal() {
     pass = Val;
@@ -84,22 +84,22 @@ const Type* Type::getBool() {
     return &i32_ty;
 }
 static int struct_size(const std::vector<StructType::TypedValue>& members) {
-	int s =0;
-	for(const auto& v : members) {
-		s+=v.ty->size;
-	}
-	return s;
+    int s =0;
+    for(const auto& v : members) {
+        s+=v.ty->size;
+    }
+    return s;
 }
 static int tuple_size(std::vector<Type*> members) {
-	int s=0;
-	for(const auto& m : members) {
-		s+=m->size;
-	}
-	return s;
+    int s=0;
+    for(const auto& m : members) {
+        s+=m->size;
+    }
+    return s;
 }
-IntegralType::IntegralType(Ty ty,const unsigned int size) : Type(Type::Val,false,size,false),ty(ty){}
+IntegralType::IntegralType(Ty ty,const unsigned int size) : Type(Type::Val,false,size,false),ty(ty) {}
 
-StructType::StructType(const std::vector<TypedValue>& members) : Type(Type::Val,false,struct_size(members),false),members(members){};
+StructType::StructType(const std::vector<TypedValue>& members) : Type(Type::Val,false,struct_size(members),false),members(members) {};
 
 TupleType::TupleType(const std::vector<Type*>& members) : Type(Type::Val,false,tuple_size(members),false) {}
 
