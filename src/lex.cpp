@@ -117,14 +117,14 @@ static const unsigned eq[128] = {Null,      0,      0,         0,
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};
 Token::Token(u8 c, const SourceLocation &sl)
     : type(static_cast<Type>(c)), sl(sl) {}
-Token::Token(llvm::Constant *val, const SourceLocation &sl)
+Token::Token(::Lit val, const SourceLocation &sl)
     : type(Lit), sl(sl), data(val) {}
 Token::Token(const std::string &str, const SourceLocation &sl)
     : type(Id), sl(sl), data(str) {}
 Token::Token(Kw_e kw, const SourceLocation &sl) : type(Kw), sl(sl), data(kw) {}
 
-llvm::Constant *Token::getValue() const {
-  return std::get<llvm::Constant *>(data);
+Lit Token::getValue() const {
+  return std::get<::Lit>(data);
 }
 std::string Token::getName() const { return std::get<std::string>(data); }
 Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
@@ -146,20 +146,20 @@ Kw_e is_kw(ptr h) {
   return Unk;
 }
 
-llvm::Constant *Lexer::nolit(const SourceLocation &s, bool f, int base) {
+Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
   llvm::StringRef sr(std::string(s.it, it));
   if (f) {
     double D = 0.0;
     sr.getAsDouble(D);
-    return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D));
+    return Lit(Type::getDouble(),llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D)));
   } else {
     int I = 0;
     sr.getAsInteger(base, I);
-    return llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true));
+    return Lit(Type::getI32(),llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true)));
   }
 }
 
-llvm::Constant *Lexer::stringlit(std::string s) {
+Lit Lexer::stringlit(std::string s) {
   llvm::Type *i8ty = llvm::IntegerType::getInt8Ty(ctx.ctx);
   llvm::ArrayType *sty = llvm::ArrayType::get(i8ty, s.size() + 1);
   std::vector<llvm::Constant *> vals;
@@ -168,7 +168,7 @@ llvm::Constant *Lexer::stringlit(std::string s) {
   gstr->setAlignment(1);
   llvm::Constant *cstr = llvm::ConstantDataArray::getString(ctx.ctx, s, true);
   gstr->setInitializer(cstr);
-  return llvm::ConstantExpr::getBitCast(gstr, ctx.getI8()->getPointerTo());
+  return Lit(Type::getI8()->toPtr(),(llvm::Constant*)llvm::ConstantExpr::getBitCast(gstr, ctx.getI8()->getPointerTo()));
 }
 
 Token &Token::operator=(const Token &other) {

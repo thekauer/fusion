@@ -32,7 +32,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   for(auto&& arg : args) {
     if(arg->type == AstType::VarDeclExpr) {
       auto vd = reinterpret_cast<VarDeclExpr*>(arg.get());
-      fn_args.push_back(vd->ty);
+      fn_args.push_back(vd->ty->codegen(ctx));
       llvm::outs() << "\nVARDECL EYEY\n";
     }
     llvm::outs() << "Typeof arg: " << static_cast<int>(arg->type) << "\n";
@@ -100,10 +100,11 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
   llvm::verifyFunction(*fn);
   return fn;
 }
-llvm::Value *ValExpr::codegen(FusionCtx &ctx) { return val; }
+llvm::Value *ValExpr::codegen(FusionCtx &ctx) { return val.val; }
 
 llvm::Value *TypeExpr::codegen(FusionCtx &ctx) {
-  return reinterpret_cast<llvm::Value *>(type);
+  
+  return reinterpret_cast<llvm::Value *>(ty->codegen(ctx));
 }
 
 llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
@@ -147,7 +148,7 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
   if (!ty) {
     serror(Error_e::CouldNotInferType, "Couldn't infer type of expression");
   }
-  llvm::AllocaInst *val = ctx.builder.CreateAlloca(ty, nullptr, name);
+  llvm::AllocaInst *val = ctx.builder.CreateAlloca(ty->codegen(ctx), nullptr, name);
   if (ctx.named_values.find(name) != ctx.named_values.end()) {
     serror(Error_e::Unk, "redaclaration of variable");
   }

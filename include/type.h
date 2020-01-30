@@ -1,14 +1,12 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "context.h"
 
 class Type {
 public:
-  enum By : unsigned char { Ref, Ptr, Val } pass;
-  enum TypeKind : unsigned char { Integral, Struct, Tuple } tk;
-  bool mut;
-  bool optional;
-  const unsigned int size;
+  enum By : unsigned char { Ref, Ptr, Val };
+  enum TypeKind : unsigned char { Integral, Struct, Tuple };
   Type *toVal();
   Type *toPtr();
   Type *toRef();
@@ -16,23 +14,36 @@ public:
   Type *toConst();
   Type *toOptional();
   Type *toNotOption();
-  Type(TypeKind tk, By pass, bool mut, const unsigned int size,
+  Type(const std::string& name,TypeKind tk, By pass, bool mut, const unsigned int size,
        bool optional = false);
 
-  static const Type *getI8();
-  static const Type *getI16();
-  static const Type *getI32();
-  static const Type *getI64();
-  static const Type *getISize();
+  unsigned int getSize();
+  const std::string& getName();
+  TypeKind getTypeKind();
+  By getBy();
 
-  static const Type *getU8();
-  static const Type *getU16();
-  static const Type *getU32();
-  static const Type *getU64();
-  static const Type *getUSize();
+  virtual llvm::Type* codegen(FusionCtx& ctx)=0;
 
-  static const Type *getChar();
-  static const Type *getBool();
+  static Type *getI8();
+  static Type *getI16();
+  static Type *getI32();
+  static Type *getI64();
+  static Type *getISize();
+  static Type *getU8();
+  static Type *getU16();
+  static Type *getU32();
+  static Type *getU64();
+  static Type *getUSize();
+  static Type *getChar();
+  static Type *getBool();
+  static Type *getDouble();
+protected:
+  TypeKind tk;
+  By pass;
+  bool mut;
+  bool optional;
+  const unsigned int size;
+  std::string name;
 };
 
 struct IntegralType : Type {
@@ -48,9 +59,11 @@ struct IntegralType : Type {
     U64,
     USize,
     Char,
-    Bool
+    Bool,
+    Double
   } ty;
-  IntegralType(Ty ty, const unsigned int size);
+  IntegralType(const std::string& name,Ty ty, const unsigned int size);
+  llvm::Type* codegen(FusionCtx& ctx)override;
 };
 
 struct StructType : Type {
@@ -59,10 +72,12 @@ struct StructType : Type {
     std::string name;
   };
   std::vector<TypedValue> members;
-  StructType(const std::vector<TypedValue> &members);
+  StructType(const std::string& name,const std::vector<TypedValue> &members);
+  llvm::Type* codegen(FusionCtx& ctx) override;
 };
 
 struct TupleType : Type {
   std::vector<Type *> members;
-  TupleType(const std::vector<Type *> &members);
+  TupleType(const std::string& name,const std::vector<Type *> &members);
+  llvm::Type* codegen(FusionCtx& ctx) override;
 };

@@ -2,6 +2,7 @@
 #include "context.h"
 #include "error.h"
 #include "lex.h"
+#include "type.h"
 #include <memory>
 
 enum class AstType : unsigned char {
@@ -27,10 +28,10 @@ public:
 
 struct VarDeclExpr : AstExpr {
   std::string name;
-  llvm::Type *ty = nullptr;
+  Type *ty = nullptr;
   VarDeclExpr(const std::string &name)
       : AstExpr(AstType::VarDeclExpr), name(name) {}
-  VarDeclExpr(const std::string &name, llvm::Type *ty)
+  VarDeclExpr(const std::string &name, Type *ty)
       : AstExpr(AstType::VarExpr), name(name), ty(ty){};
   llvm::Value *codegen(FusionCtx &ctx) override;
   void print_name() override { std::cout << "VarDeclExpr\n"; }
@@ -64,8 +65,8 @@ struct FnDecl : AstExpr {
   void pretty_print() override;
 };
 struct ValExpr : AstExpr {
-  llvm::Constant *val;
-  ValExpr(llvm::Constant *val) : AstExpr(AstType::ValExpr), val(val) {}
+  Lit val;
+  ValExpr(Lit val) : AstExpr(AstType::ValExpr), val(val) {}
   void print_name() override { std::cout << "ValExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
@@ -79,8 +80,8 @@ struct VarExpr : AstExpr {
 };
 
 struct TypeExpr : AstExpr {
-  llvm::Type *ty;
-  TypeExpr(llvm::Type *ty) : AstExpr(AstType::TypeExpr), ty(ty) {}
+  Type *ty;
+  TypeExpr(Type *ty) : AstExpr(AstType::TypeExpr), ty(ty) {}
   TypeExpr() : AstExpr(AstType::TypeExpr), ty(nullptr) {}
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;

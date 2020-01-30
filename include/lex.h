@@ -10,6 +10,7 @@
 #include "llvm/IR/Value.h"
 #include <string>
 #include <variant>
+#include "type.h"
 
 struct FSFile;
 
@@ -41,6 +42,12 @@ bool is_op(u8 ch);
 bool is_ws(u8 ch);
 Kw_e is_kw(ptr h);
 bool is_eol(u8 ch);
+
+struct Lit {
+  Type* ty;
+  llvm::Constant* val;
+  Lit(Type* ty,llvm::Constant* val): ty(ty),val(val){}
+};
 
 struct Token {
   enum Type : unsigned char {
@@ -90,14 +97,14 @@ struct Token {
 
   Token(Type type, const SourceLocation &sl);
   Token(u8 c, const SourceLocation &sl);
-  Token(llvm::Constant *val, const SourceLocation &sl);
+  Token(::Lit val, const SourceLocation &sl);
   Token(const std::string &str, const SourceLocation &sl);
   Token(Kw_e kw, const SourceLocation &sl);
   Token &operator=(const Token &other);
-  llvm::Constant *getValue() const;
+  ::Lit getValue() const;
   std::string getName() const;
   Kw_e getKw() const;
-  std::variant<Kw_e, llvm::Constant *, std::string> data;
+  std::variant<Kw_e, ::Lit, std::string> data;
 
 private:
 };
@@ -117,6 +124,6 @@ private:
   FusionCtx &ctx;
   FSFile &file;
   char lex_escape(const char esc);
-  llvm::Constant *nolit(const SourceLocation &s, bool f, int base);
-  llvm::Constant *stringlit(std::string s);
+  Lit nolit(const SourceLocation &s, bool f, int base);
+  Lit stringlit(std::string s);
 };

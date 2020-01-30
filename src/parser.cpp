@@ -114,10 +114,10 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   std::unique_ptr<AstExpr> expr = parse_valexpr();
   if (expr)
     return expr;
-  expr = parse_var_decl();
+  expr = parse_fncall();
   if (expr)
     return expr;
-  expr = parse_fncall();
+  expr = parse_var_decl();
   if (expr)
     return expr;
   return parse_var();
@@ -155,15 +155,13 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   }
   switch (pop().getKw()) {
   case Kw_e::I32:
-    return std::make_unique<TypeExpr>(ctx.getI32());
+    return std::make_unique<TypeExpr>(Type::getI32());
   case Kw_e::I8:
-    return std::make_unique<TypeExpr>(ctx.getI8());
+    return std::make_unique<TypeExpr>(Type::getI8());
   case Kw_e::I16:
-    return std::make_unique<TypeExpr>(ctx.getI16());
+    return std::make_unique<TypeExpr>(Type::getI16());
   case Kw_e::I64:
-    return std::make_unique<TypeExpr>(ctx.getI64());
-  case String:
-    return std::make_unique<TypeExpr>(ctx.getString());
+    return std::make_unique<TypeExpr>(Type::getI64());
   case Kw_e::Drop:
     return std::make_unique<TypeExpr>();
   default:
@@ -182,7 +180,7 @@ Parser::parse_infered_var_decl(const std::string &name) {
     if (!val) {
       serror(Error_e::Unk, "expected a literal");
     }
-    auto lhs = std::make_unique<VarDeclExpr>(name, val->val->getType());
+    auto lhs = std::make_unique<VarDeclExpr>(name, val->val.ty);
     return std::make_unique<BinExpr>(Token::Eq, std::move(lhs), std::move(val));
   }
   return nullptr;
@@ -293,11 +291,11 @@ void FnDecl::pretty_print() {
 void ValExpr::pretty_print() { llvm::outs() << "val"; }
 
 void VarDeclExpr::pretty_print() {
-  ty->print(llvm::outs() << name << " : ");
+  llvm::outs() << name << " : " << ty->getName();
   llvm::outs() << "\n";
 }
 void VarExpr::pretty_print() { llvm::outs() << name; }
-void TypeExpr::pretty_print() { ty->print(llvm::outs()); }
+void TypeExpr::pretty_print() {llvm::outs()<< ty->getName(); }
 void FnCall::pretty_print() {
   llvm::outs() << name << "(";
   for (const auto &arg : args) {
