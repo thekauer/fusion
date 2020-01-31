@@ -27,7 +27,7 @@ llvm_map_components_to_libnames(llvm_libs
  all
   )
 
-target_link_libraries(fs LLVM)
+target_link_libraries(fs ${llvm_libs})
 
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard
