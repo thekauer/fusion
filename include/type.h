@@ -37,6 +37,11 @@ public:
   static Type *getChar();
   static Type *getBool();
   static Type *getDouble();
+
+
+  bool isSignedIntegerType();
+  bool isUnsignedIntegerType();
+  bool isIntegerType();
 protected:
   TypeKind tk;
   By pass;

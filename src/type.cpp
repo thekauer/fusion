@@ -73,6 +73,17 @@ Type *Type::getUSize() { return &u64_ty; }
 Type *Type::getChar() { return &i8_ty; }
 Type *Type::getBool() { return &i32_ty; }
 
+bool Type::isSignedIntegerType() {
+  return this==getI8() || this == getI16() || this == getI32() || this == getI64();
+}
+bool Type::isUnsignedIntegerType() {
+  return this==getU8() || this == getU16() || this == getU32() || this == getU64();
+}
+
+bool Type::isIntegerType() {
+  return isSignedIntegerType() || isUnsignedIntegerType();
+}
+
 Type *Type::getDouble() {return &double_ty;}
 static int struct_size(const std::vector<StructType::TypedValue> &members) {
   int s = 0;

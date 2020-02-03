@@ -155,3 +155,8 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
   ctx.named_values[name] = val;
   return val;
 }
+
+
+llvm::Value *RangeExpr::codegen(FusionCtx& ctx) {
+  return nullptr;//implement me
+}

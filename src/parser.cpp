@@ -111,8 +111,11 @@ std::unique_ptr<ValExpr> Parser::parse_valexpr() {
 std::unique_ptr<AstExpr> Parser::parse_primary() {
   if (peek().type == Token::N)
     pop();
-  std::unique_ptr<AstExpr> expr = parse_valexpr();
+  std::unique_ptr<AstExpr> expr = parse_range_expr();
   if (expr)
+    return expr;
+  expr = parse_valexpr();
+  if(expr)
     return expr;
   expr = parse_fncall();
   if (expr)
@@ -268,6 +271,28 @@ std::unique_ptr<VarExpr> Parser::parse_var() {
   return std::make_unique<VarExpr>(name.getName());
 }
 
+std::unique_ptr<ValExpr> Parser::pop_integer() {
+  if(peek().type==Token::Lit) {
+    if(peek().getValue().ty->isIntegerType()) {
+      return std::make_unique<ValExpr>(pop().getValue());
+    }//else only integer types are allowed
+  }
+  return nullptr;
+}
+
+std::unique_ptr<RangeExpr> Parser::parse_range_expr() {
+  std::unique_ptr<ValExpr> begin,end;
+   if(peek(1).type==Token::DotDot) {
+    begin = pop_integer();
+  }
+  if(peek().type==Token::DotDot) {
+    pop();
+  } else 
+    return nullptr;
+  end=pop_integer();
+  return std::make_unique<RangeExpr>(std::move(begin),std::move(end));
+}
+
 void FnProto::pretty_print() {
   llvm::outs() << "fn " << name.getName() << "(";
   for (const auto &arg : args) {
@@ -311,4 +336,12 @@ void BinExpr::pretty_print() {
   lhs->pretty_print();
   llvm::outs() << " op ";
   rhs->pretty_print();
+}
+
+void RangeExpr::pretty_print() {
+  if(begin)
+  begin->pretty_print();
+  llvm::outs() << "..";
+  if(end)
+  end->pretty_print();
 }

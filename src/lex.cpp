@@ -231,7 +231,7 @@ Token Lexer::next() {
       pop();
     }
     bool is_float = false;
-    if (eq[peek()] == Dot) {
+    if (eq[peek()] == Dot && eq[peek(1)] == Number) {
       pop();
       is_float = true;
     }
@@ -280,6 +280,18 @@ Token Lexer::next() {
       return Token(Token::Li, sl_cast(this));
     }
     return Token(Token::N, err_loc);
+  }
+  case Dot: {
+    pop();
+    if(eq[peek()]==Dot) {
+      pop();
+      if(eq[peek()]==Dot) {
+        pop();
+        return Token(Token::DotDotDot,sl_cast(this));
+      }
+      return Token(Token::DotDot,sl_cast(this));
+    }
+    return Token(Token::Dot,sl_cast(this));
   }
 
   default:

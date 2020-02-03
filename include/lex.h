@@ -71,6 +71,8 @@ struct Token {
     Sub,
     Comma,
     Dot,
+    DotDot,
+    DotDotDot,
     Div,
     DoubleDot,
     SemiColon,
