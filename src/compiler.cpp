@@ -161,4 +161,6 @@ void Compiler::create_fs_std_lib(FusionCtx &ctx) {
   llvm::FunctionType *printf_ty =
       llvm::FunctionType::get(ity, {IntegerType::getInt8PtrTy(ctx.ctx)}, true);
   ctx.mod->getOrInsertFunction("printf", printf_ty);
+
+
 }

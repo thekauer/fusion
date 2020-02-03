@@ -15,6 +15,7 @@ enum class AstType : unsigned char {
   VarExpr,
   VarDeclExpr,
   RangeExpr,
+  IfExpr,
 };
 class AstExpr {
 public:
@@ -117,6 +118,13 @@ struct RangeExpr : AstExpr {
   void pretty_print() override;
 };
 
+struct IfExpr : AstExpr {
+  std::unique_ptr<AstExpr> condition;
+  IfExpr(std::unique_ptr<AstExpr> condition) : AstExpr(AstType::IfExpr),condition(std::move(condition)){};
+  llvm::Value* codegen(FusionCtx& ctx) override;
+  void pretty_print()
+};
+
 int pre(Token::Type op);
 class Parser {
 private:
@@ -146,5 +154,5 @@ public:
   std::unique_ptr<TypeExpr> parse_type_expr();
   std::unique_ptr<ValExpr> pop_integer();
   std::unique_ptr<RangeExpr> parse_range_expr();
-  
+  std::unique_ptr<IfExpr> parse_if_expr();
 };
