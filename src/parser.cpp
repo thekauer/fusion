@@ -298,7 +298,7 @@ std::unique_ptr<RangeExpr> Parser::parse_range_expr() {
 std::unique_ptr<IfExpr> Parser::parse_if_expr() {
   if(peek().type==Token::Kw && peek().getKw()==Kw_e::If) {
     pop(); // pop if
-    auto ret = std::make_unique<IfExpr>(std::move(parse_expr()));
+    auto ret = std::make_unique<IfExpr>(parse_expr());
     //parse fn body
   }
   return nullptr;

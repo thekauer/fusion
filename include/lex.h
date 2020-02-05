@@ -40,7 +40,7 @@ enum Kw_e : unsigned char {
   Import,
   Export,
   Extern,
-  Mod,
+  Module,
 };
 
 bool is_op(u8 ch);
