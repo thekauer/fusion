@@ -305,11 +305,17 @@ std::unique_ptr<IfExpr> Parser::parse_if_expr() {
 }
 
 std::unique_ptr<ImportExpr> Parser::parse_import() {
+  if(peek().type!=Token::Kw) 
+    return nullptr;
+  if(peek().getKw()!=Kw_e::Import)
+    return nullptr;
+  pop();
   if(peek().type==Token::Id) {
     return std::make_unique<ImportExpr>(pop().getName());
   } 
   return nullptr;
 }
+
 
 
 
