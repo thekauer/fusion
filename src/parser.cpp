@@ -304,6 +304,14 @@ std::unique_ptr<IfExpr> Parser::parse_if_expr() {
   return nullptr;
 }
 
+std::unique_ptr<ImportExpr> Parser::parse_import() {
+  if(peek().type==Token::Id) {
+    return std::make_unique<ImportExpr>(pop().getName());
+  } 
+  return nullptr;
+}
+
+
 
 
 
@@ -365,4 +373,6 @@ void IfExpr::pretty_print() {
   condition->pretty_print();
   }
 
-  
+ void ImportExpr::pretty_print() {
+   llvm::outs() << "import "<<module;
+ }

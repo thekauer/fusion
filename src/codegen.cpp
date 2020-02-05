@@ -164,3 +164,8 @@ llvm::Value *RangeExpr::codegen(FusionCtx& ctx) {
 llvm::Value* IfExpr::codegen(FusionCtx& ctx) {
   return nullptr;
 }
+
+llvm::Value* ImportExpr::codegen(FusionCtx& ctx) {
+  //compile module
+  return nullptr;
+}
