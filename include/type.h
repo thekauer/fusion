@@ -37,7 +37,7 @@ public:
   static Type *getChar();
   static Type *getBool();
   static Type *getDouble();
-
+  static Type *getBool();
 
   bool isSignedIntegerType();
   bool isUnsignedIntegerType();

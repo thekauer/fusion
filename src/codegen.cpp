@@ -160,3 +160,7 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
 llvm::Value *RangeExpr::codegen(FusionCtx& ctx) {
   return nullptr;//implement me
 }
+
+llvm::Value* IfExpr::codegen(FusionCtx& ctx) {
+  return nullptr;
+}

@@ -37,6 +37,10 @@ enum Kw_e : unsigned char {
   String,
   Drop, /* _ */
   If,
+  Import,
+  Export,
+  Extern,
+  Mod,
 };
 
 bool is_op(u8 ch);

@@ -137,7 +137,9 @@ bool is_eol(u8 ch) { return ch == N || ch == Space; }
 static const std::map<ptr, Kw_e> kws{
     {hash("fn"), Fn},         {hash("for"), For}, {hash("i8"), I8},
     {hash("i16"), I16},       {hash("i32"), I32}, {hash("i64"), I64},
-    {hash("string"), String}, {hash("_"), Drop}, {hash("if"), If}};
+    {hash("string"), String}, {hash("_"), Drop}, {hash("if"), If},
+    {hash("import"),Import},{hash("extern"),Extern},{hash("export"),Export},
+    {hash("mod"),Mod}};
 Kw_e is_kw(ptr h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
