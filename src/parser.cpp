@@ -111,6 +111,7 @@ std::unique_ptr<ValExpr> Parser::parse_valexpr() {
 std::unique_ptr<AstExpr> Parser::parse_primary() {
   if (peek().type == Token::N)
     pop();
+  
   std::unique_ptr<AstExpr> expr = parse_range_expr();
   if (expr)
     return expr;
@@ -124,7 +125,8 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   if (expr)
     return expr;
   return parse_var();
-}
+  
+  }
 std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
                                               int p) {
   if (!lhs)
@@ -302,6 +304,9 @@ std::unique_ptr<IfExpr> Parser::parse_if_expr() {
   return nullptr;
 }
 
+
+
+
 void FnProto::pretty_print() {
   llvm::outs() << "fn " << name.getName() << "(";
   for (const auto &arg : args) {
@@ -354,3 +359,10 @@ void RangeExpr::pretty_print() {
   if(end)
   end->pretty_print();
 }
+
+void IfExpr::pretty_print() {
+  llvm::outs() << "if ";
+  condition->pretty_print();
+  }
+
+  

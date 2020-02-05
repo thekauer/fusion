@@ -122,7 +122,7 @@ struct IfExpr : AstExpr {
   std::unique_ptr<AstExpr> condition;
   IfExpr(std::unique_ptr<AstExpr> condition) : AstExpr(AstType::IfExpr),condition(std::move(condition)){};
   llvm::Value* codegen(FusionCtx& ctx) override;
-  void pretty_print()
+  void pretty_print() override;
 };
 
 int pre(Token::Type op);
