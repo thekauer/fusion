@@ -41,9 +41,21 @@ struct VarDeclExpr : AstExpr {
   void print_name() override { std::cout << "VarDeclExpr\n"; }
   void pretty_print() override;
 };
+struct FnModifiers {
+  using Type = unsigned char;
+  static const Type Pub = 1;
+  static const Type Extern=2;
+  static const Type Export=4;
+  static const Type Inline=8;
+  static const Type Async=16;
+  static const Type Const=32;
+  static const Type Static=64;
+  FnModifiers()=delete;
+};
 struct FnProto : AstExpr {
   std::unique_ptr<AstExpr> ret;
   std::vector<std::unique_ptr<VarDeclExpr>> args;
+  FnModifiers::Type mods;
   Token name;
   Linkage linkage = Linkage::Ext;
   Inline is_inline = Inline::Def;

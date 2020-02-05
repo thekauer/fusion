@@ -36,9 +36,14 @@ int pre(Token::Type op) {
 }
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
-
-  auto t = peek();
-  if (t.type != Token::Kw && t.getKw()!=Kw_e::Fn)
+  FnModifiers::Type mods;
+  if(peek().type==Token::Kw && peek().getKw()==Extern) {
+    pop();
+    if(peek().type!=Token::Kw||peek().getKw()!=Fn)
+      serror(Error_e::Unk,"Expected the fn keyword");
+    mods&=FnModifiers::Extern;
+  }
+  if (peek().type != Token::Kw && peek().getKw()!=Kw_e::Fn)
     return nullptr;
   pop();
   auto name = expect(Token::Id, "identifier");
@@ -312,7 +317,10 @@ std::unique_ptr<ImportExpr> Parser::parse_import() {
   pop();
   if(peek().type==Token::Id) {
     return std::make_unique<ImportExpr>(pop().getName());
-  } 
+  } //else kéne egy id error
+  if(pop().type!=Token::N) {
+    serror(Error_e::Unk,"expected a new line");
+  }
   return nullptr;
 }
 
