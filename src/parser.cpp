@@ -36,7 +36,7 @@ int pre(Token::Type op) {
 }
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
-  FnModifiers::Type mods;
+  FnModifiers::Type mods=0;
   if(peek().type==Token::Kw && peek().getKw()==Extern) {
     pop();
     if(peek().type!=Token::Kw||peek().getKw()!=Fn)
