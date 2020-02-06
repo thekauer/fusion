@@ -33,12 +33,8 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
     if (arg->type == AstType::VarDeclExpr) {
       auto vd = reinterpret_cast<VarDeclExpr *>(arg.get());
       fn_args.push_back(vd->ty->codegen(ctx));
-      llvm::outs() << "\nVARDECL EYEY\n";
     }
-    llvm::outs() << "Typeof arg: " << static_cast<int>(arg->type) << "\n";
-    llvm::outs() << "Typeof vardecl is "
-                 << static_cast<int>(AstType::VarDeclExpr) << "\n";
-    fn_args.push_back(arg->codegen(ctx)->getType());
+
   }
 
   /*
@@ -53,7 +49,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   llvm::FunctionType *ft = llvm::FunctionType::get(ret_t, fn_args, false);
 
   llvm::Function *f =
-      llvm::Function::Create(ft, lt, name.getName(), ctx.mod.get());
+      llvm::Function::Create(ft, lt, name, ctx.mod.get());
   // set arg names
   unsigned idx = 0;
   for (auto &arg : f->args()) {
@@ -68,9 +64,12 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
 llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
   llvm::Function *p = (llvm::Function *)proto->codegen(ctx);
 
-  auto name = proto->name;
-  auto fname = name.getName();
+  auto fname = proto->name;
   auto *fn = (llvm::Function *)p;
+  if(mods&FnModifiers::Extern) {
+    ctx.mod->getOrInsertFunction(fname,p->getFunctionType());
+    return fn;
+  }
   if (!fn) {
     std::string err_msg = "unknown function called " + fname;
     serror(Error_e::FnNotExsits, err_msg /*, name.sl*/);
@@ -156,4 +155,18 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
   }
   ctx.named_values[name] = val;
   return val;
+}
+
+
+llvm::Value *RangeExpr::codegen(FusionCtx& ctx) {
+  return nullptr;//implement me
+}
+
+llvm::Value* IfExpr::codegen(FusionCtx& ctx) {
+  return nullptr;
+}
+
+llvm::Value* ImportExpr::codegen(FusionCtx& ctx) {
+  //compile module
+  return nullptr;
 }

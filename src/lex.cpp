@@ -125,7 +125,7 @@ Token::Token(Kw_e kw, const SourceLocation &sl) : type(Kw), sl(sl), data(kw) {}
 
 Lit Token::getValue() const { return std::get<::Lit>(data); }
 std::string Token::getName() const { return std::get<std::string>(data); }
-Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
+Kw_e Token::getKw() const {return std::get<Kw_e>(data); }
 
 bool is_op(u8 ch) { return ch >= Not && ch <= And; }
 bool is_ws(u8 ch) { return ch == Tab || ch == Space; }
@@ -135,7 +135,9 @@ bool is_eol(u8 ch) { return ch == N || ch == Space; }
 static const std::map<ptr, Kw_e> kws{
     {hash("fn"), Fn},         {hash("for"), For}, {hash("i8"), I8},
     {hash("i16"), I16},       {hash("i32"), I32}, {hash("i64"), I64},
-    {hash("string"), String}, {hash("_"), Drop}};
+    {hash("string"), String}, {hash("_"), Drop}, {hash("if"), If},
+    {hash("import"),Import},{hash("extern"),Extern},{hash("export"),Export},
+    {hash("mod"),Module}};
 Kw_e is_kw(ptr h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
@@ -233,7 +235,7 @@ Token Lexer::next() {
       pop();
     }
     bool is_float = false;
-    if (eq[peek()] == Dot) {
+    if (eq[peek()] == Dot && eq[peek(1)] == Number) {
       pop();
       is_float = true;
     }
@@ -273,6 +275,9 @@ Token Lexer::next() {
       pop();
       curr_indent++;
     }
+     if(eq[peek()]==N) {
+       return next();
+     }
     if (indent < curr_indent) {
       indent = curr_indent;
       return Token(Token::Gi, sl_cast(this));
@@ -283,11 +288,43 @@ Token Lexer::next() {
     }
     return Token(Token::N, err_loc);
   }
-
+  case Dot: {
+    pop();
+    if(eq[peek()]==Dot) {
+      pop();
+      if(eq[peek()]==Dot) {
+        pop();
+        llvm::outs() << "lexed: ...\n";
+        return Token(Token::DotDotDot,sl_cast(this));
+      }
+      return Token(Token::DotDot,sl_cast(this));
+    }
+    return Token(Token::Dot,sl_cast(this));
+  }
+  case DoubleDot:
+    pop();
+    return Token(Token::DoubleDot,sl_cast(this));
+  case Lp:
+    pop();
+    return Token(Token::Lp,sl_cast(this));
+  case Rp:
+    pop();
+    return Token(Token::Rp,sl_cast(this));
+  case Comma:
+    pop();
+    return Token(Token::Comma,sl_cast(this));
+  case Eq:
+    pop();
+    return Token(Token::Eq,sl_cast(this));
+  
   default:
     break;
   }
+
+  //REMOVE THIS
   if (is_op(ch)) {
+    llvm::outs()<< "(eq)Seen: " << static_cast<int>(ch) <<"\n";
+    serror(Error_e::Unk,"POSSIBLY DANGEROUS PATH REMOVE THIS in lex.cpp");
     pop(); // pop the operator, it is stored in ch
     switch (eq[peek()]) {
     case Div: {

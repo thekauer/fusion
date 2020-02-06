@@ -14,6 +14,10 @@ enum class AstType : unsigned char {
   TypeExpr,
   VarExpr,
   VarDeclExpr,
+  RangeExpr,
+  IfExpr,
+  ImportExpr,
+  ModExpr,
 };
 class AstExpr {
 public:
@@ -32,36 +36,50 @@ struct VarDeclExpr : AstExpr {
   VarDeclExpr(const std::string &name)
       : AstExpr(AstType::VarDeclExpr), name(name) {}
   VarDeclExpr(const std::string &name, Type *ty)
-      : AstExpr(AstType::VarExpr), name(name), ty(ty){};
+      : AstExpr(AstType::VarDeclExpr), name(name), ty(ty){};
   llvm::Value *codegen(FusionCtx &ctx) override;
   void print_name() override { std::cout << "VarDeclExpr\n"; }
   void pretty_print() override;
 };
+struct FnModifiers {
+  using Type = unsigned char;
+  static const Type Pub = 1;
+  static const Type Extern=2;
+  static const Type Export=4;
+  static const Type Inline=8;
+  static const Type Async=16;
+  static const Type Const=32;
+  static const Type Static=64;
+  FnModifiers()=delete;
+};
 struct FnProto : AstExpr {
   std::unique_ptr<AstExpr> ret;
   std::vector<std::unique_ptr<VarDeclExpr>> args;
-  Token name;
+  std::string name;
   Linkage linkage = Linkage::Ext;
   Inline is_inline = Inline::Def;
-  FnProto(Token name, std::unique_ptr<AstExpr> ret)
+  FnProto(const std::string& name, std::unique_ptr<AstExpr> ret)
       : AstExpr(AstType::FnProto), ret(std::move(ret)), name(name){};
-  FnProto(Token name, std::vector<std::unique_ptr<VarDeclExpr>> &&args,
-          std::unique_ptr<AstExpr> ret = nullptr)
-      : AstExpr(AstType::FnProto), ret(std::move(ret)), args(std::move(args)),
-        name(name) {}
+
+  FnProto(const std::string& name,std::vector<std::unique_ptr<VarDeclExpr>>&& args,std::unique_ptr<AstExpr> ret = nullptr) :
+  AstExpr(AstType::FnProto),ret(std::move(ret)),args(std::move(args)),name(name){}
+
+
   void print_name() override { std::cout << "FnProto\n"; }
   void pretty_print() override;
   llvm::Value *codegen(FusionCtx &ctx) override;
 };
 
 struct FnDecl : AstExpr {
+  FnModifiers::Type mods=0;
   std::unique_ptr<FnProto> proto;
-  std::vector<std::unique_ptr<AstExpr>> body;
+  std::vector<std::unique_ptr<AstExpr>> body {};
   FnDecl(std::unique_ptr<FnProto> proto,
-         std::vector<std::unique_ptr<AstExpr>> &&body)
-      : AstExpr(AstType::FnDecl), proto(move(proto)), body(move(body)){};
+         std::vector<std::unique_ptr<AstExpr>> &&body,FnModifiers::Type mods=0)
+      : AstExpr(AstType::FnDecl), proto(move(proto)), body(move(body)), mods(mods){};
+  FnDecl(std::unique_ptr<FnProto> proto) : AstExpr(AstType::FnDecl),proto(move(proto)),mods(FnModifiers::Extern){}
   void print_name() override {
-    std::cout << "FnDecl: " << proto->name.getName() << "\n";
+    std::cout << "FnDecl: " << proto->name << "\n";
   }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
@@ -109,6 +127,29 @@ struct BinExpr : AstExpr {
   void pretty_print() override;
 };
 
+
+struct RangeExpr : AstExpr {
+  std::unique_ptr<ValExpr> begin,end;
+  RangeExpr(std::unique_ptr<ValExpr> begin,std::unique_ptr<ValExpr> end) 
+  : AstExpr(AstType::RangeExpr),begin(move(begin)),end(move(end)){};
+  llvm::Value *codegen(FusionCtx& ctx) override;
+  void pretty_print() override;
+};
+
+struct IfExpr : AstExpr {
+  std::unique_ptr<AstExpr> condition;
+  IfExpr(std::unique_ptr<AstExpr> condition) : AstExpr(AstType::IfExpr),condition(std::move(condition)){};
+  llvm::Value* codegen(FusionCtx& ctx) override;
+  void pretty_print() override;
+};
+
+struct ImportExpr : AstExpr {
+  std::string module;
+  ImportExpr(const std::string& module) : AstExpr(AstType::ImportExpr),module(module){};
+  llvm::Value* codegen(FusionCtx& ctx) override;
+  void pretty_print() override;
+};
+
 int pre(Token::Type op);
 class Parser {
 private:
@@ -136,4 +177,8 @@ public:
   std::unique_ptr<VarDeclExpr> parse_arg();
   std::unique_ptr<VarExpr> parse_var();
   std::unique_ptr<TypeExpr> parse_type_expr();
+  std::unique_ptr<ValExpr> pop_integer();
+  std::unique_ptr<RangeExpr> parse_range_expr();
+  std::unique_ptr<IfExpr> parse_if_expr();
+  std::unique_ptr<ImportExpr> parse_import();
 };

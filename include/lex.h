@@ -35,7 +35,12 @@ enum Kw_e : unsigned char {
   I32,
   I64,
   String,
-  Drop /* _ */
+  Drop, /* _ */
+  If,
+  Import,
+  Export,
+  Extern,
+  Module,
 };
 
 bool is_op(u8 ch);
@@ -71,6 +76,8 @@ struct Token {
     Sub,
     Comma,
     Dot,
+    DotDot,
+    DotDotDot,
     Div,
     DoubleDot,
     SemiColon,
