@@ -311,6 +311,9 @@ Token Lexer::next() {
   case Comma:
     pop();
     return Token(Token::Comma,sl_cast(this));
+  case Eq:
+    pop();
+    return Token(Token::Eq,sl_cast(this));
   
   default:
     break;
