@@ -127,7 +127,7 @@ Lit Token::getValue() const {
   return std::get<::Lit>(data);
 }
 std::string Token::getName() const { return std::get<std::string>(data); }
-Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
+Kw_e Token::getKw() const {return std::get<Kw_e>(data); }
 
 bool is_op(u8 ch) { return ch >= Not && ch <= And; }
 bool is_ws(u8 ch) { return ch == Tab || ch == Space; }

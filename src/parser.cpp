@@ -39,7 +39,11 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
   if (peek().type != Token::Kw && peek().getKw()!=Kw_e::Fn)
     return nullptr;
   pop();
-  auto name = expect(Token::Id, "identifier");
+  auto namet = expect(Token::Id, "identifier");
+  if(namet.type!=Token::Id) {
+    serror(Error_e::Unk,"NAMET-FNPROTO");
+  }
+  auto name = namet.getName();
   // generics
   expect(Token::Lp, "(");
   // args
@@ -47,7 +51,9 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
   std::vector<std::unique_ptr<VarDeclExpr>> args;
   while(arg) {
     args.push_back(std::move(arg));
-    if(peek().type==Token::Comma)pop();
+    if(peek().type==Token::Comma){
+      pop();
+     }
     else {
       if(peek().type!=Token::Rp) {
         serror(Error_e::Unk,"expected , or )");
@@ -195,21 +201,18 @@ Parser::parse_infered_var_decl(const std::string &name) {
   }
   return nullptr;
 }
-std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
 
+std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
   auto ty_arg = parse_type_expr();
   if(ty_arg) {
-    llvm::outs()<<"parsed type\n";
-    return std::make_unique<VarDeclExpr>("_",ty_arg->ty);
+    return std::make_unique<VarDeclExpr>("",ty_arg->ty);
   }
   
   if(peek().type==Token::Id) {
-    auto id = pop().getName();
-    llvm::outs()<< id <<" ";
-    llvm::outs() <<"T: " << static_cast<int>(peek().type)<<"\n";
+    std::string id = "arg";//pop().getName();
+    pop();//pop name
     if(peek().type==Token::DoubleDot) {
       pop();
-      llvm::outs() << "TY";
       auto ty =  parse_type_expr();
       if(ty) {
         return std::make_unique<VarDeclExpr>(id,ty->ty);
@@ -280,21 +283,22 @@ std::unique_ptr<AstExpr> Parser::parse_expr() {
 }
 
 std::unique_ptr<FnCall> Parser::parse_fncall() {
-  auto name = peek();
-  if (name.type != Token::Id)
+  auto namet = peek();
+  if (namet.type != Token::Id)
     return nullptr;
   if (peek(1).type != Token::Lp) {
     return nullptr;
   }
   pop(); // pop name
   pop(); // pop (
+  auto name =namet.getName();
 
   // args
   std::vector<std::unique_ptr<AstExpr>> args;
   auto arg = parse_expr();
   args.push_back(std::move(arg));
   expect(Token::Rp, ")");
-  return std::make_unique<FnCall>(name.getName(), std::move(args));
+  return std::make_unique<FnCall>(name, std::move(args));
 }
 
 std::unique_ptr<VarExpr> Parser::parse_var() {
@@ -359,7 +363,7 @@ std::unique_ptr<ImportExpr> Parser::parse_import() {
 
 
 void FnProto::pretty_print() {
-  llvm::outs() << "fn " << name.getName() << "(";
+  llvm::outs() << "fn " << name << "(";
   for (const auto &arg : args) {
     arg->pretty_print();
     llvm::outs() << ",";

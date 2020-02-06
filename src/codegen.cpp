@@ -48,7 +48,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   llvm::FunctionType *ft = llvm::FunctionType::get(ret_t, fn_args, false);
 
   llvm::Function *f =
-      llvm::Function::Create(ft, lt, name.getName(), ctx.mod.get());
+      llvm::Function::Create(ft, lt, name, ctx.mod.get());
   // set arg names
   unsigned idx=0;
   for(auto& arg : f->args()) {
@@ -63,8 +63,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
 llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
   llvm::Function *p = (llvm::Function *)proto->codegen(ctx);
 
-  auto name = proto->name;
-  auto fname = name.getName();
+  auto fname = proto->name;
   auto *fn = (llvm::Function *)p;
   if(mods&FnModifiers::Extern) {
     ctx.mod->getOrInsertFunction(fname,p->getFunctionType());
