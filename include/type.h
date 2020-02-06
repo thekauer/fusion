@@ -1,7 +1,7 @@
 #pragma once
+#include "context.h"
 #include <string>
 #include <vector>
-#include "context.h"
 
 class Type {
 public:
@@ -14,15 +14,15 @@ public:
   Type *toConst();
   Type *toOptional();
   Type *toNotOption();
-  Type(const std::string& name,TypeKind tk, By pass, bool mut, const unsigned int size,
-       bool optional = false);
+  Type(const std::string &name, TypeKind tk, By pass, bool mut,
+       const unsigned int size, bool optional = false);
 
   unsigned int getSize();
-  const std::string& getName();
+  const std::string &getName();
   TypeKind getTypeKind();
   By getBy();
 
-  virtual llvm::Type* codegen(FusionCtx& ctx)=0;
+  virtual llvm::Type *codegen(FusionCtx &ctx) = 0;
 
   static Type *getI8();
   static Type *getI16();
@@ -66,8 +66,8 @@ struct IntegralType : Type {
     Bool,
     Double
   } ty;
-  IntegralType(const std::string& name,Ty ty, const unsigned int size);
-  llvm::Type* codegen(FusionCtx& ctx)override;
+  IntegralType(const std::string &name, Ty ty, const unsigned int size);
+  llvm::Type *codegen(FusionCtx &ctx) override;
 };
 
 struct StructType : Type {
@@ -76,12 +76,12 @@ struct StructType : Type {
     std::string name;
   };
   std::vector<TypedValue> members;
-  StructType(const std::string& name,const std::vector<TypedValue> &members);
-  llvm::Type* codegen(FusionCtx& ctx) override;
+  StructType(const std::string &name, const std::vector<TypedValue> &members);
+  llvm::Type *codegen(FusionCtx &ctx) override;
 };
 
 struct TupleType : Type {
   std::vector<Type *> members;
-  TupleType(const std::string& name,const std::vector<Type *> &members);
-  llvm::Type* codegen(FusionCtx& ctx) override;
+  TupleType(const std::string &name, const std::vector<Type *> &members);
+  llvm::Type *codegen(FusionCtx &ctx) override;
 };

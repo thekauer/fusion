@@ -2,6 +2,7 @@
 #include "compatibility.h"
 #include "context.h"
 #include "source.h"
+#include "type.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/StringRef.h"
@@ -10,7 +11,6 @@
 #include "llvm/IR/Value.h"
 #include <string>
 #include <variant>
-#include "type.h"
 
 struct FSFile;
 
@@ -49,9 +49,9 @@ Kw_e is_kw(ptr h);
 bool is_eol(u8 ch);
 
 struct Lit {
-  Type* ty;
-  llvm::Constant* val;
-  Lit(Type* ty,llvm::Constant* val): ty(ty),val(val){}
+  Type *ty;
+  llvm::Constant *val;
+  Lit(Type *ty, llvm::Constant *val) : ty(ty), val(val) {}
 };
 
 struct Token {

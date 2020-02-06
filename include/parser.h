@@ -60,8 +60,11 @@ struct FnProto : AstExpr {
   Inline is_inline = Inline::Def;
   FnProto(const std::string& name, std::unique_ptr<AstExpr> ret)
       : AstExpr(AstType::FnProto), ret(std::move(ret)), name(name){};
+
   FnProto(const std::string& name,std::vector<std::unique_ptr<VarDeclExpr>>&& args,std::unique_ptr<AstExpr> ret = nullptr) :
   AstExpr(AstType::FnProto),ret(std::move(ret)),args(std::move(args)),name(name){}
+
+
   void print_name() override { std::cout << "FnProto\n"; }
   void pretty_print() override;
   llvm::Value *codegen(FusionCtx &ctx) override;
