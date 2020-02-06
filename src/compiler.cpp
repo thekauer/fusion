@@ -75,13 +75,21 @@ void Compiler::compile(int argc, char **argv) {
     Parser p(l.tokens, ctx);
 
     auto m = p.parse_fndecl();
-    std::cout << "\npretty print:\n";
-    m->pretty_print();
-    std::cout << "\n\n";
+    std::vector<std::unique_ptr<FnDecl>> fndecls;
+    llvm::outs()<<"parse: ";
     while (m) {
-      m->codegen(ctx);
-
+      fndecls.push_back(move(m));
       m = p.parse_fndecl();
+    }
+    std::cout << "\npretty print:\n";
+    std::cout << "\n\n";
+    for(auto&& decl : fndecls) {
+      decl->pretty_print();
+    }
+
+    llvm::outs() <<"\ncodegen: \n";
+    for(auto&& decl : fndecls) {
+      decl->codegen(ctx);
     }
   }
 

@@ -73,6 +73,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     pop();
     mods|=FnModifiers::Extern;
   }
+
   auto fn_indent = peek().sl.indent;
   auto proto = parse_fnproto();
   if (!proto)
