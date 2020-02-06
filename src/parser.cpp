@@ -175,18 +175,27 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
 }
 
 std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
+  Type::By pass = Type::Val;
+  if(peek().type==Token::Mul) {
+    pass=Type::Ptr;
+    pop();
+  }
+  if(peek().type==Token::And) {
+    pass=Type::Ref;
+    pop();
+  }
   if (peek().type != Token::Kw) {
     return nullptr;
   }
   switch (pop().getKw()) {
   case Kw_e::I32:
-    return std::make_unique<TypeExpr>(Type::getI32());
+    return std::make_unique<TypeExpr>(Type::getI32()->setBy(pass));
   case Kw_e::I8:
-    return std::make_unique<TypeExpr>(Type::getI8());
+    return std::make_unique<TypeExpr>(Type::getI8()->setBy(pass));
   case Kw_e::I16:
-    return std::make_unique<TypeExpr>(Type::getI16());
+    return std::make_unique<TypeExpr>(Type::getI16()->setBy(pass));
   case Kw_e::I64:
-    return std::make_unique<TypeExpr>(Type::getI64());
+    return std::make_unique<TypeExpr>(Type::getI64()->setBy(pass));
   case Kw_e::Drop:
     return std::make_unique<TypeExpr>();
   default:
