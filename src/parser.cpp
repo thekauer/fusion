@@ -199,7 +199,24 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
 
   auto ty_arg = parse_type_expr();
   if(ty_arg) {
+    llvm::outs()<<"parsed type\n";
     return std::make_unique<VarDeclExpr>("_",ty_arg->ty);
+  }
+  
+  if(peek().type==Token::Id) {
+    auto id = pop().getName();
+    llvm::outs()<< id <<" ";
+    llvm::outs() <<"T: " << static_cast<int>(peek().type)<<"\n";
+    if(peek().type==Token::DoubleDot) {
+      pop();
+      llvm::outs() << "TY";
+      auto ty =  parse_type_expr();
+      if(ty) {
+        return std::make_unique<VarDeclExpr>(id,ty->ty);
+      } else {
+        serror(Error_e::Unk,"invalid argument type");
+      }
+    }
   }
   
 
