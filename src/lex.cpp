@@ -273,6 +273,9 @@ Token Lexer::next() {
       pop();
       curr_indent++;
     }
+     if(eq[peek()]==N) {
+       return next();
+     }
     if (indent < curr_indent) {
       indent = curr_indent;
       return Token(Token::Gi, sl_cast(this));

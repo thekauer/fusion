@@ -39,7 +39,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
   if (peek().type != Token::Kw && peek().getKw()!=Kw_e::Fn)
     return nullptr;
   pop();
-  auto namet = expect(Token::Id, "identifier");
+  auto namet = pop();
   if(namet.type!=Token::Id) {
     serror(Error_e::Unk,"NAMET-FNPROTO");
   }
@@ -78,8 +78,12 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   auto proto = parse_fnproto();
   if (!proto)
     return nullptr;
-  if(mods&FnModifiers::Extern)
+  if(mods&FnModifiers::Extern) {
+    if(peek().type!=Token::N) {
+      serror(Error_e::Unk,"should be new line");
+    }
     return std::make_unique<FnDecl>(move(proto));
+  }
   expect(Token::Gi, "greater indentation");
   ++indent;
 
