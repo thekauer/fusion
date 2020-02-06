@@ -316,7 +316,9 @@ Token Lexer::next() {
   case Eq:
     pop();
     return Token(Token::Eq,sl_cast(this));
-  
+  case Mul:
+    pop();
+    return Token(Token::Mul,sl_cast(this));
   default:
     break;
   }
