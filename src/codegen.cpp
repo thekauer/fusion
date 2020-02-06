@@ -33,11 +33,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
     if(arg->type == AstType::VarDeclExpr) {
       auto vd = reinterpret_cast<VarDeclExpr*>(arg.get());
       fn_args.push_back(vd->ty->codegen(ctx));
-      llvm::outs() << "\nVARDECL EYEY\n";
     }
-    llvm::outs() << "Typeof arg: " << static_cast<int>(arg->type) << "\n";
-    llvm::outs() << "Typeof vardecl is "<< static_cast<int>(AstType::VarDeclExpr) << "\n";
-    fn_args.push_back(arg->codegen(ctx)->getType());
   }
 
   /*

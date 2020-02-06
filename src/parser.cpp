@@ -196,6 +196,17 @@ Parser::parse_infered_var_decl(const std::string &name) {
   return nullptr;
 }
 std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
+
+  auto ty_arg = parse_type_expr();
+  if(ty_arg) {
+    return std::make_unique<VarDeclExpr>("_",ty_arg->ty);
+  }
+  
+
+  if(peek().type==Token::Rp) {
+    return nullptr;
+  }
+  /*
   auto id = peek();
   if(peek().type!=Token::Id) return nullptr;
   pop();
@@ -205,13 +216,14 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
     return std::make_unique<VarDeclExpr>(id.getName());
   }
   if(t.type==Token::DoubleDot) {
+    llvm::outs() << "DOUBLE DOT\n";
     pop();
     auto ty = parse_type_expr();
     if(!ty) {
       serror(Error_e::Unk,"Unknown type");
     }
     return std::make_unique<VarDeclExpr>(id.getName(),ty->ty);
-  }
+  }*/
   serror(Error_e::Unk,"Parse arg unreachable");
 }
 
@@ -353,7 +365,6 @@ void ValExpr::pretty_print() { llvm::outs() << "val"; }
 
 void VarDeclExpr::pretty_print() {
   llvm::outs() << name << " : " << ty->getName();
-  llvm::outs() << "\n";
 }
 void VarExpr::pretty_print() { llvm::outs() << name; }
 void TypeExpr::pretty_print() {llvm::outs()<< ty->getName(); }
