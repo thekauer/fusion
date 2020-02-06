@@ -50,22 +50,6 @@ RespawnedCode respawn(const FSFile &file, unsigned int pos) {
   auto code = std::string(start, it);
   return RespawnedCode(line, col, code, file_name);
 }
-[[noreturn]] void error(Error_e code, const FSFile &file,
-                        const SourceLocation &sl, const std::string &msg) {
-  auto rsc = respawn(file, sl.pos);
-  std::string s = ": " + msg + "\n" + rsc.code + "\n";
-  llvm::formatted_raw_ostream ro(llvm::outs());
-  ro.changeColor(llvm::raw_ostream::RED, true, false);
-  ro.write("error: ", 7);
-  ro.resetColor();
-  ro.write(s.c_str(), s.size());
-  for (int i = 0; i < rsc.col; i++) {
-    std::cout << " ";
-  }
-  std::cout << "^\n"
-            << "\n";
-  std::exit(static_cast<int>(code));
-}
 
 static void err_impl(Error_e code, const FSFile &file, const SourceLocation &sl,
                      const std::string &msg, llvm::raw_ostream::Colors color,
@@ -78,13 +62,34 @@ static void err_impl(Error_e code, const FSFile &file, const SourceLocation &sl,
   ro.resetColor();
   ro.write(s.c_str(), s.size());
   for (int i = 0; i < rsc.col; i++) {
+    llvm::outs() << " ";
+  }
+  llvm::outs() << "^\n"
+            << "\n";
+}
+[[noreturn]] void error(Error_e code, const FSFile &file,
+                        const SourceLocation &sl, const std::string &msg) {
+  /*
+  auto rsc = respawn(file, sl.pos);
+  std::string s = ": " + msg + "\n" + rsc.code + "\n";
+  /*llvm::formatted_raw_ostream ro(llvm::outs());
+  ro.changeColor(llvm::raw_ostream::RED, true, false);
+  ro.write("error: ", 7);
+  ro.resetColor();
+  ro.write(s.c_str(), s.size());
+  for (int i = 0; i < rsc.col; i++) {
     std::cout << " ";
   }
   std::cout << "^\n"
             << "\n";
+  */
+  err_impl(code,file,sl,msg,llvm::raw_ostream::RED,"error: ");
+  
+  std::exit(static_cast<int>(code));
 }
 void warning(Error_e code, const FSFile &file, const SourceLocation &sl,
              const std::string &msg) {
+  /*
   auto rsc = respawn(file, sl.pos);
   std::string s = ": " + msg + "\n" + rsc.code + "\n";
   llvm::formatted_raw_ostream ro(llvm::outs());
@@ -96,10 +101,12 @@ void warning(Error_e code, const FSFile &file, const SourceLocation &sl,
     std::cout << " ";
   }
   std::cout << "^\n"
-            << "\n";
+            << "\n";*/
+  err_impl(code,file,sl,msg,llvm::raw_ostream::MAGENTA,"warning:");
 }
 void note(Error_e code, const FSFile &file, const SourceLocation &sl,
           const std::string &msg) {
+  /*
   auto rsc = respawn(file, sl.pos);
   std::string s = ": " + msg + "\n" + rsc.code + "\n";
   llvm::formatted_raw_ostream ro(llvm::outs());
@@ -112,6 +119,8 @@ void note(Error_e code, const FSFile &file, const SourceLocation &sl,
   }
   std::cout << "^\n"
             << "\n";
+  */
+  err_impl(code,file,sl,msg,llvm::raw_ostream::BLACK,"note: ");
 }
 
 void Error::UnkEsc(const FSFile &file, const SourceLocation &sl,
