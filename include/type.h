@@ -21,6 +21,7 @@ public:
   const std::string &getName();
   TypeKind getTypeKind();
   By getBy();
+  Type *setBy(By by);
 
   virtual llvm::Type *codegen(FusionCtx &ctx) = 0;
 

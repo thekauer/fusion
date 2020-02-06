@@ -52,6 +52,7 @@ unsigned int Type::getSize() { return size; }
 const std::string &Type::getName() { return name; }
 Type::TypeKind Type::getTypeKind() { return tk; }
 Type::By Type::getBy() { return pass; }
+Type* Type::setBy(By by) {this->pass=by;return this;}
 
 Type *Type::getI8() { return &i8_ty; }
 Type *Type::getI16() { return &i16_ty; }
