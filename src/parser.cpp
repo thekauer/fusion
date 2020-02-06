@@ -65,7 +65,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   FnModifiers::Type mods=0;
   if(peek().type==Token::Kw && peek().getKw()==Extern) {
     pop();
-    mods&=FnModifiers::Extern;
+    mods|=FnModifiers::Extern;
   }
   auto fn_indent = peek().sl.indent;
   auto proto = parse_fnproto();
