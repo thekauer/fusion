@@ -55,7 +55,6 @@ struct FnModifiers {
 struct FnProto : AstExpr {
   std::unique_ptr<AstExpr> ret;
   std::vector<std::unique_ptr<VarDeclExpr>> args;
-  FnModifiers::Type mods;
   Token name;
   Linkage linkage = Linkage::Ext;
   Inline is_inline = Inline::Def;
@@ -69,11 +68,13 @@ struct FnProto : AstExpr {
 };
 
 struct FnDecl : AstExpr {
+  FnModifiers::Type mods=0;
   std::unique_ptr<FnProto> proto;
-  std::vector<std::unique_ptr<AstExpr>> body;
+  std::vector<std::unique_ptr<AstExpr>> body {};
   FnDecl(std::unique_ptr<FnProto> proto,
-         std::vector<std::unique_ptr<AstExpr>> &&body)
-      : AstExpr(AstType::FnDecl), proto(move(proto)), body(move(body)){};
+         std::vector<std::unique_ptr<AstExpr>> &&body,FnModifiers::Type mods=0)
+      : AstExpr(AstType::FnDecl), proto(move(proto)), body(move(body)), mods(mods){};
+  FnDecl(std::unique_ptr<FnProto> proto) : AstExpr(AstType::FnDecl),proto(move(proto)),mods(FnModifiers::Extern){}
   void print_name() override {
     std::cout << "FnDecl: " << proto->name.getName() << "\n";
   }

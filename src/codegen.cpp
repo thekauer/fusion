@@ -70,6 +70,10 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
   auto name = proto->name;
   auto fname = name.getName();
   auto *fn = (llvm::Function *)p;
+  if(mods&FnModifiers::Extern) {
+    ctx.mod->getOrInsertFunction(fname,p->getFunctionType());
+    return fn;
+  }
   if (!fn) {
     std::string err_msg = "unknown function called " + fname;
     serror(Error_e::FnNotExsits, err_msg /*, name.sl*/);

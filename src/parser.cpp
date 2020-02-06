@@ -36,13 +36,6 @@ int pre(Token::Type op) {
 }
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
-  FnModifiers::Type mods=0;
-  if(peek().type==Token::Kw && peek().getKw()==Extern) {
-    pop();
-    if(peek().type!=Token::Kw||peek().getKw()!=Fn)
-      serror(Error_e::Unk,"Expected the fn keyword");
-    mods&=FnModifiers::Extern;
-  }
   if (peek().type != Token::Kw && peek().getKw()!=Kw_e::Fn)
     return nullptr;
   pop();
@@ -69,10 +62,17 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
+  FnModifiers::Type mods=0;
+  if(peek().type==Token::Kw && peek().getKw()==Extern) {
+    pop();
+    mods&=FnModifiers::Extern;
+  }
   auto fn_indent = peek().sl.indent;
   auto proto = parse_fnproto();
   if (!proto)
     return nullptr;
+  if(mods&FnModifiers::Extern)
+    return std::make_unique<FnDecl>(move(proto));
   expect(Token::Gi, "greater indentation");
   ++indent;
 
@@ -100,7 +100,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
 
     expr = parse_expr();
   }
-  auto ret = std::make_unique<FnDecl>(move(proto), move(body));
+  auto ret = std::make_unique<FnDecl>(move(proto), move(body),mods);
   return ret;
 }
 
