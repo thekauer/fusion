@@ -22,7 +22,8 @@ enum class AstType : unsigned char {
 class AstExpr {
 public:
   AstType type;
-  AstExpr(AstType type) : type(type){};
+  SourceLocation sl;
+  AstExpr(AstType type,const SourceLocation& sl) : type(type),sl(sl){};
   virtual void print_name() { std::cout << "AstExpr\n"; };
   virtual llvm::Value *codegen(FusionCtx &ctx) = 0;
   virtual void pretty_print() = 0;
@@ -33,10 +34,10 @@ public:
 struct VarDeclExpr : AstExpr {
   std::string name;
   Type *ty = nullptr;
-  VarDeclExpr(const std::string &name)
-      : AstExpr(AstType::VarDeclExpr), name(name) {}
-  VarDeclExpr(const std::string &name, Type *ty)
-      : AstExpr(AstType::VarDeclExpr), name(name), ty(ty){};
+  VarDeclExpr(const std::string &name,const SourceLocation& sl)
+      : AstExpr(AstType::VarDeclExpr,sl), name(name) {}
+  VarDeclExpr(const std::string &name, Type *ty,const SourceLocation& sl)
+      : AstExpr(AstType::VarDeclExpr,sl), name(name), ty(ty){};
   llvm::Value *codegen(FusionCtx &ctx) override;
   void print_name() override { std::cout << "VarDeclExpr\n"; }
   void pretty_print() override;
@@ -58,11 +59,11 @@ struct FnProto : AstExpr {
   std::string name;
   Linkage linkage = Linkage::Ext;
   Inline is_inline = Inline::Def;
-  FnProto(const std::string& name, std::unique_ptr<AstExpr> ret)
-      : AstExpr(AstType::FnProto), ret(std::move(ret)), name(name){};
+  FnProto(const std::string& name, std::unique_ptr<AstExpr> ret,const SourceLocation& sl)
+      : AstExpr(AstType::FnProto,sl), ret(std::move(ret)), name(name){};
 
-  FnProto(const std::string& name,std::vector<std::unique_ptr<VarDeclExpr>>&& args,std::unique_ptr<AstExpr> ret = nullptr) :
-  AstExpr(AstType::FnProto),ret(std::move(ret)),args(std::move(args)),name(name){}
+  FnProto(const SourceLocation& sl,const std::string& name,std::vector<std::unique_ptr<VarDeclExpr>>&& args,std::unique_ptr<AstExpr> ret = nullptr) :
+  AstExpr(AstType::FnProto,sl),ret(std::move(ret)),args(std::move(args)),name(name){}
 
 
   void print_name() override { std::cout << "FnProto\n"; }
@@ -74,10 +75,10 @@ struct FnDecl : AstExpr {
   FnModifiers::Type mods=0;
   std::unique_ptr<FnProto> proto;
   std::vector<std::unique_ptr<AstExpr>> body {};
-  FnDecl(std::unique_ptr<FnProto> proto,
+  FnDecl(const SourceLocation& sl,std::unique_ptr<FnProto> proto,
          std::vector<std::unique_ptr<AstExpr>> &&body,FnModifiers::Type mods=0)
-      : AstExpr(AstType::FnDecl), proto(move(proto)), body(move(body)), mods(mods){};
-  FnDecl(std::unique_ptr<FnProto> proto) : AstExpr(AstType::FnDecl),proto(move(proto)),mods(FnModifiers::Extern){}
+      : AstExpr(AstType::FnDecl,sl), proto(move(proto)), body(move(body)), mods(mods){};
+  FnDecl(std::unique_ptr<FnProto> proto,const SourceLocation& sl) : AstExpr(AstType::FnDecl,sl),proto(move(proto)),mods(FnModifiers::Extern){}
   void print_name() override {
     std::cout << "FnDecl: " << proto->name << "\n";
   }
@@ -86,14 +87,14 @@ struct FnDecl : AstExpr {
 };
 struct ValExpr : AstExpr {
   Lit val;
-  ValExpr(Lit val) : AstExpr(AstType::ValExpr), val(val) {}
+  ValExpr(Lit val,const SourceLocation& sl) : AstExpr(AstType::ValExpr,sl), val(val) {}
   void print_name() override { std::cout << "ValExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
 };
 struct VarExpr : AstExpr {
   std::string name;
-  VarExpr(const std::string &name) : AstExpr(AstType::VarExpr), name(name) {}
+  VarExpr(const std::string &name,const SourceLocation& sl) : AstExpr(AstType::VarExpr,sl), name(name) {}
   void print_name() override { std::cout << "VarExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
@@ -101,17 +102,17 @@ struct VarExpr : AstExpr {
 
 struct TypeExpr : AstExpr {
   Type *ty;
-  TypeExpr(Type *ty) : AstExpr(AstType::TypeExpr), ty(ty) {}
-  TypeExpr() : AstExpr(AstType::TypeExpr), ty(nullptr) {}
+  TypeExpr(Type *ty,const SourceLocation& sl) : AstExpr(AstType::TypeExpr,sl), ty(ty) {}
+  TypeExpr(const SourceLocation& sl) : AstExpr(AstType::TypeExpr,sl), ty(nullptr) {}
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
 };
 struct FnCall : AstExpr {
   std::string name;
   std::vector<std::unique_ptr<AstExpr>> args;
-  FnCall(const std::string &name) : AstExpr(AstType::FnCall), name(name){};
-  FnCall(const std::string &name, std::vector<std::unique_ptr<AstExpr>> &&args)
-      : AstExpr(AstType::FnCall), name(name), args(std::move(args)){};
+  FnCall(const std::string &name,const SourceLocation& sl) : AstExpr(AstType::FnCall,sl), name(name){};
+  FnCall(const SourceLocation& sl,const std::string &name, std::vector<std::unique_ptr<AstExpr>> &&args)
+      : AstExpr(AstType::FnCall,sl), name(name), args(std::move(args)){};
   void print_name() override { std::cout << "FnCall\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
@@ -119,9 +120,9 @@ struct FnCall : AstExpr {
 struct BinExpr : AstExpr {
   std::unique_ptr<AstExpr> lhs, rhs;
   Token::Type op;
-  BinExpr(Token::Type op, std::unique_ptr<AstExpr> lhs,
+  BinExpr(const SourceLocation& sl,Token::Type op, std::unique_ptr<AstExpr> lhs,
           std::unique_ptr<AstExpr> rhs)
-      : AstExpr(AstType::BinExpr), lhs(move(lhs)), rhs(move(rhs)), op(op){};
+      : AstExpr(AstType::BinExpr,sl), lhs(move(lhs)), rhs(move(rhs)), op(op){};
   void print_name() override { std::cout << "BinExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
@@ -130,22 +131,22 @@ struct BinExpr : AstExpr {
 
 struct RangeExpr : AstExpr {
   std::unique_ptr<ValExpr> begin,end;
-  RangeExpr(std::unique_ptr<ValExpr> begin,std::unique_ptr<ValExpr> end) 
-  : AstExpr(AstType::RangeExpr),begin(move(begin)),end(move(end)){};
+  RangeExpr(const SourceLocation& sl,std::unique_ptr<ValExpr> begin,std::unique_ptr<ValExpr> end) 
+  : AstExpr(AstType::RangeExpr,sl),begin(move(begin)),end(move(end)){};
   llvm::Value *codegen(FusionCtx& ctx) override;
   void pretty_print() override;
 };
 
 struct IfExpr : AstExpr {
   std::unique_ptr<AstExpr> condition;
-  IfExpr(std::unique_ptr<AstExpr> condition) : AstExpr(AstType::IfExpr),condition(std::move(condition)){};
+  IfExpr(const SourceLocation& sl,std::unique_ptr<AstExpr> condition) : AstExpr(AstType::IfExpr,sl),condition(std::move(condition)){};
   llvm::Value* codegen(FusionCtx& ctx) override;
   void pretty_print() override;
 };
 
 struct ImportExpr : AstExpr {
   std::string module;
-  ImportExpr(const std::string& module) : AstExpr(AstType::ImportExpr),module(module){};
+  ImportExpr(const SourceLocation& sl,const std::string& module) : AstExpr(AstType::ImportExpr,sl),module(module){};
   llvm::Value* codegen(FusionCtx& ctx) override;
   void pretty_print() override;
 };
