@@ -34,9 +34,9 @@ public:
 struct VarDeclExpr : AstExpr {
   std::string name;
   Type *ty = nullptr;
-  VarDeclExpr(const std::string &name,const SourceLocation& sl)
+  VarDeclExpr(const SourceLocation& sl,const std::string &name)
       : AstExpr(AstType::VarDeclExpr,sl), name(name) {}
-  VarDeclExpr(const std::string &name, Type *ty,const SourceLocation& sl)
+  VarDeclExpr(const SourceLocation& sl,const std::string &name, Type *ty)
       : AstExpr(AstType::VarDeclExpr,sl), name(name), ty(ty){};
   llvm::Value *codegen(FusionCtx &ctx) override;
   void print_name() override { std::cout << "VarDeclExpr\n"; }
@@ -59,7 +59,7 @@ struct FnProto : AstExpr {
   std::string name;
   Linkage linkage = Linkage::Ext;
   Inline is_inline = Inline::Def;
-  FnProto(const std::string& name, std::unique_ptr<AstExpr> ret,const SourceLocation& sl)
+  FnProto(const SourceLocation& sl,const std::string& name, std::unique_ptr<AstExpr> ret)
       : AstExpr(AstType::FnProto,sl), ret(std::move(ret)), name(name){};
 
   FnProto(const SourceLocation& sl,const std::string& name,std::vector<std::unique_ptr<VarDeclExpr>>&& args,std::unique_ptr<AstExpr> ret = nullptr) :
@@ -78,7 +78,7 @@ struct FnDecl : AstExpr {
   FnDecl(const SourceLocation& sl,std::unique_ptr<FnProto> proto,
          std::vector<std::unique_ptr<AstExpr>> &&body,FnModifiers::Type mods=0)
       : AstExpr(AstType::FnDecl,sl), proto(move(proto)), body(move(body)), mods(mods){};
-  FnDecl(std::unique_ptr<FnProto> proto,const SourceLocation& sl) : AstExpr(AstType::FnDecl,sl),proto(move(proto)),mods(FnModifiers::Extern){}
+  FnDecl(const SourceLocation& sl,std::unique_ptr<FnProto> proto) : AstExpr(AstType::FnDecl,sl),proto(move(proto)),mods(FnModifiers::Extern){}
   void print_name() override {
     std::cout << "FnDecl: " << proto->name << "\n";
   }
@@ -87,14 +87,14 @@ struct FnDecl : AstExpr {
 };
 struct ValExpr : AstExpr {
   Lit val;
-  ValExpr(Lit val,const SourceLocation& sl) : AstExpr(AstType::ValExpr,sl), val(val) {}
+  ValExpr(const SourceLocation& sl,Lit val) : AstExpr(AstType::ValExpr,sl), val(val) {}
   void print_name() override { std::cout << "ValExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
 };
 struct VarExpr : AstExpr {
   std::string name;
-  VarExpr(const std::string &name,const SourceLocation& sl) : AstExpr(AstType::VarExpr,sl), name(name) {}
+  VarExpr(const SourceLocation& sl,const std::string &name) : AstExpr(AstType::VarExpr,sl), name(name) {}
   void print_name() override { std::cout << "VarExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
@@ -102,7 +102,7 @@ struct VarExpr : AstExpr {
 
 struct TypeExpr : AstExpr {
   Type *ty;
-  TypeExpr(Type *ty,const SourceLocation& sl) : AstExpr(AstType::TypeExpr,sl), ty(ty) {}
+  TypeExpr(const SourceLocation& sl,Type *ty) : AstExpr(AstType::TypeExpr,sl), ty(ty) {}
   TypeExpr(const SourceLocation& sl) : AstExpr(AstType::TypeExpr,sl), ty(nullptr) {}
   llvm::Value *codegen(FusionCtx &ctx) override;
   void pretty_print() override;
@@ -110,7 +110,7 @@ struct TypeExpr : AstExpr {
 struct FnCall : AstExpr {
   std::string name;
   std::vector<std::unique_ptr<AstExpr>> args;
-  FnCall(const std::string &name,const SourceLocation& sl) : AstExpr(AstType::FnCall,sl), name(name){};
+  FnCall(const SourceLocation& sl,const std::string &name) : AstExpr(AstType::FnCall,sl), name(name){};
   FnCall(const SourceLocation& sl,const std::string &name, std::vector<std::unique_ptr<AstExpr>> &&args)
       : AstExpr(AstType::FnCall,sl), name(name), args(std::move(args)){};
   void print_name() override { std::cout << "FnCall\n"; }

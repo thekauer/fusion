@@ -86,7 +86,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     if(peek().type!=Token::N) {
       serror(Error_e::Unk,"should be new line");
     }
-    return std::make_unique<FnDecl>(move(proto),peek().sl);
+    return std::make_unique<FnDecl>(peek().sl,move(proto));
   }
   expect(Token::Gi, "greater indentation");
   ++indent;
@@ -123,7 +123,7 @@ std::unique_ptr<ValExpr> Parser::parse_valexpr() {
   auto t = peek();
   if (t.type == Token::Lit) {
     pop();
-    return std::make_unique<ValExpr>(t.getValue(),t.sl);
+    return std::make_unique<ValExpr>(t.sl,t.getValue());
   }
   return nullptr;
 }
@@ -191,13 +191,13 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   auto sl = peek().sl;
   switch (pop().getKw()) {
   case Kw_e::I32:
-    return std::make_unique<TypeExpr>(Type::getI32()->setBy(pass),sl);
+    return std::make_unique<TypeExpr>(sl,Type::getI32()->setBy(pass));
   case Kw_e::I8:
-    return std::make_unique<TypeExpr>(Type::getI8()->setBy(pass),sl);
+    return std::make_unique<TypeExpr>(sl,Type::getI8()->setBy(pass));
   case Kw_e::I16:
-    return std::make_unique<TypeExpr>(Type::getI16()->setBy(pass),sl);
+    return std::make_unique<TypeExpr>(sl,Type::getI16()->setBy(pass));
   case Kw_e::I64:
-    return std::make_unique<TypeExpr>(Type::getI64()->setBy(pass),sl);
+    return std::make_unique<TypeExpr>(sl,Type::getI64()->setBy(pass));
   case Kw_e::Drop:
     return std::make_unique<TypeExpr>(sl);
   default:
@@ -216,7 +216,7 @@ Parser::parse_infered_var_decl(const std::string &name) {
     if (!val) {
       serror(Error_e::Unk, "expected a literal");
     }
-    auto lhs = std::make_unique<VarDeclExpr>(name, val->val.ty,peek().sl);
+    auto lhs = std::make_unique<VarDeclExpr>(peek().sl,name, val->val.ty);
     return std::make_unique<BinExpr>(peek().sl,Token::Eq, std::move(lhs), std::move(val));
   }
   return nullptr;
@@ -225,7 +225,7 @@ Parser::parse_infered_var_decl(const std::string &name) {
 std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
   auto ty_arg = parse_type_expr();
   if(ty_arg) {
-    return std::make_unique<VarDeclExpr>("",ty_arg->ty,peek().sl);
+    return std::make_unique<VarDeclExpr>(peek().sl,"",ty_arg->ty);
   }
   
   if(peek().type==Token::Id) {
@@ -235,7 +235,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
       pop();
       auto ty =  parse_type_expr();
       if(ty) {
-        return std::make_unique<VarDeclExpr>(id,ty->ty,peek().sl);
+        return std::make_unique<VarDeclExpr>(peek().sl,id,ty->ty);
       } else {
         serror(Error_e::Unk,"invalid argument type");
       }
@@ -290,7 +290,7 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
       // error expected type expr
       return nullptr; // return Infer type
     }
-    return std::make_unique<VarDeclExpr>(id.getName(), ty->ty,peek().sl);
+    return std::make_unique<VarDeclExpr>(peek().sl,id.getName(), ty->ty);
   }
   if (peek().type == Token::Eq) {
     return parse_infered_var_decl(id.getName());
@@ -332,14 +332,14 @@ std::unique_ptr<VarExpr> Parser::parse_var() {
   }
   pop();
 
-  return std::make_unique<VarExpr>(name.getName(),name.sl);
+  return std::make_unique<VarExpr>(name.sl,name.getName());
 }
 
 std::unique_ptr<ValExpr> Parser::pop_integer() {
   if(peek().type==Token::Lit) {
     if(peek().getValue().ty->isIntegerType()) {
       auto loc = peek().sl;
-      return std::make_unique<ValExpr>(pop().getValue(),loc);
+      return std::make_unique<ValExpr>(loc,pop().getValue());
     }//else only integer types are allowed
   }
   return nullptr;
