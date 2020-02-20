@@ -62,7 +62,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
 }
 
 llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
-  llvm::Function *p = (llvm::Function *)proto->codegen(ctx);
+  auto *p = (llvm::Function *)proto->codegen(ctx);
 
   auto fname = proto->name;
   auto *fn = (llvm::Function *)p;
