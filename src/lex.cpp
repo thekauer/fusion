@@ -43,41 +43,41 @@ ptr hash(const std::string &str) {
 }
 
 enum Eq : unsigned char {
-  Not = 64,
-  Hashtag,
-  Mod,
-  Lp,
-  Rp,
-  Mul,
-  Add,
-  Sub,
-  Comma,
-  Dot,
-  Div,
-  DoubleDot,
-  SemiColon,
-  Gt, //<
-  Lt, // >
-  Eq,
-  Questionmark,
-  Backslash,
-  Lb, //[
-  Rb, // ]
-  Underscore,
-  Triangle, //^
-  Lc,       //{
-  Rc,       //}
-  Or,
-  Neg, //~
-  Null,
+  Not = Token::Not,
+  Hashtag = Token::Hashtag,
+  Mod = Token::Mod,
+  Lp = Token::Lp,
+  Rp = Token::Rp,
+  Mul = Token::Mul,
+  Add = Token::Add,
+  Sub = Token::Sub,
+  Comma = Token::Comma,
+  Dot = Token::Dot,
+  Div = Token::Div,
+  DoubleDot = Token::DoubleDot,
+  SemiColon = Token::SemiColon,
+  Gt = Token::Gt, //<
+  Lt = Token::Lt, // >
+  Eq = Token::Eq,
+  Questionmark = Token::Questionmark,
+  Backslash = Token::Backslash,
+  Lb = Token::Lb, //[
+  Rb = Token::Rb, // ]
+  Underscore = Token::Underscore,
+  Triangle = Token::Xor, //^
+  Lc = Token::Lc,       //{
+  Rc = Token::Rc,       //}
+  Or = Token::Or,
+  Neg = Token::Neg, //~
+  Null = Token::Null,
   Space,
   Tab,
-  And,
+  And = Token::And,
   // parsing required
   Quote,
   Apostrophe,
-  Cr, // carrige return
-  N,  // ascii 10 == 0xA
+  Cr = Token::N, // carrige return
+  N = Token::N,  // ascii 10 == 0xA
   Letter = 100,
   Number = 128
 };
