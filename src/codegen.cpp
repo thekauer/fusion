@@ -54,7 +54,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   unsigned idx = 0;
   for (auto &arg : f->args()) {
     auto n = ((VarDeclExpr *)(args[idx++].get()))->name;
-    arg.setName(n);
+    arg.setName(n);;
   }
   /*
    */
@@ -81,7 +81,7 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
     llvm::AllocaInst *alloca =
         ctx.builder.CreateAlloca(arg.getType(), nullptr, arg.getName());
     ctx.builder.CreateStore(&arg, alloca);
-    ctx.named_values[arg.getName()] = alloca;
+    ctx.named_values[arg.getName().data()] = alloca; //probably buggy
   }
 
   for (const auto &p : body) {
