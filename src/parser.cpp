@@ -125,6 +125,16 @@ std::unique_ptr<ValExpr> Parser::parse_valexpr() {
     pop();
     return std::make_unique<ValExpr>(t.sl,t.getValue());
   }
+  if(t.type==Token::Kw) {
+    if(t.getKw()==Kw_e::True) {
+      pop();
+      return std::make_unique<ValExpr>(t.sl,Lit(Type::getBool(),llvm::ConstantInt::get(llvm::Type::getInt8Ty(ctx.ctx),llvm::APInt(8,1,false))));
+    }
+    if(t.getKw()==Kw_e::False) {
+      pop();
+      return std::make_unique<ValExpr>(t.sl,Lit(Type::getBool(),llvm::ConstantInt::get(llvm::Type::getInt8Ty(ctx.ctx),llvm::APInt(8,0,false))));
+    }
+  }
   return nullptr;
 }
 
