@@ -229,8 +229,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
   }
   
   if(peek().type==Token::Id) {
-    std::string id = "arg";//pop().getName();
-    pop();//pop name
+    std::string id = pop().getName();
     if(peek().type==Token::DoubleDot) {
       pop();
       auto ty =  parse_type_expr();
