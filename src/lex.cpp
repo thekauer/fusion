@@ -301,35 +301,12 @@ Token Lexer::next() {
     }
     return Token(Token::Dot,sl_cast(this));
   }
-  case DoubleDot:
-    pop();
-    return Token(Token::DoubleDot,sl_cast(this));
-  case Lp:
-    pop();
-    return Token(Token::Lp,sl_cast(this));
-  case Rp:
-    pop();
-    return Token(Token::Rp,sl_cast(this));
-  case Comma:
-    pop();
-    return Token(Token::Comma,sl_cast(this));
-  case Eq:
-    pop();
-    return Token(Token::Eq,sl_cast(this));
-  case Mul:
-    pop();
-    return Token(Token::Mul,sl_cast(this));
-  case And:
-    pop();
-    return Token(Token::And,sl_cast(this));
   default:
     break;
   }
 
   //REMOVE THIS
   if (is_op(ch)) {
-    llvm::outs()<< "(eq)Seen: " << static_cast<int>(ch) <<"\n";
-    serror(Error_e::Unk,"POSSIBLY DANGEROUS PATH REMOVE THIS in lex.cpp");
     pop(); // pop the operator, it is stored in ch
     switch (eq[peek()]) {
     case Div: {
