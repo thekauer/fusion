@@ -130,6 +130,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     return vrhs;
   }
   default:
+    serror(Error_e::Unk,"Codegen: Unimplemented operator!");
     return nullptr;
   }
   return nullptr;
