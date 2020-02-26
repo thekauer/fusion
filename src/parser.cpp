@@ -436,6 +436,7 @@ void BinExpr::pretty_print() {
       break;
     case Token::Eq:
       llvm::outs() << "=";
+      break;
     default:
      llvm::outs() << " op ";
      break;
