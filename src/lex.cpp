@@ -137,7 +137,8 @@ static const std::map<ptr, Kw_e> kws{
     {hash("i16"), I16},       {hash("i32"), I32}, {hash("i64"), I64},
     {hash("string"), String}, {hash("_"), Drop}, {hash("if"), If},
     {hash("import"),Import},{hash("extern"),Extern},{hash("export"),Export},
-    {hash("mod"),Module}};
+    {hash("mod"),Module},{hash("true"),True},{hash("false"),False},
+    {hash("bool"),Bool}};
 Kw_e is_kw(ptr h) {
   auto k = kws.find(h);
   if (k != kws.end()) {

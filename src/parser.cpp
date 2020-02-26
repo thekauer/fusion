@@ -198,6 +198,8 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
     return std::make_unique<TypeExpr>(sl,Type::getI16()->setBy(pass));
   case Kw_e::I64:
     return std::make_unique<TypeExpr>(sl,Type::getI64()->setBy(pass));
+  case Kw_e::Bool:
+    return std::make_unique<TypeExpr>(sl,Type::getBool()->setBy(pass));
   case Kw_e::Drop:
     return std::make_unique<TypeExpr>(sl);
   default:
