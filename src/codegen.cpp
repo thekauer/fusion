@@ -149,11 +149,12 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
   if (!ty) {
     serror(Error_e::CouldNotInferType, "Couldn't infer type of expression");
   }
+  if (ctx.named_values.find(name) != ctx.named_values.end()) {
+    //serror(Error_e::Unk, "redaclaration of variable");
+    return ctx.named_values[name.data()];
+  }
   llvm::AllocaInst *val =
       ctx.builder.CreateAlloca(ty->codegen(ctx), nullptr, name);
-  if (ctx.named_values.find(name) != ctx.named_values.end()) {
-    serror(Error_e::Unk, "redaclaration of variable");
-  }
   ctx.named_values[name] = val;
   return val;
 }
