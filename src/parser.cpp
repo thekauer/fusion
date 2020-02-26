@@ -430,7 +430,16 @@ void FnCall::pretty_print() {
 
 void BinExpr::pretty_print() {
   lhs->pretty_print();
-  llvm::outs() << " op ";
+  switch(op) {
+    case Token::Add:
+      llvm::outs() << "+";
+      break;
+    case Token::Eq:
+      llvm::outs() << "=";
+    default:
+     llvm::outs() << " op ";
+     break;
+  }
   rhs->pretty_print();
 }
 
