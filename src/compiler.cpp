@@ -12,6 +12,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
+
 //#include "lld/Common/Driver.h"
 
 #include <chrono>
@@ -82,7 +83,6 @@ void Compiler::compile(int argc, char **argv) {
       m = p.parse_fndecl();
     }
     std::cout << "\npretty print:\n";
-    std::cout << "\n\n";
     for(auto&& decl : fndecls) {
       decl->pretty_print();
     }
