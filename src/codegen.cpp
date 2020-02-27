@@ -34,7 +34,6 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
       auto vd = reinterpret_cast<VarDeclExpr *>(arg.get());
       fn_args.push_back(vd->ty->codegen(ctx));
     }
-
   }
 
   /*
@@ -48,13 +47,13 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   llvm::GlobalValue::LinkageTypes lt = llvm::Function::ExternalLinkage;
   llvm::FunctionType *ft = llvm::FunctionType::get(ret_t, fn_args, false);
 
-  llvm::Function *f =
-      llvm::Function::Create(ft, lt, name, ctx.mod.get());
+  llvm::Function *f = llvm::Function::Create(ft, lt, name, ctx.mod.get());
   // set arg names
   unsigned idx = 0;
   for (auto &arg : f->args()) {
     auto n = ((VarDeclExpr *)(args[idx++].get()))->name;
     arg.setName(n);
+    ;
   }
   /*
    */
@@ -62,12 +61,12 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
 }
 
 llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
-  llvm::Function *p = (llvm::Function *)proto->codegen(ctx);
+  auto *p = (llvm::Function *)proto->codegen(ctx);
 
   auto fname = proto->name;
   auto *fn = (llvm::Function *)p;
-  if(mods&FnModifiers::Extern) {
-    ctx.mod->getOrInsertFunction(fname,p->getFunctionType());
+  if (mods & FnModifiers::Extern) {
+    ctx.mod->getOrInsertFunction(fname, p->getFunctionType());
     return fn;
   }
   if (!fn) {
@@ -81,7 +80,7 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
     llvm::AllocaInst *alloca =
         ctx.builder.CreateAlloca(arg.getType(), nullptr, arg.getName());
     ctx.builder.CreateStore(&arg, alloca);
-    ctx.named_values[arg.getName()] = alloca;
+    ctx.named_values[arg.getName().data()] = alloca; // probably buggy
   }
 
   for (const auto &p : body) {
@@ -130,6 +129,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     return vrhs;
   }
   default:
+    serror(Error_e::Unk, "Codegen: Unimplemented operator!");
     return nullptr;
   }
   return nullptr;
@@ -148,25 +148,23 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
   if (!ty) {
     serror(Error_e::CouldNotInferType, "Couldn't infer type of expression");
   }
+  if (ctx.named_values.find(name) != ctx.named_values.end()) {
+    // serror(Error_e::Unk, "redaclaration of variable");
+    return ctx.named_values[name.data()];
+  }
   llvm::AllocaInst *val =
       ctx.builder.CreateAlloca(ty->codegen(ctx), nullptr, name);
-  if (ctx.named_values.find(name) != ctx.named_values.end()) {
-    serror(Error_e::Unk, "redaclaration of variable");
-  }
   ctx.named_values[name] = val;
   return val;
 }
 
-
-llvm::Value *RangeExpr::codegen(FusionCtx& ctx) {
-  return nullptr;//implement me
+llvm::Value *RangeExpr::codegen(FusionCtx &ctx) {
+  return nullptr; // implement me
 }
 
-llvm::Value* IfExpr::codegen(FusionCtx& ctx) {
-  return nullptr;
-}
+llvm::Value *IfExpr::codegen(FusionCtx &ctx) { return nullptr; }
 
-llvm::Value* ImportExpr::codegen(FusionCtx& ctx) {
-  //compile module
+llvm::Value *ImportExpr::codegen(FusionCtx &ctx) {
+  // compile module
   return nullptr;
 }
