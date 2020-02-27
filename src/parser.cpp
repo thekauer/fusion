@@ -234,6 +234,7 @@ Parser::parse_infered_var_decl(const std::string &name) {
     if (!val) {
       serror(Error_e::Unk, "expected a literal");
     }
+
     auto lhs = std::make_unique<VarDeclExpr>(peek().sl, name, val->val.ty);
     return std::make_unique<BinExpr>(peek().sl, Token::Eq, std::move(lhs),
                                      std::move(val));
@@ -253,6 +254,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
       pop();
       auto ty = parse_type_expr();
       if (ty) {
+
         return std::make_unique<VarDeclExpr>(peek().sl, id, ty->ty);
       } else {
         serror(Error_e::Unk, "invalid argument type");
@@ -306,6 +308,7 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
       // error expected type expr
       return nullptr; // return Infer type
     }
+
     return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->ty);
   }
   if (peek().type == Token::Eq) {
@@ -348,6 +351,7 @@ std::unique_ptr<VarExpr> Parser::parse_var() {
   }
   pop();
 
+
   return std::make_unique<VarExpr>(name.sl, name.getName());
 }
 
@@ -355,6 +359,7 @@ std::unique_ptr<ValExpr> Parser::pop_integer() {
   if (peek().type == Token::Lit) {
     if (peek().getValue().ty->isIntegerType()) {
       auto loc = peek().sl;
+
       return std::make_unique<ValExpr>(loc, pop().getValue());
     } // else only integer types are allowed
   }
