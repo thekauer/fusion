@@ -12,6 +12,8 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 message(STATUS "llvm include dirs: " ${LLVM_INCLUDE_DIRS})
 #add_subdirectory(lld)
+add_subdirectory(googletest)
+add_subdirectory(test)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
@@ -27,7 +29,7 @@ llvm_map_components_to_libnames(llvm_libs
  all
   )
 
-target_link_libraries(fs ${llvm_libs})
+target_link_libraries(fs LLVM)
 
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard
