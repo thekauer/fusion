@@ -4,3 +4,4 @@ build
 .git
 lld
 CMakeLists.txt
+test
