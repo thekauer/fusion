@@ -102,7 +102,6 @@ struct Token {
     Tab,
     And,
 
-
   } type;
   SourceLocation sl;
 

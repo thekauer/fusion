@@ -12,7 +12,6 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
-
 //#include "lld/Common/Driver.h"
 
 #include <chrono>
@@ -77,18 +76,18 @@ void Compiler::compile(int argc, char **argv) {
 
     auto m = p.parse_fndecl();
     std::vector<std::unique_ptr<FnDecl>> fndecls;
-    llvm::outs()<<"parse: ";
+    llvm::outs() << "parse: ";
     while (m) {
       fndecls.push_back(move(m));
       m = p.parse_fndecl();
     }
     std::cout << "\npretty print:\n";
-    for(auto&& decl : fndecls) {
+    for (auto &&decl : fndecls) {
       decl->pretty_print();
     }
 
-    llvm::outs() <<"\ncodegen: \n";
-    for(auto&& decl : fndecls) {
+    llvm::outs() << "\ncodegen: \n";
+    for (auto &&decl : fndecls) {
       decl->codegen(ctx);
     }
   }
@@ -169,6 +168,4 @@ void Compiler::create_fs_std_lib(FusionCtx &ctx) {
   llvm::FunctionType *printf_ty =
       llvm::FunctionType::get(ity, {IntegerType::getInt8PtrTy(ctx.ctx)}, true);
   ctx.mod->getOrInsertFunction("printf", printf_ty);
-
-
 }
