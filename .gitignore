@@ -3,4 +3,3 @@ llvm
 build
 .git
 lld
-googletest

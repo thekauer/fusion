@@ -9,7 +9,6 @@ SET (LLVM_DIR llvm/cmake/modules)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-
 message(STATUS "llvm include dirs: " ${LLVM_INCLUDE_DIRS})
 #add_subdirectory(lld)
 add_subdirectory(googletest)
@@ -25,9 +24,7 @@ link_directories(include)
 add_executable(fs  ${FS_SRC})
 
 
-llvm_map_components_to_libnames(llvm_libs
- all
-  )
+llvm_map_components_to_libnames(LLVM_LIBS all)
 
 target_link_libraries(fs LLVM)
 
