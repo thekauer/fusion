@@ -13,8 +13,8 @@ TEST(parser,binexpr) {
     lexer.lex();
     auto tokens = lexer.tokens;
     EXPECT_EQ(tokens.size(),5);
-    Token::Type tks[]{Token::Id,Token::Eq,Token::Lit,Token::Add,Token::Lit};
-    for(int i=0;i<tokens.size();i++) {
+    Token::Type tks[] {Token::Id,Token::Eq,Token::Lit,Token::Add,Token::Lit};
+    for(int i=0; i<tokens.size(); i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
     auto p = Parser(tokens,ctx);
