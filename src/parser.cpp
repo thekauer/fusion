@@ -290,7 +290,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
 }
 
 std::unique_ptr<AstExpr> Parser::parse_var_decl() {
-  if (peek().type != Token::Id) {
+  if (peek().type != Token::Id && peek(1).type == Token::DoubleDot) {
     return nullptr;
   }
   auto id = pop();
@@ -311,16 +311,17 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
 
     return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->ty);
   }
+  
   if (peek().type == Token::Eq) {
     return parse_infered_var_decl(id.getName());
   }
-
+  
   return nullptr;
 }
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs)
+  if (lhs && lhs->type!=AstType::BinExpr) // fix this
     return parse_binary(std::move(lhs));
   return lhs;
 }
