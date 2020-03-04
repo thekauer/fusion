@@ -22,11 +22,16 @@ file(GLOB FS_SRC "src/*cpp")
 link_directories(include)
 # add the executable
 add_executable(fs  ${FS_SRC})
+message("system: ${CMAKE_SYSTEM}")
 
-
-llvm_map_components_to_libnames(LLVM_LIBS all)
-
+llvm_map_components_to_libnames(LLVM_LIBS 
+all
+)
+if(CMAKE_SYSTEM MATCHES "-arch")
 target_link_libraries(fs LLVM)
+else()
+target_link_libraries(fs ${LLVM_LIBS})
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard
