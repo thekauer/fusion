@@ -61,7 +61,7 @@ TEST(Lex,Operator) {
     FusionCtx ctx;
     std::string code = "+ - * / % ^ ! = & | ( ) # . .. ... : ; ? \\ [ ] { } _ ~";
     auto file = FSFile("",code);
-    Lexer l = Lexer(file,ctx);   
+    Lexer l = Lexer(file,ctx);
     auto t = l.next();
     EXPECT_EQ(t.type,Token::Add);
     t = l.next();
