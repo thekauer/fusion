@@ -24,7 +24,7 @@ link_directories(include)
 add_executable(fs  ${FS_SRC})
 message("system: ${CMAKE_SYSTEM}")
 
-llvm_map_components_to_libnames(LLVM_LIBS 
+llvm_map_components_to_libnames(LLVM_LIBS
 all
 )
 if(CMAKE_SYSTEM MATCHES "-arch")
