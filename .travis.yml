@@ -29,6 +29,7 @@ jobs:
 branches:
   only:
     - master
+    - dev
 
 # Scripts that run before install
 before_install:
