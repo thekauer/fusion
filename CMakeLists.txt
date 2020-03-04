@@ -10,6 +10,7 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 message(STATUS "llvm include dirs: " ${LLVM_INCLUDE_DIRS})
+message("system: ${CMAKE_SYSTEM}")
 #add_subdirectory(lld)
 #add_subdirectory(googletest)
 add_subdirectory(test)
@@ -22,7 +23,6 @@ file(GLOB FS_SRC "src/*cpp")
 link_directories(include)
 # add the executable
 add_executable(fs  ${FS_SRC})
-message("system: ${CMAKE_SYSTEM}")
 
 llvm_map_components_to_libnames(LLVM_LIBS 
 all
