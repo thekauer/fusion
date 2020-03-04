@@ -43,21 +43,20 @@ before_install:
   - git config --global push.default simple
   # llvm
   - git clone https://github.com/llvm/llvm-project.git
-cache:
- directories:
-  - llvm
+#cache:
+ #directories:
+  #- llvm
 # Build scripts
 script: 
-  - mkdir gtest-bin && cd gtest-bin && cmake /usr/src/gtest && make && cd ..
-  - rm -r llvm
-  - cd llvm-project
-  - mv llvm .. 
-  - cd .. 
+  #- mkdir gtest-bin && cd gtest-bin && cmake /usr/src/gtest && make && cd ..
+  #- rm -r llvm
+  #- cd llvm-project
+  #- mv llvm .. 
+  #- cd .. 
   - mkdir -p build
   - cd build
   - cmake .. 
   - make
-  - echo "LLVM is $LLVM"
 
 # Don't send notifications on success
 notifications:
