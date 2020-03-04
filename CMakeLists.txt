@@ -11,7 +11,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 message(STATUS "llvm include dirs: " ${LLVM_INCLUDE_DIRS})
 #add_subdirectory(lld)
-add_subdirectory(googletest)
+#add_subdirectory(googletest)
 add_subdirectory(test)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
