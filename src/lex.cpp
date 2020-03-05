@@ -199,6 +199,9 @@ Token &Token::operator=(const Token &other) {
 }
 
 void Lexer::lex() {
+  if(!can_iter()) {
+    serror(Error_e::Unk,"Empty file");
+  }
   while (can_iter()) {
     tokens.push_back(next());
   }
