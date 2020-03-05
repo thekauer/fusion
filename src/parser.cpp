@@ -6,7 +6,7 @@
 
 Token Parser::pop() {
   if (it == end)
-    return Token(Token::Eof, (--it)->sl);
+    return Token(Token::Eof, (it-1)->sl);
   return *it++;
 }
 Token Parser::peek(int n) { return *(it + n); }
@@ -164,6 +164,7 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
 }
 std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
                                               int p) {
+  /*
   if (!lhs)
     return nullptr;
   if (it == end)
@@ -189,6 +190,35 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
   }
 
   return std::make_unique<BinExpr>(loc, op, move(lhs), parse_binary(move(rhs)));
+  */
+  while(it!=end) {
+    auto op = peek().type;
+    auto loc = peek().sl;
+    auto TokPrec = pre(op);
+    if(TokPrec < p) {
+      return lhs;
+    }
+    
+    pop(); //pop the op
+    auto rhs = parse_primary();
+    if(!rhs) {
+      return nullptr;
+    }
+    if(it==end) {
+      return std::make_unique<BinExpr>(loc,op,std::move(lhs),std::move(rhs));
+    }
+    auto next_token=peek().type;
+    auto NextPrec = pre(next_token);
+    if(TokPrec<NextPrec) {
+      rhs = parse_binary(std::move(rhs),TokPrec+1);
+      if(!rhs) {
+        return nullptr;
+      }
+    }
+    
+    lhs = std::make_unique<BinExpr>(loc,op,std::move(lhs),std::move(rhs));
+  }  
+  return lhs;
 }
 
 std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
@@ -290,7 +320,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
 }
 
 std::unique_ptr<AstExpr> Parser::parse_var_decl() {
-  if (peek().type != Token::Id && peek(1).type == Token::DoubleDot) {
+  if (peek().type != Token::Id || peek(1).type != Token::DoubleDot) {
     return nullptr;
   }
   auto id = pop();
@@ -321,7 +351,7 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs && lhs->type!=AstType::BinExpr) // fix this
+  if (lhs) // fix this
     return parse_binary(std::move(lhs));
   return lhs;
 }
