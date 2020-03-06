@@ -51,7 +51,6 @@ script:
   - cd build
   - cmake .. 
   - make
-  - echo "LLVM is $LLVM"
 
 # Don't send notifications on success
 notifications:
