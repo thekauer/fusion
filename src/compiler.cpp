@@ -40,6 +40,7 @@ void link_fs() {
       "-L/usr/bin/../lib",
       "-L/lib",
       "-L/usr/lib",
+      "std.o"
       "main.o",
       "-lgcc",
       "--as-needed",
