@@ -123,10 +123,11 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     return vrhs;
   }
   case Token::Add: {
-    // fix this
-    llvm::Value *vrhs = rhs->codegen(ctx);
-    ctx.builder.CreateAdd(lhs->codegen(ctx), vrhs, "add");
-    return vrhs;
+    //fix
+    auto ity = llvm::IntegerType::getInt32Ty(ctx.ctx);
+    auto callee = ctx.mod->getOrInsertFunction("addi32i32",ity,ity,ity);
+    return ctx.builder.CreateCall(callee,{lhs->codegen(ctx),rhs->codegen(ctx)});
+    return nullptr;
   }
   default:
     serror(Error_e::Unk, "Codegen: Unimplemented operator!");
