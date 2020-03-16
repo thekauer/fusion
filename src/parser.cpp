@@ -371,6 +371,11 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
   std::vector<std::unique_ptr<AstExpr>> args;
   auto arg = parse_expr();
   args.push_back(std::move(arg));
+  while(peek().type==Token::Comma) {
+    pop();
+    auto a = parse_expr();
+    args.push_back(std::move(a));
+  }
   expect(Token::Rp, ")");
   return std::make_unique<FnCall>(namet.sl, name, std::move(args));
 }
