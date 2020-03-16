@@ -115,3 +115,13 @@ TEST(Lex,Operator) {
     t = l.next();
     EXPECT_EQ(t.type,Token::Neg);
 }
+
+TEST(Lex,OneInOther) {
+    FusionCtx ctx;
+    std::string code = "addi32i32";
+    auto file = FSFile("",code);
+    Lexer l = Lexer(file,ctx);   
+    auto t = l.next();
+    EXPECT_EQ(t.type,Token::Id);
+    t.getName();
+}
