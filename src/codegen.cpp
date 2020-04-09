@@ -150,6 +150,12 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     return ctx.builder.CreateCall(callee,{lhs->codegen(ctx),rhs->codegen(ctx)});
     return nullptr;
   }
+  case Token::Mul: {
+    auto ity = llvm::IntegerType::getInt32Ty(ctx.ctx);
+    auto callee = ctx.mod->getOrInsertFunction("muli32i32",ity,ity,ity);
+    return ctx.builder.CreateCall(callee,{lhs->codegen(ctx),rhs->codegen(ctx)});
+    return nullptr;
+  }
   default:
     serror(Error_e::Unk, "Codegen: Unimplemented operator!");
     return nullptr;
