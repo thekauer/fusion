@@ -324,29 +324,12 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
     return nullptr;
   }
   auto id = pop();
-  if (peek().type == Token::DoubleDot) {
-    pop(); // pop Double dot
-    if ((peek().type == Token::Underscore) ||
-        (peek().type == Token::Kw && peek().getKw() == Kw_e::Drop)) {
-
-      pop(); // pop the _
-      return parse_infered_var_decl(id.getName());
-    }
-    std::unique_ptr<TypeExpr> ty = parse_type_expr();
-    // remove this
-    if (!ty) {
-      // error expected type expr
-      return nullptr; // return Infer type
-    }
-
-    return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->ty);
+  pop(); //DoubleDot
+  std::unique_ptr<TypeExpr> ty = parse_type_expr();
+  if(!ty) {
+    serror(Error_e::Unk,"Expected type expr");
   }
-  
-  if (peek().type == Token::Eq) {
-    return parse_infered_var_decl(id.getName());
-  }
-  
-  return nullptr;
+  return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->ty);
 }
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {

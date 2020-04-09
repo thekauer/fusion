@@ -13,6 +13,16 @@ static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
   }
   return false;
 }
+static llvm::Type *fstypeof(AstExpr* expr) {
+  serror(Error_e::Unk,"type: "+std::to_string((int)expr->type));
+  return nullptr;
+}
+static llvm::Value *alloc(FusionCtx& ctx,llvm::Type* ty,std::string name) {
+  llvm::AllocaInst *val =
+      ctx.builder.CreateAlloca(ty, nullptr, name);
+  ctx.named_values[name] = val;
+  return val;
+}
 
 llvm::Value *FnCall::codegen(FusionCtx &ctx) {
   auto *fn = ctx.mod->getFunction(name);
@@ -114,6 +124,17 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
     if (!vrhs) {
       serror(Error_e::Unk, "No value");
     }
+    if(vlhs == (llvm::Value*)~0) { //left hand side is an infered type decl
+      auto* ty =vrhs->getType();
+      if(lhs->type!= AstType::VarExpr) {
+        serror(Error_e::Unk,"Expected a var expr");
+      }
+      std::string name = reinterpret_cast<VarExpr*>(lhs.get())->name;
+      auto* var = alloc(ctx,ty,name);
+      return ctx.builder.CreateStore(vrhs,var);
+
+    }
+
     if (!type_check(vrhs->getType(), vlhs->getType())) {
       serror(Error_e::Unk, "types don't match");
     }
@@ -137,12 +158,19 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
 }
 
 llvm::Value *VarExpr::codegen(FusionCtx &ctx) {
+  //if the variable was already declared load it
+  //else if it doesn't exists then return fullptr
+  if (ctx.named_values.find(name) != ctx.named_values.end()) {
   llvm::Value *v = ctx.named_values[name.data()];
   if (!v) {
     // errro unknown value
     return nullptr;
   }
   return ctx.builder.CreateLoad(v, name.data());
+  } else {
+    return (llvm::Value*)~0;
+  }
+  return 0;
 }
 
 llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
