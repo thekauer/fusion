@@ -137,10 +137,10 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
   }
   return ret;
 }
-
+/*
 llvm::Type *ArrayType::codegen(FusionCtx& ctx) {
   return llvm:ArrayType::get(type->codegen(ctx),size);
-}
+}*/
 
 llvm::Type *StructType::codegen(FusionCtx &ctx) {
   serror(Error_e::Unk, "Struct type needs to be implemented");

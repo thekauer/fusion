@@ -206,21 +206,8 @@ void Lexer::lex() {
     tokens.push_back(next());
   }
 }
-
-Lexer::Lexer(FSFile &file, FusionCtx &ctx)
-    : SourceLocation(file), file(file), ctx(ctx){};
-Token Lexer::next() {
-  while (eq[peek()] == Space) {
-    pop();
-  }
-  SourceLocation err_loc = sl_cast(this);
-
-  u8 ch = eq[peek()];
-  switch (ch) {
-  case Letter: {
-    if (eq[peek()] == Letter || eq[peek()] == Underscore) {
-      pop();
-    }
+Token Lexer::lex_id_or_kw(SourceLocation& err_loc) {
+  pop();
     while ((eq[peek()] == Letter || eq[peek()] == Number ||
             eq[peek()] == Underscore) &&
            can_iter()) {
@@ -234,9 +221,9 @@ Token Lexer::next() {
       return Token(k, e);
     }
     return Token(s, e);
-  }
-  case Number: {
-    // Handle base
+}
+Token Lexer::lex_number(SourceLocation& err_loc) {
+   // Handle base
     int base = 10;
     while (eq[peek()] == Number) {
       pop();
@@ -249,15 +236,12 @@ Token Lexer::next() {
     while (eq[peek()] == Number) {
       pop();
     }
-    // handle suffix
-    if (is_float) {
-      return Token(nolit(err_loc, is_float, 10), err_loc);
-    } else {
-      return Token(nolit(err_loc, is_float, base), err_loc);
-    }
-  }
-  case Quote: {
-    pop(); // pop the quote
+
+    return Token(nolit(err_loc, is_float, base), err_loc);
+}
+
+Token Lexer::lex_string(SourceLocation& err_loc) {
+   pop(); // pop the quote
     std::string buff;
     while (eq[peek()] != Quote) {
       if (eq[peek()] == Backslash) {
@@ -270,8 +254,9 @@ Token Lexer::next() {
     pop(); // pop the ending quote
 
     return Token(stringlit(buff), err_loc);
-  }
-  case N: {
+}
+
+Token Lexer::lex_newline(SourceLocation& err_loc) {
     pop();
     auto curr_indent = indent;
     while (eq[peek()] == Space) {
@@ -294,50 +279,52 @@ Token Lexer::next() {
       return Token(Token::Li, sl_cast(this));
     }
     return Token(Token::N, err_loc);
-  }
-  case Dot: {
+}
+
+Token Lexer::lex_dots(SourceLocation& err_loc) {
+  pop();
+  if (eq[peek()] == Dot) {
     pop();
     if (eq[peek()] == Dot) {
       pop();
-      if (eq[peek()] == Dot) {
-        pop();
-        llvm::outs() << "lexed: ...\n";
-        return Token(Token::DotDotDot, sl_cast(this));
-      }
-      return Token(Token::DotDot, sl_cast(this));
+      llvm::outs() << "lexed: ...\n";
+      return Token(Token::DotDotDot, sl_cast(this));
     }
-    return Token(Token::Dot, sl_cast(this));
+    return Token(Token::DotDot, sl_cast(this));
   }
+  return Token(Token::Dot, sl_cast(this));
+}
+
+Lexer::Lexer(FSFile &file, FusionCtx &ctx)
+    : SourceLocation(file), file(file), ctx(ctx){};
+Token Lexer::next() {
+  while (eq[peek()] == Space) {
+    pop();
+  }
+  SourceLocation err_loc = sl_cast(this);
+
+  u8 ch = eq[peek()];
+  switch (ch) {
+  case Letter:
+    return lex_id_or_kw(err_loc);
+  case Number: 
+    return lex_number(err_loc);
+  case Quote: 
+    return lex_string(err_loc);
+  case N: 
+    return lex_newline(err_loc);
+  case Dot: 
+    return lex_dots(err_loc);
+  case Mul: 
+
   default:
     break;
   }
+  
 
-  // REMOVE THIS
   if (is_op(ch)) {
     pop(); // pop the operator, it is stored in ch
-    switch (eq[peek()]) {
-    case Div: {
-      auto n = eq[peek()];
-      if (n == Div) {
-        pop(); // pop second /
-        // TODO: check for third /
-        while (can_iter() && !is_eol(eq[peek()]))
-          pop();
-        return next();
-      }
-      if (n == Mul) {
-        pop(); // pop the *
-        // implement Multi COmment in Multi Comment
-        while (can_iter() && eq[peek()] != Div) {
-          while (can_iter() && eq[peek()] != Mul)
-            pop();
-        }
-      }
-      break;
-    }
-    default:
-      break;
-    }
+    //Add commnet lexer here
     return Token(ch, sl_cast(this));
   }
   LLVM_BUILTIN_UNREACHABLE;

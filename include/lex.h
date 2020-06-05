@@ -136,4 +136,9 @@ private:
   char lex_escape(const char esc);
   Lit nolit(const SourceLocation &s, bool f, int base);
   Lit stringlit(std::string s);
+  Token lex_id_or_kw(SourceLocation& err_loc);
+  Token lex_number(SourceLocation& err_loc);
+  Token lex_string(SourceLocation& err_loc);
+  Token lex_newline(SourceLocation& err_loc);
+  Token lex_dots(SourceLocation& err_loc);
 };

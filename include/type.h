@@ -86,10 +86,11 @@ struct TupleType : Type {
   TupleType(const std::string &name, const std::vector<Type *> &members);
   llvm::Type *codegen(FusionCtx &ctx) override;
 };
-
+/*
 struct ArrayType : Type {
   u64 size;
   std::unique_ptr<Type> type;
   ArrayType(u64 size,std::unique_ptr<Type> type) : size(size),type(move(type)){}
   llvm::Type *codegen(FusionCtx& ctx) override;
-}
+};
+*/
