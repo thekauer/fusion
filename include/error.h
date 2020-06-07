@@ -1,5 +1,6 @@
 #pragma once
 #include "lex.h"
+#include <string>
 #include <iostream>
 struct FSFile;
 class SourceLocation;
@@ -40,4 +41,5 @@ public:
   static void UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
                      const char ch);
   
+  static void ExpectedToken(const FSFile& file,const SourceLocation& sl,const std::string& msg);
 };

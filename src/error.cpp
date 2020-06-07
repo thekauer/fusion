@@ -73,3 +73,7 @@ void Error::UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
 
   error(Error_e::UnkEsc, file, sl, os.str());
 }
+
+void Error::ExpectedToken(const FSFile& file,const SourceLocation& sl,const std::string& msg) {
+  error(Error_e::ExpectedToken,file,sl,msg);
+}

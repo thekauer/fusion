@@ -14,7 +14,7 @@ Token Parser::peek(int n) { return *(it + n); }
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
-    serror(Error_e::ExpectedToken, "Expected a(n) " + tk /*, t.sl*/);
+    Error::ExpectedToken(file,t.sl,"Expected " + tk);
   return t;
 }
 
@@ -47,7 +47,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
   }
   auto name = namet.getName();
   // generics
-  expect(Token::Lp, "(");
+  expect(Token::Lp, "a (");
   // args
   auto arg = parse_arg();
   std::vector<std::unique_ptr<VarDeclExpr>> args;
@@ -66,7 +66,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
     arg = parse_arg();
   }
 
-  expect(Token::Rp, ")");
+  expect(Token::Rp, "a )");
   // MAybe return type
   return std::make_unique<FnProto>(namet.sl, name, std::move(args));
 }
@@ -359,7 +359,7 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
     auto a = parse_expr();
     args.push_back(std::move(a));
   }
-  expect(Token::Rp, ")");
+  expect(Token::Rp, "a )");
   return std::make_unique<FnCall>(namet.sl, name, std::move(args));
 }
 
