@@ -102,6 +102,18 @@ struct Token {
     Tab,
     And,
 
+    EqEq,
+    NotEq,
+    GtEq,
+    LtEq,
+    AddEq,
+    SubEq,
+    DivEq,
+    ModEq,
+    MulEq,
+    NegEq,
+
+
   } type;
   SourceLocation sl;
 
@@ -141,4 +153,14 @@ private:
   Token lex_string(SourceLocation& err_loc);
   Token lex_newline(SourceLocation& err_loc);
   Token lex_dots(SourceLocation& err_loc);
+  Token lex_eq(SourceLocation& err_loc);
+  Token lex_mul(SourceLocation& err_loc);
+  Token lex_div(SourceLocation& err_loc);
+  Token lex_not(SourceLocation& err_loc);
+  Token lex_gt(SourceLocation& err_loc);
+  Token lex_lt(SourceLocation& err_loc);
+  Token lex_add(SourceLocation& err_loc);
+  Token lex_sub(SourceLocation& err_loc);
+  Token lex_mod(SourceLocation& err_loc);
+  Token lex_neg(SourceLocation& err_loc);
 };

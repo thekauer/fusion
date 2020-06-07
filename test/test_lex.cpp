@@ -59,7 +59,8 @@ TEST(Lex,Keywords) {
 
 TEST(Lex,Operator) {
     FusionCtx ctx;
-    std::string code = "+ - * / % ^ ! = & | ( ) # . .. ... : ; ? \\ [ ] { } _ ~";
+    std::string code = "+ - * / % ^ ! = & | ( ) # . .. ... : ; ? \\ [ ] { } _ ~ == != >= <= += -= /= %= *= ~=";
+    //std::vector<Token::Type> correct {Token::Add,Token::Sub,Token::Mul};
     auto file = FSFile("",code);
     Lexer l = Lexer(file,ctx);   
     auto t = l.next();
@@ -114,6 +115,27 @@ TEST(Lex,Operator) {
     EXPECT_EQ(t.type,Token::Underscore);
     t = l.next();
     EXPECT_EQ(t.type,Token::Neg);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::EqEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::NotEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::GtEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::LtEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::AddEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::SubEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::DivEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::ModEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::MulEq);
+    t = l.next();
+    EXPECT_EQ(t.type,Token::NegEq);
+    
 }
 
 TEST(Lex,OneInOther) {

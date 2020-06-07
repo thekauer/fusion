@@ -295,6 +295,102 @@ Token Lexer::lex_dots(SourceLocation& err_loc) {
   return Token(Token::Dot, sl_cast(this));
 }
 
+Token Lexer::lex_eq(SourceLocation& err_loc) {
+    pop();
+    if(eq[peek(1)]==Eq) {
+      pop();
+      return Token(Token::EqEq,err_loc);
+    } else {
+      return Token(Token::Eq,err_loc);
+    }
+}
+
+Token Lexer::lex_mul(SourceLocation& err_loc) {
+  pop();
+  if(eq[peek(1)]==Eq) {
+    pop();
+    return Token(Token::MulEq,err_loc);
+  } else {
+    return Token(Token::Mul,err_loc);
+  }
+}
+
+Token Lexer::lex_div(SourceLocation& err_loc) {
+  //implement comments
+  pop();
+  if(eq[peek(1)]==Eq) {
+    pop();
+    return Token(Token::DivEq,err_loc);
+  }
+  return Token(Token::Div,err_loc);
+}
+
+Token Lexer::lex_not(SourceLocation& err_loc) {
+  pop();
+  if(eq[peek(1)]==Eq) {
+    pop();
+    return Token(Token::NotEq,err_loc);
+  } else {
+    return Token(Token::Not,err_loc);
+  }
+}
+
+Token Lexer::lex_gt(SourceLocation& err_loc) {
+  pop();
+  auto n = eq[peek(1)];
+  if(n == Eq) {
+    pop();
+    return Token(Token::GtEq,err_loc);
+  }
+  return Token(Token::Gt,err_loc);
+}
+
+Token Lexer::lex_lt(SourceLocation& err_loc) {
+  pop();
+  auto n = eq[peek(1)];
+  if(n == Eq) {
+    pop();
+    return Token(Token::LtEq,err_loc);
+  }
+  return Token(Token::Lt,err_loc);
+}
+
+Token Lexer::lex_add(SourceLocation& err_loc) {
+  pop();
+  if(eq[peek(1)]==Eq) {
+    pop();
+    return Token(Token::AddEq,err_loc);
+  }
+  return Token(Token::Add,err_loc);
+}
+
+Token Lexer::lex_sub(SourceLocation& err_loc) {
+  pop();
+  if(eq[peek(1)]==Eq) {
+    pop();
+    return Token(Token::SubEq,err_loc);
+  }
+  return Token(Token::Sub,err_loc);
+}
+
+Token Lexer::lex_mod(SourceLocation& err_loc) {
+  pop();
+  if(eq[peek(1)]==Eq) {
+    pop();
+    return Token(Token::ModEq,err_loc);
+  }
+  return Token(Token::Mod,err_loc);
+}
+
+Token Lexer::lex_neg(SourceLocation& err_loc) {
+  pop();
+  if(eq[peek(1)]==Eq) {
+    pop();
+    return Token(Token::NegEq,err_loc);
+  }
+  return Token(Token::Neg,err_loc);
+}
+
 Lexer::Lexer(FSFile &file, FusionCtx &ctx)
     : SourceLocation(file), file(file), ctx(ctx){};
 Token Lexer::next() {
@@ -315,7 +411,27 @@ Token Lexer::next() {
     return lex_newline(err_loc);
   case Dot: 
     return lex_dots(err_loc);
+  case Eq:
+    return lex_eq(err_loc);
   case Mul: 
+    return lex_mul(err_loc);
+  case Div:
+    return lex_div(err_loc);
+  case Not:
+    return lex_not(err_loc);
+  case Gt:
+    return lex_gt(err_loc);
+  case Lt:
+    return lex_lt(err_loc);
+  case Add:
+    return lex_add(err_loc);
+  case Sub:
+    return lex_sub(err_loc);
+  case Mod:
+    return lex_mod(err_loc);
+  case Neg:
+    return lex_neg(err_loc);
+  
 
   default:
     break;
