@@ -26,12 +26,9 @@ enum class Error_e : int {
   UnkEsc,
   CouldNotInferType
 };
-//[[noreturn]] void error(Error_e code, const std::string &msg,const
-// SourceLocation &sl);
 
-[[noreturn]] void serror(Error_e code, const std::string &msg);
-
-[[noreturn]] void error(Error_e code, const FSFile &file,
+void serror(Error_e code, const std::string &msg);
+void error(Error_e code, const FSFile &file,
                         const SourceLocation &sl, const std::string &msg);
 void note(Error_e code, const FSFile &file, const SourceLocation &sl,
           const std::string &msg);
