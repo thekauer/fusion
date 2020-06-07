@@ -442,7 +442,9 @@ void FnDecl::pretty_print() {
   for (const auto &b : body) {
     llvm::outs() << " ";
     b->pretty_print();
+    llvm::outs() << "\n";
   }
+  llvm::outs() << "\n";
 }
 
 void ValExpr::pretty_print() { llvm::outs() << "val"; }
