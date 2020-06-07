@@ -176,12 +176,12 @@ private:
   Token peek(int n = 0);
   int indent = 0;
   FusionCtx &ctx;
-
+  const FSFile& file;
 public:
   int cnt = 0;
   Token expect(Token::Type ty, const std::string &tk);
-  Parser(std::vector<Token> &tokens, FusionCtx &ctx)
-      : it(tokens.begin()), end(tokens.end()), ctx(ctx){};
+  Parser(std::vector<Token> &tokens, FusionCtx &ctx,const FSFile& file)
+      : it(tokens.begin()), end(tokens.end()), ctx(ctx),file(file){};
   std::unique_ptr<FnProto> parse_fnproto();
   std::unique_ptr<FnDecl> parse_fndecl();
   std::unique_ptr<AstExpr> parse_primary();

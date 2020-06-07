@@ -17,7 +17,7 @@ TEST(parser,only_primary) {
     for(int i=0;i<tokens.size();i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
-    auto p = Parser(tokens,ctx);
+    auto p = Parser(tokens,ctx,file);
     auto expr = p.parse_expr();
     ASSERT_NE(expr,nullptr)<<"expr is null";
     ASSERT_EQ(expr->type,AstType::ValExpr);
@@ -35,7 +35,7 @@ TEST(parser,primary_and_op) {
     for(int i=0;i<tokens.size();i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
-    auto p = Parser(tokens,ctx);
+    auto p = Parser(tokens,ctx,file);
     try {
     auto expr = p.parse_expr();
     ASSERT_EQ(expr,nullptr)<<"expr is null";
@@ -61,7 +61,7 @@ TEST(parser,outofbounnds) {
          2     3
     */
     
-    auto p = Parser(tokens,ctx);
+    auto p = Parser(tokens,ctx,file);
     try {
     auto expr = p.parse_expr();
     ASSERT_NE(expr,nullptr)<<"expr is null";
@@ -93,7 +93,7 @@ TEST(parser,addition) {
         / \
        2   3
     */
-    auto p = Parser(tokens,ctx);
+    auto p = Parser(tokens,ctx,file);
     auto expr = p.parse_expr();
     ASSERT_NE(expr,nullptr)<<"expr is null";
     ASSERT_EQ(expr->type,AstType::BinExpr);
@@ -126,7 +126,7 @@ TEST(parser,binexpr) {
              /   \
             3     2
     */
-    auto p = Parser(tokens,ctx);
+    auto p = Parser(tokens,ctx,file);
     auto expr = p.parse_expr();
     ASSERT_NE(expr,nullptr)<<"expr is null";
     ASSERT_EQ(expr->type,AstType::BinExpr);
