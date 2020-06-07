@@ -123,7 +123,7 @@ void note(Error_e code, const FSFile &file, const SourceLocation &sl,
   err_impl(code,file,sl,msg,llvm::raw_ostream::BLACK,"note: ");
 }
 
-void Error::UnkEsc(const FSFile &file, const SourceLocation &sl,
+void Error::UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
                    const char ch) {
   std::ostringstream os;
   os << "Unknown escape character \'\\" << ch << "\'.";

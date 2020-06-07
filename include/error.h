@@ -40,6 +40,7 @@ void warning(Error_e code, const FSFile &file, const SourceLocation &sl,
 
 class Error {
 public:
-  static void UnkEsc(const FSFile &file, const SourceLocation &sl,
+  static void UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
                      const char ch);
+  
 };
