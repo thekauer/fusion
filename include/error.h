@@ -42,4 +42,5 @@ public:
                      const char ch);
   
   static void ExpectedToken(const FSFile& file,const SourceLocation& sl,const std::string& msg);
+  static void EmptyFnBody(const FSFile& file,const SourceLocation& sl);
 };

@@ -94,7 +94,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   std::vector<std::unique_ptr<AstExpr>> body;
   auto expr = parse_expr();
   if (!expr)
-    serror(Error_e::EmptyFnBody, "Empty function body" /*, peek().sl*/);
+    Error::EmptyFnBody(file,peek().sl);
   while (expr) {
     body.push_back(std::move(expr));
 

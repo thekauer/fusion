@@ -77,3 +77,6 @@ void Error::UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
 void Error::ExpectedToken(const FSFile& file,const SourceLocation& sl,const std::string& msg) {
   error(Error_e::ExpectedToken,file,sl,msg);
 }
+void Error::EmptyFnBody(const FSFile& file,const SourceLocation& sl) {
+  error(Error_e::EmptyFnBody,file,sl,"Empty Function Body");
+}
