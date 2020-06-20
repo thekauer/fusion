@@ -22,7 +22,7 @@ all
 if(CMAKE_SYSTEM MATCHES "-arch")
 target_link_libraries(test gtest_main LLVM)
 else()
-target_link_libraries(${LLVM_LIBS})
+target_link_libraries(test gtest_main LLVM})
 endif()
 
 add_test(NAME test COMMAND test)

@@ -16,7 +16,7 @@ message("system: ${CMAKE_SYSTEM}")
 add_subdirectory(test)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
-
+link_directories(${LLVM_LIBRARY_DIRS})
 
 include_directories(fs PRIVATE include)
 file(GLOB FS_SRC "src/*cpp")
@@ -25,15 +25,17 @@ link_directories(include)
 add_executable(fs  ${FS_SRC})
 
 llvm_map_components_to_libnames(LLVM_LIBS 
-all
+core support irreader 
 )
+
+message(STATUS "llvm libs: " ${LLVM_LIBS})
 if(CMAKE_SYSTEM MATCHES "-arch")
 target_link_libraries(fs LLVM)
 else()
-target_link_libraries(fs ${LLVM_LIBS})
+target_link_libraries(fs LLVM)
 endif()
 
 
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard
-set(CMAKE_CXX_FLAGS "-std=c++2a -Wall -Wno-extra-tokens -Wno-char-subscripts -ferror-limit=3")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wno-extra-tokens -Wno-char-subscripts -ferror-limit=3")
