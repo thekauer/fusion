@@ -144,7 +144,7 @@ void Compiler::generate_obj(llvm::Module *m, const std::string &filename) {
   }
   llvm::legacy::PassManager pass;
   // llvm::FunctionPassManager pass;
-  auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
+  auto FileType = llvm::CGFT_ObjectFile;
 
   if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
     llvm::errs() << "Could not emit to file";
