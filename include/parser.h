@@ -168,7 +168,7 @@ struct ImportExpr : AstExpr {
   void pretty_print() override;
 };
 
-int pre(Token::Type op);
+int precedence(Token::Type op);
 class Parser {
 private:
   std::vector<Token>::const_iterator it, end;

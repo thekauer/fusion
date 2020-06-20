@@ -18,7 +18,7 @@ Token Parser::expect(Token::Type ty, const std::string &tk) {
   return t;
 }
 
-int pre(Token::Type op) {
+int precedence(Token::Type op) {
   switch (op) {
   case Token::Eq:
     return 1;
@@ -194,7 +194,7 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
   while(it!=end) {
     auto op = peek().type;
     auto loc = peek().sl;
-    auto TokPrec = pre(op);
+    auto TokPrec = precedence(op);
     if(TokPrec < p) {
       return lhs;
     }
@@ -208,7 +208,7 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
       return std::make_unique<BinExpr>(loc,op,std::move(lhs),std::move(rhs));
     }
     auto next_token=peek().type;
-    auto NextPrec = pre(next_token);
+    auto NextPrec = precedence(next_token);
     if(TokPrec<NextPrec) {
       rhs = parse_binary(std::move(rhs),TokPrec+1);
       if(!rhs) {
