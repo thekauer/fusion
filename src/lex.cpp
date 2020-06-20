@@ -131,7 +131,7 @@ Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
 bool is_op(u8 ch) { return ch >= Not && ch <= And; }
 bool is_ws(u8 ch) { return ch == Tab || ch == Space; }
 
-bool is_eol(u8 ch) { return ch == N || ch == Space; }
+
 
 static const std::map<ptr, Kw_e> kws{
     {hash("fn"), Fn},         {hash("for"), For},
@@ -287,7 +287,6 @@ Token Lexer::lex_dots(SourceLocation& err_loc) {
     pop();
     if (eq[peek()] == Dot) {
       pop();
-      llvm::outs() << "lexed: ...\n";
       return Token(Token::DotDotDot, sl_cast(this));
     }
     return Token(Token::DotDot, sl_cast(this));

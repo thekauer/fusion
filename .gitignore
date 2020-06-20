@@ -3,3 +3,6 @@ llvm
 build
 .git
 lld
+/.vs
+/out/isenseconfig/WSL-Clang-Debug
+/CMakeSettings.json
