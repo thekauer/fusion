@@ -213,7 +213,7 @@ Token Lexer::lex_id_or_kw(SourceLocation& err_loc) {
            can_iter()) {
       pop();
     }
-    auto e = sl_cast(this);
+    auto e = this->get_sourcelocation();
     auto s = std::string(err_loc.it, e.it);
     auto h = hash(s);
     auto k = is_kw(h);
@@ -272,11 +272,11 @@ Token Lexer::lex_newline(SourceLocation& err_loc) {
     }
     if (indent < curr_indent) {
       indent = curr_indent;
-      return Token(Token::Gi, sl_cast(this));
+      return Token(Token::Gi, this->get_sourcelocation());
     }
     if (indent > curr_indent) {
       indent = curr_indent;
-      return Token(Token::Li, sl_cast(this));
+      return Token(Token::Li, this->get_sourcelocation());
     }
     return Token(Token::N, err_loc);
 }
@@ -287,11 +287,11 @@ Token Lexer::lex_dots(SourceLocation& err_loc) {
     pop();
     if (eq[peek()] == Dot) {
       pop();
-      return Token(Token::DotDotDot, sl_cast(this));
+      return Token(Token::DotDotDot, this->get_sourcelocation());
     }
-    return Token(Token::DotDot, sl_cast(this));
+    return Token(Token::DotDot, this->get_sourcelocation());
   }
-  return Token(Token::Dot, sl_cast(this));
+  return Token(Token::Dot, this->get_sourcelocation());
 }
 
 Token Lexer::lex_eq(SourceLocation& err_loc) {
@@ -396,7 +396,7 @@ Token Lexer::next() {
   while (eq[peek()] == Space) {
     pop();
   }
-  SourceLocation err_loc = sl_cast(this);
+  SourceLocation err_loc = this->get_sourcelocation();
 
   u8 ch = eq[peek()];
   switch (ch) {
@@ -440,7 +440,7 @@ Token Lexer::next() {
   if (is_op(ch)) {
     pop(); // pop the operator, it is stored in ch
     //Add commnet lexer here
-    return Token(ch, sl_cast(this));
+    return Token(ch, this->get_sourcelocation());
   }
   LLVM_BUILTIN_UNREACHABLE;
 }
@@ -506,4 +506,8 @@ SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
   it = other.it;
   end = other.end;
   return *this;
+}
+
+SourceLocation SourceLocation::get_sourcelocation() {
+    return *this;
 }

@@ -24,6 +24,7 @@ public:
   INLINE char pop();
   INLINE bool can_iter();
   SourceLocation &operator=(const SourceLocation &other);
+  SourceLocation get_sourcelocation();
 };
 
 enum Kw_e : unsigned char {
