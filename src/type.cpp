@@ -1,112 +1,80 @@
 #include "type.h"
 #include "error.h"
 
-static IntegralType i8_ty = IntegralType("i8", IntegralType::I8, 1);
-static IntegralType i16_ty = IntegralType("i16", IntegralType::I16, 2);
-static IntegralType i32_ty = IntegralType("i32", IntegralType::I32, 4);
-static IntegralType i64_ty = IntegralType("i64", IntegralType::I64, 8);
-static IntegralType u8_ty = IntegralType("u8", IntegralType::U8, 1);
-static IntegralType u16_ty = IntegralType("u16", IntegralType::U16, 2);
-static IntegralType u32_ty = IntegralType("u32", IntegralType::U32, 4);
-static IntegralType u64_ty = IntegralType("u64", IntegralType::U64, 8);
+Type::Type(const std::string_view name, TypeKind tk, const unsigned int size) : name(name), tk(tk), size(size) {}
 
-static IntegralType double_ty = IntegralType("double", IntegralType::Double, 8);
-Type::Type(const std::string &name, TypeKind tk, By pass, bool mut,
-           const unsigned int size, bool optional)
-    : name(name), tk(tk), pass(pass), mut(mut), size(size), optional(optional) {
+
+unsigned int Type::get_size() {
+    return size;
 }
 
-Type *Type::toVal() {
-  pass = Val;
-  return this;
-}
-Type *Type::toRef() {
-  pass = Ref;
-  return this;
+std::string_view Type::get_name() {
+    return name;
 }
 
-Type *Type::toPtr() {
-  pass = Ptr;
-  return this;
-}
-Type *Type::toMut() {
-  mut = true;
-  return this;
+Type::TypeKind Type::get_typekind() {
+    return tk;
 }
 
-Type *Type::toConst() {
-  mut = false;
-  return this;
-}
-Type *Type::toOptional() {
-  optional = true;
-  return this;
-}
-Type *Type::toNotOption() {
-  optional = false;
-  return this;
+std::unique_ptr<Type> Type::get_i8() {
+    return std::make_unique<IntegralType>("i8", IntegralType::I8, 1);
 }
 
-unsigned int Type::getSize() { return size; }
-
-const std::string &Type::getName() { return name; }
-Type::TypeKind Type::getTypeKind() { return tk; }
-Type::By Type::getBy() { return pass; }
-Type* Type::setBy(By by) {this->pass=by;return this;}
-
-Type *Type::getI8() { return &i8_ty; }
-Type *Type::getI16() { return &i16_ty; }
-Type *Type::getI32() { return &i32_ty; }
-Type *Type::getI64() { return &i64_ty; }
-Type *Type::getISize() { return &i64_ty; }
-Type *Type::getU8() { return &u8_ty; }
-Type *Type::getU16() { return &u16_ty; }
-Type *Type::getU32() { return &u32_ty; }
-Type *Type::getU64() { return &u64_ty; }
-Type *Type::getUSize() { return &u64_ty; }
-Type *Type::getChar() { return &i8_ty; }
-Type *Type::getBool() { return &i32_ty; }
-
-
-bool Type::isSignedIntegerType() {
-  return this==getI8() || this == getI16() || this == getI32() || this == getI64();
-}
-bool Type::isUnsignedIntegerType() {
-  return this==getU8() || this == getU16() || this == getU32() || this == getU64();
+std::unique_ptr<Type> Type::get_i16() {
+    return std::make_unique<IntegralType>("i16", IntegralType::I16, 2);
 }
 
-bool Type::isIntegerType() {
-  return isSignedIntegerType() || isUnsignedIntegerType();
+std::unique_ptr<Type> Type::get_i32() {
+    return std::make_unique<IntegralType>("i32", IntegralType::I32, 4);
 }
 
-Type *Type::getDouble() {return &double_ty;}
-
-static int struct_size(const std::vector<StructType::TypedValue> &members) {
-  int s = 0;
-  for (const auto &v : members) {
-    s += v.ty->getSize();
-  }
-  return s;
+std::unique_ptr<Type> Type::get_i64() {
+    return std::make_unique<IntegralType>("i64", IntegralType::I64, 8);
 }
-static int tuple_size(std::vector<Type *> members) {
-  int s = 0;
-  for (const auto &m : members) {
-    s += m->getSize();
-  }
-  return s;
+
+std::unique_ptr<Type> Type::get_isize() {
+    return std::make_unique<IntegralType>("isize", IntegralType::ISize, 4);
 }
-IntegralType::IntegralType(const std::string &name, Ty ty,
-                           const unsigned int size)
-    : Type(name, Type::Integral, Type::Val, false, size, false), ty(ty) {}
+std::unique_ptr<Type> Type::get_u8() {
+    return std::make_unique<IntegralType>("u8", IntegralType::U8, 1);
+}
 
-StructType::StructType(const std::string &name,
-                       const std::vector<TypedValue> &members)
-    : Type(name, Type::Struct, Type::Val, false, struct_size(members), false),
-      members(members){};
+std::unique_ptr<Type> Type::get_u16() {
+    return std::make_unique<IntegralType>("u16", IntegralType::U16, 2);
+}
 
-TupleType::TupleType(const std::string &name,
-                     const std::vector<Type *> &members)
-    : Type(name, Type::Tuple, Type::Val, false, tuple_size(members), false) {}
+std::unique_ptr<Type> Type::get_u32() {
+    return std::make_unique<IntegralType>("u32", IntegralType::U32, 4);
+}
+
+std::unique_ptr<Type> Type::get_u64() {
+    return std::make_unique<IntegralType>("u64", IntegralType::U64, 8);
+}
+
+std::unique_ptr<Type> Type::get_usize() {
+    return std::make_unique<IntegralType>("usize", IntegralType::USize, 4);
+}
+
+std::unique_ptr<Type> Type::get_char() {
+    return std::make_unique<IntegralType>("i8", IntegralType::I8, 1);
+}
+
+std::unique_ptr<Type> Type::get_bool() {
+    return std::make_unique<IntegralType>("i8", IntegralType::I8, 1);
+}
+
+std::unique_ptr<Type> Type::get_f32() {
+    return std::make_unique<IntegralType>("f32", IntegralType::F32, 4);
+}
+std::unique_ptr<Type> Type::get_f64() {
+    return std::make_unique<Type>("f64", IntegralType::F64, 8);
+}
+
+
+
+
+
+IntegralType::IntegralType(const std::string_view name, Ty ty, const unsigned int size) : ty(ty), Type(name, Integral, size) {}
 
 llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
   llvm::Type *ret;
@@ -132,7 +100,7 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
   default:
     return nullptr;
   }
-  if (pass == Ptr) {
+  if (mods &= Ptr) {
     ret->getPointerTo();
   }
   return ret;
@@ -141,10 +109,3 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
 llvm::Type *ArrayType::codegen(FusionCtx& ctx) {
   return llvm:ArrayType::get(type->codegen(ctx),size);
 }*/
-
-llvm::Type *StructType::codegen(FusionCtx &ctx) {
-  serror(Error_e::Unk, "Struct type needs to be implemented");
-}
-llvm::Type *TupleType::codegen(FusionCtx &ctx) {
-  serror(Error_e::Unk, "Tuple type needs to be implemented");
-}

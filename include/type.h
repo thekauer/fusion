@@ -2,53 +2,44 @@
 #include "context.h"
 #include <string>
 #include <vector>
+#include <memory>
 
 class Type {
 public:
-  enum By : unsigned char { Ref, Ptr, Val };
   enum TypeKind : unsigned char { Integral, Array, Struct, Tuple };
-  Type *toVal();
-  Type *toPtr();
-  Type *toRef();
-  Type *toMut();
-  Type *toConst();
-  Type *toOptional();
-  Type *toNotOption();
-  Type(const std::string &name, TypeKind tk, By pass, bool mut,
-       const unsigned int size, bool optional = false);
+  Type(const std::string_view name, TypeKind tk, const unsigned int size);
 
-  unsigned int getSize();
-  const std::string &getName();
-  TypeKind getTypeKind();
-  By getBy();
-  Type *setBy(By by);
 
-  virtual llvm::Type *codegen(FusionCtx &ctx) = 0;
+  unsigned int get_size();
+  std::string_view get_name();
+  TypeKind get_typekind();
 
-  static Type *getI8();
-  static Type *getI16();
-  static Type *getI32();
-  static Type *getI64();
-  static Type *getISize();
-  static Type *getU8();
-  static Type *getU16();
-  static Type *getU32();
-  static Type *getU64();
-  static Type *getUSize();
-  static Type *getChar();
-  static Type *getBool();
-  static Type *getDouble();
+  std::unique_ptr<Type> to_ptr();
 
-  bool isSignedIntegerType();
-  bool isUnsignedIntegerType();
-  bool isIntegerType();
+  virtual llvm::Type* codegen(FusionCtx &ctx) = 0;
+
+  static std::unique_ptr<Type> get_i8();
+  static std::unique_ptr<Type> get_i16();
+  static std::unique_ptr<Type> get_i32();
+  static std::unique_ptr<Type> get_i64();
+  static std::unique_ptr<Type> get_isize();
+  static std::unique_ptr<Type> get_u8();
+  static std::unique_ptr<Type> get_u16();
+  static std::unique_ptr<Type> get_u32();
+  static std::unique_ptr<Type> get_u64();
+  static std::unique_ptr<Type> get_usize();
+  static std::unique_ptr<Type> get_char();
+  static std::unique_ptr<Type> get_bool();
+  static std::unique_ptr<Type> get_f32();
+  static std::unique_ptr<Type> get_f64();
+
 protected:
   TypeKind tk;
-  By pass;
-  bool mut;
-  bool optional;
+  unsigned char mods;
   const unsigned int size;
   std::string name;
+private:
+    void turn_off(TypeMods mod);
 };
 
 struct IntegralType : Type {
@@ -65,32 +56,52 @@ struct IntegralType : Type {
     USize,
     Char,
     Bool,
-    Double
+    F32,
+    F64
   } ty;
-  IntegralType(const std::string &name, Ty ty, const unsigned int size);
-  llvm::Type *codegen(FusionCtx &ctx) override;
+  IntegralType(const std::string_view name, Ty ty, const unsigned int size);
+  llvm::Type* codegen(FusionCtx &ctx) override;
 };
 
+/*
 struct StructType : Type {
   struct TypedValue {
-    Type *ty;
+    std::unique_ptr<Type> ty;
     std::string name;
   };
   std::vector<TypedValue> members;
   StructType(const std::string &name, const std::vector<TypedValue> &members);
-  llvm::Type *codegen(FusionCtx &ctx) override;
+  llvm::std::unique_ptr<Type> codegen(FusionCtx &ctx) override;
 };
 
 struct TupleType : Type {
-  std::vector<Type *> members;
-  TupleType(const std::string &name, const std::vector<Type *> &members);
-  llvm::Type *codegen(FusionCtx &ctx) override;
+  std::vector<std::unique_ptr<Type> > members;
+  TupleType(const std::string &name, const std::vector<std::unique_ptr<Type> > &members);
+  llvm::std::unique_ptr<Type> codegen(FusionCtx &ctx) override;
 };
-/*
 struct ArrayType : Type {
   u64 size;
   std::unique_ptr<Type> type;
   ArrayType(u64 size,std::unique_ptr<Type> type) : size(size),type(move(type)){}
-  llvm::Type *codegen(FusionCtx& ctx) override;
+  llvm::std::unique_ptr<Type> codegen(FusionCtx& ctx) override;
 };
 */
+
+    
+
+class QualType {
+public:
+    enum TypeMods :unsigned char{ Mut=1,Ref=2,Opt=4,Ptr=8};
+    QualType(const Type& type);
+
+    QualType to_val();
+    QualType to_ref();
+    QualType to_mut();
+    QualType to_const();
+    QualType to_optional();
+    QualType to_notoptional();
+private:
+    Type& type;
+    unsigned char mods;
+
+};
