@@ -30,7 +30,6 @@ branches:
     - dev
 
 before_install:
-  - export CC="/usr/bin/clang" CXX="/usr/bin/clang++"
   - git config --global user.name "Travis CI"
   - git config --global user.email "travis@travis-ci.org"
   - git config --global push.default simple
