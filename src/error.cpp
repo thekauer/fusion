@@ -80,3 +80,6 @@ void Error::ExpectedToken(const FSFile& file,const SourceLocation& sl,const std:
 void Error::EmptyFnBody(const FSFile& file,const SourceLocation& sl) {
   error(Error_e::EmptyFnBody,file,sl,"Empty Function Body");
 }
+void Error::ImplementMe(std::string_view msg) {
+    llvm::outs() << "Error you didn't implement: " << msg.data()<<"\n";
+}
