@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 
 find_package(LLVM REQUIRED CONFIG)
-SET (LLVM_DIR llvm/cmake/modules)   
+SET (LLVM_DIR llvm/cmake/modules)
 include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
@@ -15,7 +15,7 @@ list (REMOVE_ITEM FS_SRC ${MAIN})
 file(GLOB srcs *.cpp)
 set(CMAKE_CXX_STANDARD 20)
 add_executable(test ${srcs} ${FS_SRC})
-llvm_map_components_to_libnames(LLVM_LIBS 
+llvm_map_components_to_libnames(LLVM_LIBS
 all
 )
 
