@@ -5,7 +5,7 @@ project(fs)
 
 SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
 SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC) #put latest llvm instalation first find latest
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM 10 REQUIRED CONFIG)
 SET (LLVM_DIR llvm/cmake/modules)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
