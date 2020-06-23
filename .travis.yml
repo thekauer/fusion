@@ -6,7 +6,7 @@ jobs:
   include:
     - name: "Linux (Clang compiler)"
       os: linux
-      compiler: clang
+      compiler: "clang-10"
       env: OS=linux COMPILER=clang CLANG_VERSION=10
       addons:
         apt:
