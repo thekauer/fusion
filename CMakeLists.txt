@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(fs)
 
-
+SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
+SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC) #put latest llvm instalation first find latest
 find_package(LLVM REQUIRED CONFIG)
 SET (LLVM_DIR llvm/cmake/modules)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
