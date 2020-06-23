@@ -4,11 +4,10 @@
 #include "context.h"
 
 TEST(Lex,Keywords) {
-    FusionCtx ctx;
     //test _
     std::string code = "fn for i8 i16 i32 i64 string if import export extern mod true false bool";
     auto file = FSFile("",code);
-    Lexer l = Lexer(file,ctx);
+    Lexer l = Lexer(file);
     auto t = l.next();
     EXPECT_EQ(t.type,Token::Kw);
     EXPECT_EQ(t.getKw(),Kw_e::Fn);
@@ -58,11 +57,10 @@ TEST(Lex,Keywords) {
 }
 
 TEST(Lex,Operator) {
-    FusionCtx ctx;
     std::string code = "+ - * / % ^ ! = & | ( ) # . .. ... : ; ? \\ [ ] { } _ ~ == != >= <= += -= /= %= *= ~=";
     //std::vector<Token::Type> correct {Token::Add,Token::Sub,Token::Mul};
     auto file = FSFile("",code);
-    Lexer l = Lexer(file,ctx);   
+    Lexer l = Lexer(file);   
     auto t = l.next();
     EXPECT_EQ(t.type,Token::Add);
     t = l.next();
@@ -139,10 +137,9 @@ TEST(Lex,Operator) {
 }
 
 TEST(Lex,OneInOther) {
-    FusionCtx ctx;
     std::string code = "addi32i32";
     auto file = FSFile("",code);
-    Lexer l = Lexer(file,ctx);   
+    Lexer l = Lexer(file);   
     auto t = l.next();
     EXPECT_EQ(t.type,Token::Id);
     t.getName();
