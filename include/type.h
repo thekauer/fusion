@@ -4,34 +4,36 @@
 #include <vector>
 #include <memory>
 
+struct IntegralType;
 class Type {
 public:
   enum TypeKind : unsigned char { Integral, Array, Struct, Tuple };
   Type(const std::string_view name, TypeKind tk, const unsigned int size);
 
 
-  unsigned int get_size();
-  std::string_view get_name();
-  TypeKind get_typekind();
+  unsigned int get_size() const;
+  std::string_view get_name() const;
+  TypeKind get_typekind() const;
 
   std::unique_ptr<Type> to_ptr();
 
-  virtual llvm::Type* codegen(FusionCtx &ctx) = 0;
+  virtual llvm::Type* codegen(FusionCtx &ctx) const = 0;
 
-  static std::unique_ptr<Type> get_i8();
-  static std::unique_ptr<Type> get_i16();
-  static std::unique_ptr<Type> get_i32();
-  static std::unique_ptr<Type> get_i64();
-  static std::unique_ptr<Type> get_isize();
-  static std::unique_ptr<Type> get_u8();
-  static std::unique_ptr<Type> get_u16();
-  static std::unique_ptr<Type> get_u32();
-  static std::unique_ptr<Type> get_u64();
-  static std::unique_ptr<Type> get_usize();
-  static std::unique_ptr<Type> get_char();
-  static std::unique_ptr<Type> get_bool();
-  static std::unique_ptr<Type> get_f32();
-  static std::unique_ptr<Type> get_f64();
+  static const IntegralType& get_i8();
+  static const IntegralType& get_i16();
+  static const IntegralType& get_i32();
+  static const IntegralType& get_i64();
+  static const IntegralType& get_isize();
+  static const IntegralType& get_u8();
+  static const IntegralType& get_u16();
+  static const IntegralType& get_u32();
+  static const IntegralType& get_u64();
+  static const IntegralType& get_usize();
+  static const IntegralType& get_char();
+  static const IntegralType& get_bool();
+  static const IntegralType& get_f32();
+  static const IntegralType& get_f64();
+  static const IntegralType& get_string();
 
 protected:
   TypeKind tk;
@@ -55,10 +57,11 @@ struct IntegralType : Type {
     Char,
     Bool,
     F32,
-    F64
+    F64,
+    String
   } ty;
   IntegralType(const std::string_view name, Ty ty, const unsigned int size);
-  llvm::Type* codegen(FusionCtx &ctx) override;
+  llvm::Type* codegen(FusionCtx &ctx) const override;
 };
 
 
@@ -66,7 +69,9 @@ struct IntegralType : Type {
 
 class QualType {
 public:
-    QualType(Type& type);
+    QualType(const Type& type);
+    QualType(const IntegralType& type);
+    QualType() = default;
 
     QualType to_val();
     QualType to_ref();
@@ -75,11 +80,17 @@ public:
     QualType to_optional();
     QualType to_notoptional();
     
-    bool is_ref();
-    bool is_mut();
-    bool is_opt();
+    bool is_ref() const;
+    bool is_mut() const;
+    bool is_opt() const;
+
+    const Type& get_type() const;
+    const Type const* get_type_ptr() const;
+
+
+    QualType& operator=(const QualType& other);
 private:
-    Type& type;
+    Type const* type{nullptr};
     unsigned char mods;
     unsigned mut : 1;
     unsigned ref : 1;

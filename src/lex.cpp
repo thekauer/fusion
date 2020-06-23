@@ -1,16 +1,16 @@
 #include "lex.h"
 #include "llvm/IR/Constants.h"
 #include <map>
-ptr hash(const std::string &str) {
+unsigned int hash(const std::string &str) {
 
-  u32 h = 123456;
-  u32 len = str.size();
-  const u8 *key = (const u8 *)(&str[0]);
+  unsigned int h = 123456;
+  unsigned int len = str.size();
+  const unsigned char *key = (const unsigned char *)(&str[0]);
   if (len > 3) {
-    const u32 *key_x4 = (const uint32_t *)(&str[0]);
+    const unsigned int *key_x4 = (const uint32_t *)(&str[0]);
     size_t i = len >> 2;
     do {
-      u32 k = *key_x4++;
+      unsigned int k = *key_x4++;
       k *= 0xcc9e2d51;
       k = (k << 15) | (k >> 17);
       k *= 0x1b873593;
@@ -18,11 +18,11 @@ ptr hash(const std::string &str) {
       h = (h << 13) | (h >> 19);
       h = h * 5 + 0xe6546b64;
     } while (--i);
-    key = (const u8 *)key_x4;
+    key = (const unsigned char *)key_x4;
   }
   if (len & 3) {
     size_t i = len & 3;
-    u32 k = 0;
+    unsigned int k = 0;
     key = &key[i - 1];
     do {
       k <<= 8;
@@ -116,21 +116,26 @@ static const unsigned eq[128] = {Null,     NotAToken,     NotAToken,        NotA
                                  Or,        Rc,     Neg};
 
 
-Lit::Lit(unsigned char u8) : as{ u8 },IntegralType("u8",IntegralType::U8,1) {}
-Lit(unsigned short u16) : as{u16},IntegralType("U16")
-Lit(unsigned int u32);
-Lit(unsigned long u64);
-Lit(char i8);
-Lit(short i16);
-Lit(int i32);
-Lit(long i64);
-Lit(bool b);
-Lit(float f32);
-Lit(double f64);
-Lit(std::string_view string);
+Lit::Lit(unsigned char u8) : ty(QualType(Type::get_u8())) { as.u8 = u8; }
+Lit::Lit(unsigned short u16) : ty(QualType(Type::get_u16())) { as.u16 = u16; }
+Lit::Lit(unsigned int u32) : ty(QualType(Type::get_u16())) { as.u32 = u32; }
+Lit::Lit(unsigned long u64) : ty(QualType(Type::get_u64())) { as.u64 = u64; };
+Lit::Lit(char i8) : ty(QualType(Type::get_i8())) { as.i8 = i8; };
+Lit::Lit(short i16) : ty(QualType(Type::get_i16())) { as.i16 = i16; };
+Lit::Lit(int i32) : ty(QualType(Type::get_i32())) { as.i32 = i32; };
+Lit::Lit(long i64) : ty(QualType(Type::get_i64())) { as.i64 = i64; };
+Lit::Lit(bool b) : ty(QualType(Type::get_bool())) { as.b = b; };
+Lit::Lit(float f32) : ty(QualType(Type::get_f32())) { as.f32 = f32; };
+Lit::Lit(double f64) : ty(QualType(Type::get_f64())) { as.f64 = f64; };
+Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) { string = string; };
+
+Lit& Lit::operator=(const Lit& other) {
+    ty = other.ty;
+    as = other.as;
+}
 
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};
-Token::Token(u8 c, const SourceLocation &sl)
+Token::Token(unsigned char c, const SourceLocation &sl)
     : type(static_cast<Type>(c)), sl(sl) {}
 Token::Token(::Lit val, const SourceLocation &sl)
     : type(Lit), sl(sl), data(val) {}
@@ -142,12 +147,12 @@ Lit Token::getValue() const { return std::get<::Lit>(data); }
 std::string Token::getName() const { return std::get<std::string>(data); }
 Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
 
-bool is_op(u8 ch) { return ch >= Not && ch <= And; }
-bool is_ws(u8 ch) { return ch == Tab || ch == Space; }
+bool is_op(unsigned char ch) { return ch >= Not && ch <= And; }
+bool is_ws(unsigned char ch) { return ch == Tab || ch == Space; }
 
 
 
-static const std::map<ptr, Kw_e> kws{
+static const std::map<unsigned int, Kw_e> kws{
     {hash("fn"), Fn},         {hash("for"), For},
     {hash("i8"), I8},         {hash("i16"), I16},
     {hash("i32"), I32},       {hash("i64"), I64},
@@ -156,7 +161,7 @@ static const std::map<ptr, Kw_e> kws{
     {hash("extern"), Extern}, {hash("export"), Export},
     {hash("mod"), Module},    {hash("true"), True},
     {hash("false"), False},   {hash("bool"), Bool}};
-Kw_e is_kw(ptr h) {
+Kw_e is_kw(unsigned int h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
     return k->second;
@@ -400,7 +405,7 @@ Token Lexer::next() {
   }
   SourceLocation err_loc = this->get_sourcelocation();
 
-  u8 ch = eq[peek()];
+  unsigned char ch = eq[peek()];
   switch (ch) {
   case Letter:
     return lex_id_or_kw(err_loc);

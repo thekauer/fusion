@@ -4,70 +4,87 @@
 Type::Type(const std::string_view name, TypeKind tk, const unsigned int size) : name(name), tk(tk), size(size) {}
 
 
-unsigned int Type::get_size() {
+static const IntegralType i8 = IntegralType("i8", IntegralType::I8, 1);
+static const IntegralType i16 = IntegralType("i16", IntegralType::I16, 2);
+static const IntegralType i32 = IntegralType("i32", IntegralType::I32, 4);
+static const IntegralType i64 = IntegralType("i64", IntegralType::I64, 8);
+static const IntegralType isize = IntegralType("isize", IntegralType::ISize, 4);
+static const IntegralType u8 = IntegralType("u8", IntegralType::U8, 1);
+static const IntegralType u16 = IntegralType("u16", IntegralType::U16, 2);
+static const IntegralType u32 = IntegralType("u32", IntegralType::U32, 4);
+static const IntegralType u64 = IntegralType("u64", IntegralType::U64, 8);
+static const IntegralType usize = IntegralType("usize", IntegralType::USize, 4);
+static const IntegralType bool_ = IntegralType("bool", IntegralType::I8, 1);
+static const IntegralType f32 = IntegralType("f32", IntegralType::F32, 4);
+static const IntegralType f64 = IntegralType("f64", IntegralType::F64, 8);
+
+unsigned int Type::get_size() const {
     return size;
 }
 
-std::string_view Type::get_name() {
+std::string_view Type::get_name() const {
     return name;
 }
 
-Type::TypeKind Type::get_typekind() {
+Type::TypeKind Type::get_typekind() const {
     return tk;
 }
 
-std::unique_ptr<Type> Type::get_i8() {
-    return std::make_unique<IntegralType>("i8", IntegralType::I8, 1);
+const IntegralType& Type::get_i8() {
+    return i8;
 }
 
-std::unique_ptr<Type> Type::get_i16() {
-    return std::make_unique<IntegralType>("i16", IntegralType::I16, 2);
+const IntegralType& Type::get_i16() {
+    return i16;
 }
 
-std::unique_ptr<Type> Type::get_i32() {
-    return std::make_unique<IntegralType>("i32", IntegralType::I32, 4);
+const IntegralType& Type::get_i32() {
+    return i32;
 }
 
-std::unique_ptr<Type> Type::get_i64() {
-    return std::make_unique<IntegralType>("i64", IntegralType::I64, 8);
+const IntegralType& Type::get_i64() {
+    return i64;
 }
 
-std::unique_ptr<Type> Type::get_isize() {
-    return std::make_unique<IntegralType>("isize", IntegralType::ISize, 4);
+const IntegralType& Type::get_isize() {
+    return isize;
 }
-std::unique_ptr<Type> Type::get_u8() {
-    return std::make_unique<IntegralType>("u8", IntegralType::U8, 1);
-}
-
-std::unique_ptr<Type> Type::get_u16() {
-    return std::make_unique<IntegralType>("u16", IntegralType::U16, 2);
+const IntegralType& Type::get_u8() {
+    return u8;
 }
 
-std::unique_ptr<Type> Type::get_u32() {
-    return std::make_unique<IntegralType>("u32", IntegralType::U32, 4);
+const IntegralType& Type::get_u16() {
+    return u16;
 }
 
-std::unique_ptr<Type> Type::get_u64() {
-    return std::make_unique<IntegralType>("u64", IntegralType::U64, 8);
+const IntegralType& Type::get_u32() {
+    return u32;
 }
 
-std::unique_ptr<Type> Type::get_usize() {
-    return std::make_unique<IntegralType>("usize", IntegralType::USize, 4);
+const IntegralType& Type::get_u64() {
+    return u64;
 }
 
-std::unique_ptr<Type> Type::get_char() {
-    return std::make_unique<IntegralType>("i8", IntegralType::I8, 1);
+const IntegralType& Type::get_usize() {
+    return usize;
 }
 
-std::unique_ptr<Type> Type::get_bool() {
-    return std::make_unique<IntegralType>("i8", IntegralType::I8, 1);
+const IntegralType& Type::get_char() {
+    return u8;
 }
 
-std::unique_ptr<Type> Type::get_f32() {
-    return std::make_unique<IntegralType>("f32", IntegralType::F32, 4);
+const IntegralType& Type::get_bool() {
+    return bool_;
 }
-std::unique_ptr<Type> Type::get_f64() {
-    return std::make_unique<Type>("f64", IntegralType::F64, 8);
+
+const IntegralType& Type::get_f32() {
+    return f32;
+}
+const IntegralType& Type::get_f64() {
+    return f64;
+}
+const IntegralType& Type::get_string() {
+    Error::ImplementMe("implement integral string type");
 }
 
 
@@ -76,7 +93,7 @@ std::unique_ptr<Type> Type::get_f64() {
 
 IntegralType::IntegralType(const std::string_view name, Ty ty, const unsigned int size) : ty(ty), Type(name, Integral, size) {}
 
-llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
+llvm::Type *IntegralType::codegen(FusionCtx &ctx) const{
   llvm::Type *ret;
   switch (ty) {
   case Bool:
@@ -97,6 +114,8 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
   case I64:
     ret = ctx.getI64();
     break;
+  case String:
+      Error::ImplementMe("implement string literal code generation");
   default:
     return nullptr;
   }/*
@@ -106,7 +125,8 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
   return ret;
 }
 
-QualType::QualType(Type& type) : type(type) {};
+QualType::QualType(const Type& type) : type(&type) {};
+QualType::QualType(const IntegralType& type) : type(&static_cast<const Type&>(type)) {}
 
 QualType QualType::to_val() {
     ref = 0;
@@ -132,13 +152,24 @@ QualType QualType::to_notoptional() {
     opt = 0;
     return *this;
 }
-bool QualType::is_ref()
-{
+bool QualType::is_ref() const {
     return ref==1;
 }
-bool QualType::is_mut() {
+bool QualType::is_mut() const {
     return mut == 1;
 }
-bool QualType::is_opt() {
+bool QualType::is_opt() const {
     return opt == 1;
+}
+
+const Type& QualType::get_type() const {
+    return *type;
+}
+const Type const* QualType::get_type_ptr() const {
+    return type;
+}
+
+QualType& QualType::operator=(const QualType& other) {
+    type = other.type;
+    mods = other.mods;
 }

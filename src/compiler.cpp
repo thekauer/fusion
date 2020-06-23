@@ -71,7 +71,7 @@ void Compiler::compile(int argc, char **argv) {
   for (int i = 1; i < argc; i++) {
     sm.open(argv[i]);
     auto file = sm.sources[i-1];
-    Lexer l(file, ctx);
+    Lexer l(file);
     l.lex();
 
     Parser p(l.tokens, ctx,file);

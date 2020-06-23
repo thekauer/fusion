@@ -129,16 +129,12 @@ std::unique_ptr<ValExpr> Parser::parse_valexpr() {
     if (t.getKw() == Kw_e::True) {
       pop();
       return std::make_unique<ValExpr>(
-          t.sl, Lit(Type::getBool(),
-                    llvm::ConstantInt::get(llvm::Type::getInt8Ty(ctx.ctx),
-                                           llvm::APInt(8, 1, false))));
+          t.sl, Lit(true));
     }
     if (t.getKw() == Kw_e::False) {
       pop();
       return std::make_unique<ValExpr>(
-          t.sl, Lit(Type::getBool(),
-                    llvm::ConstantInt::get(llvm::Type::getInt8Ty(ctx.ctx),
-                                           llvm::APInt(8, 0, false))));
+          t.sl, Lit(false));
     }
   }
   return nullptr;
@@ -148,10 +144,7 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   if (peek().type == Token::N)
     pop();
 
-  std::unique_ptr<AstExpr> expr = parse_range_expr();
-  if (expr)
-    return expr;
-  expr = parse_valexpr();
+  std::unique_ptr<AstExpr> expr = parse_valexpr();
   if (expr)
     return expr;
   expr = parse_fncall();
@@ -222,30 +215,25 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
 }
 
 std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
-  Type::By pass = Type::Val;
-  if (peek().type == Token::Mul) {
-    pass = Type::Ptr;
-    pop();
-  }
-  if (peek().type == Token::And) {
-    pass = Type::Ref;
-    pop();
-  }
+    //implement references and options
+
+
+  //eh
   if (peek().type != Token::Kw) {
     return nullptr;
   }
   auto sl = peek().sl;
   switch (pop().getKw()) {
   case Kw_e::I32:
-    return std::make_unique<TypeExpr>(sl, Type::getI32()->setBy(pass));
+    return std::make_unique<TypeExpr>(sl, QualType(Type::get_i32()));
   case Kw_e::I8:
-    return std::make_unique<TypeExpr>(sl, Type::getI8()->setBy(pass));
+    return std::make_unique<TypeExpr>(sl, QualType(Type::get_i8()));
   case Kw_e::I16:
-    return std::make_unique<TypeExpr>(sl, Type::getI16()->setBy(pass));
+    return std::make_unique<TypeExpr>(sl, QualType(Type::get_i16()));
   case Kw_e::I64:
-    return std::make_unique<TypeExpr>(sl, Type::getI64()->setBy(pass));
+    return std::make_unique<TypeExpr>(sl, QualType(Type::get_i64()));
   case Kw_e::Bool:
-    return std::make_unique<TypeExpr>(sl, Type::getBool()->setBy(pass));
+    return std::make_unique<TypeExpr>(sl, QualType(Type::get_bool()));
   case Kw_e::Drop:
     return std::make_unique<TypeExpr>(sl);
   default:
@@ -374,31 +362,7 @@ std::unique_ptr<VarExpr> Parser::parse_var() {
   return std::make_unique<VarExpr>(name.sl, name.getName());
 }
 
-std::unique_ptr<ValExpr> Parser::pop_integer() {
-  if (peek().type == Token::Lit) {
-    if (peek().getValue().ty->isIntegerType()) {
-      auto loc = peek().sl;
 
-      return std::make_unique<ValExpr>(loc, pop().getValue());
-    } // else only integer types are allowed
-  }
-  return nullptr;
-}
-
-std::unique_ptr<RangeExpr> Parser::parse_range_expr() {
-  std::unique_ptr<ValExpr> begin, end;
-  if (peek(1).type == Token::DotDot) {
-    begin = pop_integer();
-  }
-  if (peek().type == Token::DotDot) {
-    pop();
-  } else
-    return nullptr;
-
-  auto loc = peek().sl;
-  end = pop_integer();
-  return std::make_unique<RangeExpr>(loc, std::move(begin), std::move(end));
-}
 
 std::unique_ptr<IfExpr> Parser::parse_if_expr() {
   if (peek().type == Token::Kw && peek().getKw() == Kw_e::If) {
@@ -425,7 +389,7 @@ std::unique_ptr<ImportExpr> Parser::parse_import() {
   return nullptr;
 }
 
-void FnProto::pretty_print() {
+void FnProto::pretty_print() const {
   llvm::outs() << "fn " << name << "(";
   for (const auto &arg : args) {
     arg->pretty_print();
@@ -436,7 +400,7 @@ void FnProto::pretty_print() {
   llvm::outs() << "\b)";
 }
 
-void FnDecl::pretty_print() {
+void FnDecl::pretty_print() const {
   proto->pretty_print();
   llvm::outs() << "\n";
   for (const auto &b : body) {
@@ -447,14 +411,14 @@ void FnDecl::pretty_print() {
   llvm::outs() << "\n";
 }
 
-void ValExpr::pretty_print() { llvm::outs() << "val"; }
+void ValExpr::pretty_print() const { llvm::outs() << "val"; }
 
-void VarDeclExpr::pretty_print() {
-  llvm::outs() << name << " : " << ty->getName();
+void VarDeclExpr::pretty_print() const {
+  llvm::outs() << name << " : " << ty.get_type_ptr()->get_name().data();
 }
-void VarExpr::pretty_print() { llvm::outs() << name; }
-void TypeExpr::pretty_print() { llvm::outs() << ty->getName(); }
-void FnCall::pretty_print() {
+void VarExpr::pretty_print() const { llvm::outs() << name; }
+void TypeExpr::pretty_print() const { llvm::outs() << ty.get_type_ptr()->get_name().data(); }
+void FnCall::pretty_print() const {
   llvm::outs() << name << "(";
   for (const auto &arg : args) {
     arg->pretty_print();
@@ -465,7 +429,7 @@ void FnCall::pretty_print() {
   llvm::outs() << "\b)\n";
 }
 
-void BinExpr::pretty_print() {
+void BinExpr::pretty_print() const {
   lhs->pretty_print();
   switch (op) {
   case Token::Add:
@@ -484,7 +448,7 @@ void BinExpr::pretty_print() {
   rhs->pretty_print();
 }
 
-void RangeExpr::pretty_print() {
+void RangeExpr::pretty_print() const {
   if (begin)
     begin->pretty_print();
   llvm::outs() << "..";
@@ -492,9 +456,9 @@ void RangeExpr::pretty_print() {
     end->pretty_print();
 }
 
-void IfExpr::pretty_print() {
+void IfExpr::pretty_print() const {
   llvm::outs() << "if ";
   condition->pretty_print();
 }
 
-void ImportExpr::pretty_print() { llvm::outs() << "import " << module; }
+void ImportExpr::pretty_print() const { llvm::outs() << "import " << module; }

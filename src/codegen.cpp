@@ -24,7 +24,7 @@ static llvm::Value *alloc(FusionCtx& ctx,llvm::Type* ty,std::string name) {
   return val;
 }
 
-llvm::Value *FnCall::codegen(FusionCtx &ctx) {
+llvm::Value *FnCall::codegen(FusionCtx &ctx) const {
   auto *fn = ctx.mod->getFunction(name);
   if (!fn) {
     std::string err_msg = "unknown function called " + name;
@@ -37,12 +37,12 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) {
   return ctx.builder.CreateCall(fn, fn_args, "call");
 }
 
-llvm::Value *FnProto::codegen(FusionCtx &ctx) {
+llvm::Value *FnProto::codegen(FusionCtx &ctx) const {
   std::vector<llvm::Type *> fn_args;
   for (auto &&arg : args) {
     if (arg->type == AstType::VarDeclExpr) {
       auto vd = reinterpret_cast<VarDeclExpr *>(arg.get());
-      fn_args.push_back(vd->ty->codegen(ctx));
+      fn_args.push_back(vd->ty.get_type_ptr()->codegen(ctx));
     }
   }
 
@@ -70,7 +70,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) {
   return f;
 }
 
-llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
+llvm::Value *FnDecl::codegen(FusionCtx &ctx) const {
   auto *p = (llvm::Function *)proto->codegen(ctx);
 
   auto fname = proto->name;
@@ -109,14 +109,43 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) {
   llvm::verifyFunction(*fn);
   return fn;
 }
-llvm::Value *ValExpr::codegen(FusionCtx &ctx) { return val.val; }
+llvm::Value *ValExpr::codegen(FusionCtx &ctx) const { 
+    auto const& type = val.ty.get_type();
+    if (type.get_typekind() != Type::Integral) {
+        return nullptr;
+    }
+    auto const& it = static_cast<const IntegralType&>(type);
+    switch (it.ty) {
+    case IntegralType::String: {
+        llvm::Type* i8ty = llvm::IntegerType::getInt8Ty(ctx.ctx);
+        llvm::ArrayType* sty = llvm::ArrayType::get(i8ty, val.as.string.size() + 1);
+        std::vector<llvm::Constant*> vals;
+        llvm::GlobalVariable* gstr = new llvm::GlobalVariable(
+            *ctx.mod, sty, true, llvm::GlobalValue::PrivateLinkage, 0, "str");
+        gstr->setAlignment(1);
+        llvm::Constant* cstr = llvm::ConstantDataArray::getString(ctx.ctx, val.as.string.data(), true);
+        gstr->setInitializer(cstr);
+        return (llvm::Constant*)llvm::ConstantExpr::getBitCast(gstr, ctx.getI8()->getPointerTo());
+    }
+    case IntegralType::I32: {
+        return llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, val.as.i32, true));
+    }
+    case IntegralType::F32: {
+        return  llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(val.as.f32));
+    }
+    default:
+        Error::ImplementMe("Implement codegeneration for this type in ValExpr::codegen");
+    }
 
-llvm::Value *TypeExpr::codegen(FusionCtx &ctx) {
 
-  return reinterpret_cast<llvm::Value *>(ty->codegen(ctx));
+    return nullptr;
 }
 
-llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
+llvm::Value *TypeExpr::codegen(FusionCtx &ctx) const {
+  return reinterpret_cast<llvm::Value *>(ty.get_type_ptr()->codegen(ctx));
+}
+
+llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
   switch (op) {
   case Token::Eq: {
     auto *vlhs = lhs->codegen(ctx);
@@ -163,7 +192,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) {
   return nullptr;
 }
 
-llvm::Value *VarExpr::codegen(FusionCtx &ctx) {
+llvm::Value *VarExpr::codegen(FusionCtx &ctx) const {
   //if the variable was already declared load it
   //else if it doesn't exists then return fullptr
   if (ctx.named_values.find(name) != ctx.named_values.end()) {
@@ -179,8 +208,8 @@ llvm::Value *VarExpr::codegen(FusionCtx &ctx) {
   return 0;
 }
 
-llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
-  if (!ty) {
+llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) const {
+  if (!ty.get_type_ptr()) {
     serror(Error_e::CouldNotInferType, "Couldn't infer type of expression");
   }
   if (ctx.named_values.find(name) != ctx.named_values.end()) {
@@ -188,18 +217,18 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) {
     return ctx.named_values[name.data()];
   }
   llvm::AllocaInst *val =
-      ctx.builder.CreateAlloca(ty->codegen(ctx), nullptr, name);
+      ctx.builder.CreateAlloca(ty.get_type_ptr()->codegen(ctx), nullptr, name);
   ctx.named_values[name] = val;
   return val;
 }
 
-llvm::Value *RangeExpr::codegen(FusionCtx &ctx) {
+llvm::Value *RangeExpr::codegen(FusionCtx &ctx) const {
   return nullptr; // implement me
 }
 
-llvm::Value *IfExpr::codegen(FusionCtx &ctx) { return nullptr; }
+llvm::Value *IfExpr::codegen(FusionCtx &ctx) const { return nullptr; }
 
-llvm::Value *ImportExpr::codegen(FusionCtx &ctx) {
+llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {
   // compile module
   return nullptr;
 }

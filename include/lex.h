@@ -8,7 +8,7 @@
 
 struct FSFile;
 
-ptr hash(const std::string &str);
+unsigned int hash(const std::string &str);
 class SourceLocation {
 public:
   unsigned int pos, indent;
@@ -41,12 +41,12 @@ enum Kw_e : unsigned char {
   Bool
 };
 
-bool is_op(u8 ch);
-bool is_ws(u8 ch);
-Kw_e is_kw(ptr h);
+bool is_op(unsigned char ch);
+bool is_ws(unsigned char ch);
+Kw_e is_kw(unsigned int h);
 
 struct Lit {
-    IntegralType ty;
+    QualType ty;
     union {
         unsigned char u8;
         unsigned short u16;
@@ -73,6 +73,8 @@ struct Lit {
     Lit(float f32);
     Lit(double f64);
     Lit(std::string_view string);
+
+    Lit& operator=(const Lit& other);
 
 };
 
@@ -137,7 +139,7 @@ struct Token {
   SourceLocation sl;
 
   Token(Type type, const SourceLocation &sl);
-  Token(u8 c, const SourceLocation &sl);
+  Token(unsigned char c, const SourceLocation &sl);
   Token(::Lit val, const SourceLocation &sl);
   Token(const std::string &str, const SourceLocation &sl);
   Token(Kw_e kw, const SourceLocation &sl);
