@@ -33,6 +33,7 @@ before_install:
   - git config --global user.name "Travis CI"
   - git config --global user.email "travis@travis-ci.org"
   - git config --global push.default simple
+  - export CC="clang-10" CXX="clang++-10"
 # Build scripts
 script: 
   - llvm-config --version
