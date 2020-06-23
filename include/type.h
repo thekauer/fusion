@@ -38,8 +38,6 @@ protected:
   unsigned char mods;
   const unsigned int size;
   std::string name;
-private:
-    void turn_off(TypeMods mod);
 };
 
 struct IntegralType : Type {
@@ -63,36 +61,12 @@ struct IntegralType : Type {
   llvm::Type* codegen(FusionCtx &ctx) override;
 };
 
-/*
-struct StructType : Type {
-  struct TypedValue {
-    std::unique_ptr<Type> ty;
-    std::string name;
-  };
-  std::vector<TypedValue> members;
-  StructType(const std::string &name, const std::vector<TypedValue> &members);
-  llvm::std::unique_ptr<Type> codegen(FusionCtx &ctx) override;
-};
-
-struct TupleType : Type {
-  std::vector<std::unique_ptr<Type> > members;
-  TupleType(const std::string &name, const std::vector<std::unique_ptr<Type> > &members);
-  llvm::std::unique_ptr<Type> codegen(FusionCtx &ctx) override;
-};
-struct ArrayType : Type {
-  u64 size;
-  std::unique_ptr<Type> type;
-  ArrayType(u64 size,std::unique_ptr<Type> type) : size(size),type(move(type)){}
-  llvm::std::unique_ptr<Type> codegen(FusionCtx& ctx) override;
-};
-*/
 
     
 
 class QualType {
 public:
-    enum TypeMods :unsigned char{ Mut=1,Ref=2,Opt=4,Ptr=8};
-    QualType(const Type& type);
+    QualType(Type& type);
 
     QualType to_val();
     QualType to_ref();
@@ -100,8 +74,15 @@ public:
     QualType to_const();
     QualType to_optional();
     QualType to_notoptional();
+    
+    bool is_ref();
+    bool is_mut();
+    bool is_opt();
 private:
     Type& type;
     unsigned char mods;
+    unsigned mut : 1;
+    unsigned ref : 1;
+    unsigned opt : 1;
 
 };

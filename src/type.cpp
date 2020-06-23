@@ -99,13 +99,46 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
     break;
   default:
     return nullptr;
-  }
+  }/*
   if (mods &= Ptr) {
     ret->getPointerTo();
-  }
+  }*/
   return ret;
 }
-/*
-llvm::Type *ArrayType::codegen(FusionCtx& ctx) {
-  return llvm:ArrayType::get(type->codegen(ctx),size);
-}*/
+
+QualType::QualType(Type& type) : type(type) {};
+
+QualType QualType::to_val() {
+    ref = 0;
+    return *this;
+}
+QualType QualType::to_ref() {
+    ref = 1;
+    return *this;
+}
+QualType QualType::to_mut() {
+    mut = 1;
+    return *this;
+}
+QualType QualType::to_const() {
+    mut = 0;
+    return *this;
+}
+QualType QualType::to_optional() {
+    opt = 1;
+    return *this;
+}
+QualType QualType::to_notoptional() {
+    opt = 0;
+    return *this;
+}
+bool QualType::is_ref()
+{
+    return ref==1;
+}
+bool QualType::is_mut() {
+    return mut == 1;
+}
+bool QualType::is_opt() {
+    return opt == 1;
+}
