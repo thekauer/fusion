@@ -1,10 +1,7 @@
-# Programming language definition
 language: cpp
 
-# OS environment
 dist: bionic
 
-# Build matrix (OS, compiler)
 jobs:
   include:
     - name: "Linux (Clang compiler)"
@@ -27,27 +24,16 @@ jobs:
             - build-essential
           update: true
 
-# Branches to build
 branches:
   only:
     - master
     - dev
 
-# Scripts that run before install
 before_install:
-  # clang, libc++, libc++abi
-  - export CC="clang-${CLANG_VERSION}" CXX="clang++-${CLANG_VERSION}" 
-# cmake
-  - cmake --version
-  # git
+  - export CC="/usr/bin/clang" CXX="/usr/bin/clang++"
   - git config --global user.name "Travis CI"
   - git config --global user.email "travis@travis-ci.org"
   - git config --global push.default simple
-  # llvm
-  - git clone https://github.com/llvm/llvm-project.git
-#cache:
- #directories:
-  #- llvm
 # Build scripts
 script: 
   - mkdir -p build
@@ -55,7 +41,6 @@ script:
   - cmake .. 
   - make
 
-# Don't send notifications on success
 notifications:
   email:
     on_success: never
