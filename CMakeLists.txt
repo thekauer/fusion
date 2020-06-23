@@ -36,6 +36,13 @@ target_link_libraries(fs LLVM)
 endif()
 
 
+if(CMAKE_SYSTEM MATCHES "-arch")
+target_link_libraries(fs LLVM)
+else()
+target_link_libraries(fs ${llvm_libs})
+endif()
+
+
 set(CMAKE_CXX_STANDARD 20)
 #dont show the buggy header guard
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wno-extra-tokens -Wno-char-subscripts -ferror-limit=3")
