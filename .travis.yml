@@ -36,8 +36,7 @@ branches:
 # Scripts that run before install
 before_install:
   # clang, libc++, libc++abi
-  # maybe no llvm dir
-  - export CC="clang-${CLANG_VERSION}" CXX="clang++-${CLANG_VERSION}" " LLVM_DIR="/usr/include/llvm-9/lib/cmake
+  - export CC="clang-${CLANG_VERSION}" CXX="clang++-${CLANG_VERSION}" 
 # cmake
   - cmake --version
   # git
