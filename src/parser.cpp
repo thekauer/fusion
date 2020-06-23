@@ -1,12 +1,12 @@
 #include "parser.h"
-#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/LLVMContext.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include <csignal>
 
 Token Parser::pop() {
   if (it == end)
-    return Token(Token::Eof, (it-1)->sl);
+    return Token(Token::Eof, (it - 1)->sl);
   return *it++;
 }
 Token Parser::peek(int n) { return *(it + n); }
@@ -14,7 +14,7 @@ Token Parser::peek(int n) { return *(it + n); }
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
-    Error::ExpectedToken(file,t.sl,"Expected " + tk);
+    Error::ExpectedToken(file, t.sl, "Expected " + tk);
   return t;
 }
 
@@ -94,7 +94,7 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   std::vector<std::unique_ptr<AstExpr>> body;
   auto expr = parse_expr();
   if (!expr)
-    Error::EmptyFnBody(file,peek().sl);
+    Error::EmptyFnBody(file, peek().sl);
   while (expr) {
     body.push_back(std::move(expr));
 
@@ -128,13 +128,11 @@ std::unique_ptr<ValExpr> Parser::parse_valexpr() {
   if (t.type == Token::Kw) {
     if (t.getKw() == Kw_e::True) {
       pop();
-      return std::make_unique<ValExpr>(
-          t.sl, Lit(true));
+      return std::make_unique<ValExpr>(t.sl, Lit(true));
     }
     if (t.getKw() == Kw_e::False) {
       pop();
-      return std::make_unique<ValExpr>(
-          t.sl, Lit(false));
+      return std::make_unique<ValExpr>(t.sl, Lit(false));
     }
   }
   return nullptr;
@@ -184,41 +182,40 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
 
   return std::make_unique<BinExpr>(loc, op, move(lhs), parse_binary(move(rhs)));
   */
-  while(it!=end) {
+  while (it != end) {
     auto op = peek().type;
     auto loc = peek().sl;
     auto TokPrec = precedence(op);
-    if(TokPrec < p) {
+    if (TokPrec < p) {
       return lhs;
     }
-    
-    pop(); //pop the op
+
+    pop(); // pop the op
     auto rhs = parse_primary();
-    if(!rhs) {
+    if (!rhs) {
       return nullptr;
     }
-    if(it==end) {
-      return std::make_unique<BinExpr>(loc,op,std::move(lhs),std::move(rhs));
+    if (it == end) {
+      return std::make_unique<BinExpr>(loc, op, std::move(lhs), std::move(rhs));
     }
-    auto next_token=peek().type;
+    auto next_token = peek().type;
     auto NextPrec = precedence(next_token);
-    if(TokPrec<NextPrec) {
-      rhs = parse_binary(std::move(rhs),TokPrec+1);
-      if(!rhs) {
+    if (TokPrec < NextPrec) {
+      rhs = parse_binary(std::move(rhs), TokPrec + 1);
+      if (!rhs) {
         return nullptr;
       }
     }
-    
-    lhs = std::make_unique<BinExpr>(loc,op,std::move(lhs),std::move(rhs));
-  }  
+
+    lhs = std::make_unique<BinExpr>(loc, op, std::move(lhs), std::move(rhs));
+  }
   return lhs;
 }
 
 std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
-    //implement references and options
+  // implement references and options
 
-
-  //eh
+  // eh
   if (peek().type != Token::Kw) {
     return nullptr;
   }
@@ -312,10 +309,10 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
     return nullptr;
   }
   auto id = pop();
-  pop(); //DoubleDot
+  pop(); // DoubleDot
   std::unique_ptr<TypeExpr> ty = parse_type_expr();
-  if(!ty) {
-    serror(Error_e::Unk,"Expected type expr");
+  if (!ty) {
+    serror(Error_e::Unk, "Expected type expr");
   }
   return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->ty);
 }
@@ -342,7 +339,7 @@ std::unique_ptr<FnCall> Parser::parse_fncall() {
   std::vector<std::unique_ptr<AstExpr>> args;
   auto arg = parse_expr();
   args.push_back(std::move(arg));
-  while(peek().type==Token::Comma) {
+  while (peek().type == Token::Comma) {
     pop();
     auto a = parse_expr();
     args.push_back(std::move(a));
@@ -358,11 +355,8 @@ std::unique_ptr<VarExpr> Parser::parse_var() {
   }
   pop();
 
-
   return std::make_unique<VarExpr>(name.sl, name.getName());
 }
-
-
 
 std::unique_ptr<IfExpr> Parser::parse_if_expr() {
   if (peek().type == Token::Kw && peek().getKw() == Kw_e::If) {
@@ -417,7 +411,9 @@ void VarDeclExpr::pretty_print() const {
   llvm::outs() << name << " : " << ty.get_type_ptr()->get_name().data();
 }
 void VarExpr::pretty_print() const { llvm::outs() << name; }
-void TypeExpr::pretty_print() const { llvm::outs() << ty.get_type_ptr()->get_name().data(); }
+void TypeExpr::pretty_print() const {
+  llvm::outs() << ty.get_type_ptr()->get_name().data();
+}
 void FnCall::pretty_print() const {
   llvm::outs() << name << "(";
   for (const auto &arg : args) {

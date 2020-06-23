@@ -49,37 +49,37 @@ static void err_impl(Error_e code, const FSFile &file, const SourceLocation &sl,
     llvm::outs() << " ";
   }
   llvm::outs() << "^\n"
-            << "\n";
+               << "\n";
 }
-void error(Error_e code, const FSFile &file,
-                        const SourceLocation &sl, const std::string &msg) {
+void error(Error_e code, const FSFile &file, const SourceLocation &sl,
+           const std::string &msg) {
 
-  err_impl(code,file,sl,msg,llvm::raw_ostream::RED,"error: ");
-  
+  err_impl(code, file, sl, msg, llvm::raw_ostream::RED, "error: ");
 }
 void warning(Error_e code, const FSFile &file, const SourceLocation &sl,
              const std::string &msg) {
-  err_impl(code,file,sl,msg,llvm::raw_ostream::MAGENTA,"warning:");
+  err_impl(code, file, sl, msg, llvm::raw_ostream::MAGENTA, "warning:");
 }
 void note(Error_e code, const FSFile &file, const SourceLocation &sl,
           const std::string &msg) {
-  err_impl(code,file,sl,msg,llvm::raw_ostream::BLACK,"note: ");
+  err_impl(code, file, sl, msg, llvm::raw_ostream::BLACK, "note: ");
 }
 
 void Error::UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
-                   const char ch) {
+                          const char ch) {
   std::ostringstream os;
   os << "Unknown escape character \'\\" << ch << "\'.";
 
   error(Error_e::UnkEsc, file, sl, os.str());
 }
 
-void Error::ExpectedToken(const FSFile& file,const SourceLocation& sl,const std::string& msg) {
-  error(Error_e::ExpectedToken,file,sl,msg);
+void Error::ExpectedToken(const FSFile &file, const SourceLocation &sl,
+                          const std::string &msg) {
+  error(Error_e::ExpectedToken, file, sl, msg);
 }
-void Error::EmptyFnBody(const FSFile& file,const SourceLocation& sl) {
-  error(Error_e::EmptyFnBody,file,sl,"Empty Function Body");
+void Error::EmptyFnBody(const FSFile &file, const SourceLocation &sl) {
+  error(Error_e::EmptyFnBody, file, sl, "Empty Function Body");
 }
 void Error::ImplementMe(std::string_view msg) {
-    llvm::outs() << "Error you didn't implement: " << msg.data()<<"\n";
+  llvm::outs() << "Error you didn't implement: " << msg.data() << "\n";
 }

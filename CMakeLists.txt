@@ -24,8 +24,8 @@ link_directories(include)
 # add the executable
 add_executable(fs  ${FS_SRC})
 
-llvm_map_components_to_libnames(LLVM_LIBS 
-core support irreader 
+llvm_map_components_to_libnames(LLVM_LIBS
+core support irreader
 )
 
 message(STATUS "llvm libs: " ${LLVM_LIBS})

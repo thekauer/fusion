@@ -70,11 +70,11 @@ void Compiler::compile(int argc, char **argv) {
   // sm.open("main.fs");
   for (int i = 1; i < argc; i++) {
     sm.open(argv[i]);
-    auto file = sm.sources[i-1];
+    auto file = sm.sources[i - 1];
     Lexer l(file);
     l.lex();
 
-    Parser p(l.tokens, ctx,file);
+    Parser p(l.tokens, ctx, file);
 
     auto m = p.parse_fndecl();
     std::vector<std::unique_ptr<FnDecl>> fndecls;

@@ -37,7 +37,7 @@ struct VarDeclExpr : AstExpr {
 
   VarDeclExpr(const SourceLocation &sl, const std::string &name)
       : AstExpr(AstType::VarDeclExpr, sl), name(name) {}
-  VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType& ty)
+  VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType &ty)
       : AstExpr(AstType::VarDeclExpr, sl), name(name), ty(ty){};
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void print_name() const override { std::cout << "VarDeclExpr\n"; }
@@ -88,7 +88,9 @@ struct FnDecl : AstExpr {
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto)
       : AstExpr(AstType::FnDecl, sl), proto(move(proto)),
         mods(FnModifiers::Extern) {}
-  void print_name() const override { std::cout << "FnDecl: " << proto->name << "\n"; }
+  void print_name() const override {
+    std::cout << "FnDecl: " << proto->name << "\n";
+  }
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -111,11 +113,10 @@ struct VarExpr : AstExpr {
 };
 
 struct TypeExpr : AstExpr {
-    QualType ty;
+  QualType ty;
   TypeExpr(const SourceLocation &sl, QualType ty)
       : AstExpr(AstType::TypeExpr, sl), ty(ty) {}
-  TypeExpr(const SourceLocation &sl)
-      : AstExpr(AstType::TypeExpr, sl) {}
+  TypeExpr(const SourceLocation &sl) : AstExpr(AstType::TypeExpr, sl) {}
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -176,12 +177,13 @@ private:
   Token peek(int n = 0);
   int indent = 0;
   FusionCtx &ctx;
-  const FSFile& file;
+  const FSFile &file;
+
 public:
   int cnt = 0;
   Token expect(Token::Type ty, const std::string &tk);
-  Parser(std::vector<Token> &tokens, FusionCtx &ctx,const FSFile& file)
-      : it(tokens.begin()), end(tokens.end()), ctx(ctx),file(file){};
+  Parser(std::vector<Token> &tokens, FusionCtx &ctx, const FSFile &file)
+      : it(tokens.begin()), end(tokens.end()), ctx(ctx), file(file){};
   std::unique_ptr<FnProto> parse_fnproto();
   std::unique_ptr<FnDecl> parse_fndecl();
   std::unique_ptr<AstExpr> parse_primary();
