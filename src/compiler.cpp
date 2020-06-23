@@ -40,6 +40,7 @@ void link_fs() {
       "-L/usr/bin/../lib",
       "-L/lib",
       "-L/usr/lib",
+      "std.o"
       "main.o",
       "-lgcc",
       "--as-needed",
@@ -69,10 +70,11 @@ void Compiler::compile(int argc, char **argv) {
   // sm.open("main.fs");
   for (int i = 1; i < argc; i++) {
     sm.open(argv[i]);
-    Lexer l(sm.sources[i - 1], ctx);
+    auto file = sm.sources[i - 1];
+    Lexer l(file);
     l.lex();
 
-    Parser p(l.tokens, ctx);
+    Parser p(l.tokens, ctx, file);
 
     auto m = p.parse_fndecl();
     std::vector<std::unique_ptr<FnDecl>> fndecls;
@@ -142,7 +144,7 @@ void Compiler::generate_obj(llvm::Module *m, const std::string &filename) {
   }
   llvm::legacy::PassManager pass;
   // llvm::FunctionPassManager pass;
-  auto FileType = llvm::TargetMachine::CGFT_ObjectFile;
+  auto FileType = llvm::CGFT_ObjectFile;
 
   if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
     llvm::errs() << "Could not emit to file";

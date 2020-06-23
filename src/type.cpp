@@ -1,114 +1,63 @@
 #include "type.h"
 #include "error.h"
 
-static IntegralType i8_ty = IntegralType("i8", IntegralType::I8, 1);
-static IntegralType i16_ty = IntegralType("i16", IntegralType::I16, 2);
-static IntegralType i32_ty = IntegralType("i32", IntegralType::I32, 4);
-static IntegralType i64_ty = IntegralType("i64", IntegralType::I64, 8);
-static IntegralType u8_ty = IntegralType("u8", IntegralType::U8, 1);
-static IntegralType u16_ty = IntegralType("u16", IntegralType::U16, 2);
-static IntegralType u32_ty = IntegralType("u32", IntegralType::U32, 4);
-static IntegralType u64_ty = IntegralType("u64", IntegralType::U64, 8);
+Type::Type(const std::string_view name, TypeKind tk, const unsigned int size)
+    : name(name), tk(tk), size(size) {}
 
-static IntegralType double_ty = IntegralType("double", IntegralType::Double, 8);
-Type::Type(const std::string &name, TypeKind tk, By pass, bool mut,
-           const unsigned int size, bool optional)
-    : name(name), tk(tk), pass(pass), mut(mut), size(size), optional(optional) {
-}
+static const IntegralType i8 = IntegralType("i8", IntegralType::I8, 1);
+static const IntegralType i16 = IntegralType("i16", IntegralType::I16, 2);
+static const IntegralType i32 = IntegralType("i32", IntegralType::I32, 4);
+static const IntegralType i64 = IntegralType("i64", IntegralType::I64, 8);
+static const IntegralType isize = IntegralType("isize", IntegralType::ISize, 4);
+static const IntegralType u8 = IntegralType("u8", IntegralType::U8, 1);
+static const IntegralType u16 = IntegralType("u16", IntegralType::U16, 2);
+static const IntegralType u32 = IntegralType("u32", IntegralType::U32, 4);
+static const IntegralType u64 = IntegralType("u64", IntegralType::U64, 8);
+static const IntegralType usize = IntegralType("usize", IntegralType::USize, 4);
+static const IntegralType bool_ = IntegralType("bool", IntegralType::I8, 1);
+static const IntegralType f32 = IntegralType("f32", IntegralType::F32, 4);
+static const IntegralType f64 = IntegralType("f64", IntegralType::F64, 8);
 
-Type *Type::toVal() {
-  pass = Val;
-  return this;
-}
-Type *Type::toRef() {
-  pass = Ref;
-  return this;
-}
+unsigned int Type::get_size() const { return size; }
 
-Type *Type::toPtr() {
-  pass = Ptr;
-  return this;
-}
-Type *Type::toMut() {
-  mut = true;
-  return this;
-}
+std::string_view Type::get_name() const { return name; }
 
-Type *Type::toConst() {
-  mut = false;
-  return this;
-}
-Type *Type::toOptional() {
-  optional = true;
-  return this;
-}
-Type *Type::toNotOption() {
-  optional = false;
-  return this;
-}
+Type::TypeKind Type::get_typekind() const { return tk; }
 
-unsigned int Type::getSize() { return size; }
+const IntegralType &Type::get_i8() { return i8; }
 
-const std::string &Type::getName() { return name; }
-Type::TypeKind Type::getTypeKind() { return tk; }
-Type::By Type::getBy() { return pass; }
-Type* Type::setBy(By by) {this->pass=by;return this;}
+const IntegralType &Type::get_i16() { return i16; }
 
-Type *Type::getI8() { return &i8_ty; }
-Type *Type::getI16() { return &i16_ty; }
-Type *Type::getI32() { return &i32_ty; }
-Type *Type::getI64() { return &i64_ty; }
-Type *Type::getISize() { return &i64_ty; }
-Type *Type::getU8() { return &u8_ty; }
-Type *Type::getU16() { return &u16_ty; }
-Type *Type::getU32() { return &u32_ty; }
-Type *Type::getU64() { return &u64_ty; }
-Type *Type::getUSize() { return &u64_ty; }
-Type *Type::getChar() { return &i8_ty; }
-Type *Type::getBool() { return &i32_ty; }
+const IntegralType &Type::get_i32() { return i32; }
 
+const IntegralType &Type::get_i64() { return i64; }
 
-bool Type::isSignedIntegerType() {
-  return this==getI8() || this == getI16() || this == getI32() || this == getI64();
-}
-bool Type::isUnsignedIntegerType() {
-  return this==getU8() || this == getU16() || this == getU32() || this == getU64();
+const IntegralType &Type::get_isize() { return isize; }
+const IntegralType &Type::get_u8() { return u8; }
+
+const IntegralType &Type::get_u16() { return u16; }
+
+const IntegralType &Type::get_u32() { return u32; }
+
+const IntegralType &Type::get_u64() { return u64; }
+
+const IntegralType &Type::get_usize() { return usize; }
+
+const IntegralType &Type::get_char() { return u8; }
+
+const IntegralType &Type::get_bool() { return bool_; }
+
+const IntegralType &Type::get_f32() { return f32; }
+const IntegralType &Type::get_f64() { return f64; }
+const IntegralType &Type::get_string() {
+  Error::ImplementMe("implement integral string type");
 }
 
-bool Type::isIntegerType() {
-  return isSignedIntegerType() || isUnsignedIntegerType();
-}
-
-Type *Type::getDouble() {return &double_ty;}
-
-static int struct_size(const std::vector<StructType::TypedValue> &members) {
-  int s = 0;
-  for (const auto &v : members) {
-    s += v.ty->getSize();
-  }
-  return s;
-}
-static int tuple_size(std::vector<Type *> members) {
-  int s = 0;
-  for (const auto &m : members) {
-    s += m->getSize();
-  }
-  return s;
-}
-IntegralType::IntegralType(const std::string &name, Ty ty,
+IntegralType::IntegralType(const std::string_view name, Ty ty,
                            const unsigned int size)
-    : Type(name, Type::Integral, Type::Val, false, size, false), ty(ty) {}
+    : ty(ty), Type(name, Integral, size) {}
 
-StructType::StructType(const std::string &name,
-                       const std::vector<TypedValue> &members)
-    : Type(name, Type::Struct, Type::Val, false, struct_size(members), false),
-      members(members){};
-
-TupleType::TupleType(const std::string &name,
-                     const std::vector<Type *> &members)
-    : Type(name, Type::Tuple, Type::Val, false, tuple_size(members), false) {}
-
-llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
+llvm::Type *IntegralType::codegen(FusionCtx &ctx) const {
   llvm::Type *ret;
   switch (ty) {
   case Bool:
@@ -129,18 +78,53 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) {
   case I64:
     ret = ctx.getI64();
     break;
+  case String:
+    Error::ImplementMe("implement string literal code generation");
   default:
     return nullptr;
-  }
-  if (pass == Ptr) {
-    ret->getPointerTo();
-  }
+  } /*
+ if (mods &= Ptr) {
+   ret->getPointerTo();
+ }*/
   return ret;
 }
 
-llvm::Type *StructType::codegen(FusionCtx &ctx) {
-  serror(Error_e::Unk, "Struct type needs to be implemented");
+QualType::QualType(const Type &type) : type(&type){};
+QualType::QualType(const IntegralType &type)
+    : type(&static_cast<const Type &>(type)) {}
+
+QualType QualType::to_val() {
+  ref = 0;
+  return *this;
 }
-llvm::Type *TupleType::codegen(FusionCtx &ctx) {
-  serror(Error_e::Unk, "Tuple type needs to be implemented");
+QualType QualType::to_ref() {
+  ref = 1;
+  return *this;
+}
+QualType QualType::to_mut() {
+  mut = 1;
+  return *this;
+}
+QualType QualType::to_const() {
+  mut = 0;
+  return *this;
+}
+QualType QualType::to_optional() {
+  opt = 1;
+  return *this;
+}
+QualType QualType::to_notoptional() {
+  opt = 0;
+  return *this;
+}
+bool QualType::is_ref() const { return ref == 1; }
+bool QualType::is_mut() const { return mut == 1; }
+bool QualType::is_opt() const { return opt == 1; }
+
+const Type &QualType::get_type() const { return *type; }
+const Type const *QualType::get_type_ptr() const { return type; }
+
+QualType &QualType::operator=(const QualType &other) {
+  type = other.type;
+  mods = other.mods;
 }

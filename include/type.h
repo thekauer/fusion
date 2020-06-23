@@ -1,52 +1,42 @@
 #pragma once
 #include "context.h"
+#include <memory>
 #include <string>
 #include <vector>
 
+struct IntegralType;
 class Type {
 public:
-  enum By : unsigned char { Ref, Ptr, Val };
-  enum TypeKind : unsigned char { Integral, Struct, Tuple };
-  Type *toVal();
-  Type *toPtr();
-  Type *toRef();
-  Type *toMut();
-  Type *toConst();
-  Type *toOptional();
-  Type *toNotOption();
-  Type(const std::string &name, TypeKind tk, By pass, bool mut,
-       const unsigned int size, bool optional = false);
+  enum TypeKind : unsigned char { Integral, Array, Struct, Tuple };
+  Type(const std::string_view name, TypeKind tk, const unsigned int size);
 
-  unsigned int getSize();
-  const std::string &getName();
-  TypeKind getTypeKind();
-  By getBy();
-  Type *setBy(By by);
+  unsigned int get_size() const;
+  std::string_view get_name() const;
+  TypeKind get_typekind() const;
 
-  virtual llvm::Type *codegen(FusionCtx &ctx) = 0;
+  std::unique_ptr<Type> to_ptr();
 
-  static Type *getI8();
-  static Type *getI16();
-  static Type *getI32();
-  static Type *getI64();
-  static Type *getISize();
-  static Type *getU8();
-  static Type *getU16();
-  static Type *getU32();
-  static Type *getU64();
-  static Type *getUSize();
-  static Type *getChar();
-  static Type *getBool();
-  static Type *getDouble();
+  virtual llvm::Type *codegen(FusionCtx &ctx) const = 0;
 
-  bool isSignedIntegerType();
-  bool isUnsignedIntegerType();
-  bool isIntegerType();
+  static const IntegralType &get_i8();
+  static const IntegralType &get_i16();
+  static const IntegralType &get_i32();
+  static const IntegralType &get_i64();
+  static const IntegralType &get_isize();
+  static const IntegralType &get_u8();
+  static const IntegralType &get_u16();
+  static const IntegralType &get_u32();
+  static const IntegralType &get_u64();
+  static const IntegralType &get_usize();
+  static const IntegralType &get_char();
+  static const IntegralType &get_bool();
+  static const IntegralType &get_f32();
+  static const IntegralType &get_f64();
+  static const IntegralType &get_string();
+
 protected:
   TypeKind tk;
-  By pass;
-  bool mut;
-  bool optional;
+  unsigned char mods;
   const unsigned int size;
   std::string name;
 };
@@ -65,24 +55,40 @@ struct IntegralType : Type {
     USize,
     Char,
     Bool,
-    Double
+    F32,
+    F64,
+    String
   } ty;
-  IntegralType(const std::string &name, Ty ty, const unsigned int size);
-  llvm::Type *codegen(FusionCtx &ctx) override;
+  IntegralType(const std::string_view name, Ty ty, const unsigned int size);
+  llvm::Type *codegen(FusionCtx &ctx) const override;
 };
 
-struct StructType : Type {
-  struct TypedValue {
-    Type *ty;
-    std::string name;
-  };
-  std::vector<TypedValue> members;
-  StructType(const std::string &name, const std::vector<TypedValue> &members);
-  llvm::Type *codegen(FusionCtx &ctx) override;
-};
+class QualType {
+public:
+  QualType(const Type &type);
+  QualType(const IntegralType &type);
+  QualType() = default;
 
-struct TupleType : Type {
-  std::vector<Type *> members;
-  TupleType(const std::string &name, const std::vector<Type *> &members);
-  llvm::Type *codegen(FusionCtx &ctx) override;
+  QualType to_val();
+  QualType to_ref();
+  QualType to_mut();
+  QualType to_const();
+  QualType to_optional();
+  QualType to_notoptional();
+
+  bool is_ref() const;
+  bool is_mut() const;
+  bool is_opt() const;
+
+  const Type &get_type() const;
+  const Type const *get_type_ptr() const;
+
+  QualType &operator=(const QualType &other);
+
+private:
+  Type const *type{nullptr};
+  unsigned char mods;
+  unsigned mut : 1;
+  unsigned ref : 1;
+  unsigned opt : 1;
 };
