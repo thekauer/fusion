@@ -46,36 +46,35 @@ bool is_ws(unsigned char ch);
 Kw_e is_kw(unsigned int h);
 
 struct Lit {
-    QualType ty;
-    union {
-        unsigned char u8;
-        unsigned short u16;
-        unsigned int u32;
-        unsigned long u64;
-        char i8;
-        short i16;
-        int i32;
-        long i64;
-        bool b;
-        float f32;
-        double f64;
-        std::string_view string="";
-    } as;
-    Lit(unsigned char u8);
-    Lit(unsigned short u16);
-    Lit(unsigned int u32);
-    Lit(unsigned long u64);
-    Lit(char i8);
-    Lit(short i16);
-    Lit(int i32);
-    Lit(long i64);
-    Lit(bool b);
-    Lit(float f32);
-    Lit(double f64);
-    Lit(std::string_view string);
+  QualType ty;
+  union {
+    unsigned char u8;
+    unsigned short u16;
+    unsigned int u32;
+    unsigned long u64;
+    char i8;
+    short i16;
+    int i32;
+    long i64;
+    bool b;
+    float f32;
+    double f64;
+    std::string_view string = "";
+  } as;
+  Lit(unsigned char u8);
+  Lit(unsigned short u16);
+  Lit(unsigned int u32);
+  Lit(unsigned long u64);
+  Lit(char i8);
+  Lit(short i16);
+  Lit(int i32);
+  Lit(long i64);
+  Lit(bool b);
+  Lit(float f32);
+  Lit(double f64);
+  Lit(std::string_view string);
 
-    Lit& operator=(const Lit& other);
-
+  Lit &operator=(const Lit &other);
 };
 
 struct Token {
@@ -134,7 +133,6 @@ struct Token {
     MulEq,
     NegEq,
 
-
   } type;
   SourceLocation sl;
 
@@ -152,7 +150,6 @@ struct Token {
 private:
 };
 
-
 class Lexer : public SourceLocation {
 public:
   Lexer(FSFile &file);
@@ -166,19 +163,19 @@ private:
   char lex_escape(const char esc);
   Lit nolit(const SourceLocation &s, bool f, int base);
   Lit stringlit(std::string s);
-  Token lex_id_or_kw(SourceLocation& err_loc);
-  Token lex_number(SourceLocation& err_loc);
-  Token lex_string(SourceLocation& err_loc);
-  Token lex_newline(SourceLocation& err_loc);
-  Token lex_dots(SourceLocation& err_loc);
-  Token lex_eq(SourceLocation& err_loc);
-  Token lex_mul(SourceLocation& err_loc);
-  Token lex_div(SourceLocation& err_loc);
-  Token lex_not(SourceLocation& err_loc);
-  Token lex_gt(SourceLocation& err_loc);
-  Token lex_lt(SourceLocation& err_loc);
-  Token lex_add(SourceLocation& err_loc);
-  Token lex_sub(SourceLocation& err_loc);
-  Token lex_mod(SourceLocation& err_loc);
-  Token lex_neg(SourceLocation& err_loc);
+  Token lex_id_or_kw(SourceLocation &err_loc);
+  Token lex_number(SourceLocation &err_loc);
+  Token lex_string(SourceLocation &err_loc);
+  Token lex_newline(SourceLocation &err_loc);
+  Token lex_dots(SourceLocation &err_loc);
+  Token lex_eq(SourceLocation &err_loc);
+  Token lex_mul(SourceLocation &err_loc);
+  Token lex_div(SourceLocation &err_loc);
+  Token lex_not(SourceLocation &err_loc);
+  Token lex_gt(SourceLocation &err_loc);
+  Token lex_lt(SourceLocation &err_loc);
+  Token lex_add(SourceLocation &err_loc);
+  Token lex_sub(SourceLocation &err_loc);
+  Token lex_mod(SourceLocation &err_loc);
+  Token lex_neg(SourceLocation &err_loc);
 };

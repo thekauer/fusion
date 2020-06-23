@@ -50,11 +50,6 @@ before_install:
   #- llvm
 # Build scripts
 script: 
-  #- mkdir gtest-bin && cd gtest-bin && cmake /usr/src/gtest && make && cd ..
-  #- rm -r llvm
-  #- cd llvm-project
-  #- mv llvm .. 
-  #- cd .. 
   - mkdir -p build
   - cd build
   - cmake .. 

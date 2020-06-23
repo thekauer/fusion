@@ -80,41 +80,31 @@ enum Eq : unsigned char {
   N = Token::N,  // ascii 10 == 0xA
   Letter = 100,
   Number = 128,
-  NotAToken=255,
+  NotAToken = 255,
 };
-static const unsigned eq[128] = {Null,     NotAToken,     NotAToken,        NotAToken,
-                                NotAToken,        NotAToken,     NotAToken,        NotAToken,
-                                NotAToken,        NotAToken,      N,        NotAToken,
-                                NotAToken,         Cr,    NotAToken,        NotAToken,
-                                NotAToken,        NotAToken,     NotAToken,        NotAToken,
-                                NotAToken,        NotAToken,     NotAToken,        NotAToken,
-                                NotAToken,        NotAToken,     NotAToken,        NotAToken,
-                                NotAToken,        NotAToken,     NotAToken,        NotAToken,
-                                 Space,     Not,    Quote,     Hashtag,
-                                NotAToken,         Mod,    And,       Apostrophe,
-                                 Lp,        Rp,     Mul,       Add,
-                                 Comma,     Sub,    Dot,       Div,
-                                 Number,    Number, Number,    Number,
-                                 Number,    Number, Number,    Number,
-                                 Number,    Number, DoubleDot, SemiColon,
-                                 Lt,        Eq,     Gt,        Questionmark,
-                                NotAToken,         Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Lb,
-                                 Backslash, Rb,     Triangle,  Underscore,
-                                NotAToken,         Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Letter,
-                                 Letter,    Letter, Letter,    Lc,
-                                 Or,        Rc,     Neg};
-
+static const unsigned eq[128] = {
+    Null,      NotAToken, NotAToken, NotAToken,    NotAToken, NotAToken,
+    NotAToken, NotAToken, NotAToken, NotAToken,    N,         NotAToken,
+    NotAToken, Cr,        NotAToken, NotAToken,    NotAToken, NotAToken,
+    NotAToken, NotAToken, NotAToken, NotAToken,    NotAToken, NotAToken,
+    NotAToken, NotAToken, NotAToken, NotAToken,    NotAToken, NotAToken,
+    NotAToken, NotAToken, Space,     Not,          Quote,     Hashtag,
+    NotAToken, Mod,       And,       Apostrophe,   Lp,        Rp,
+    Mul,       Add,       Comma,     Sub,          Dot,       Div,
+    Number,    Number,    Number,    Number,       Number,    Number,
+    Number,    Number,    Number,    Number,       DoubleDot, SemiColon,
+    Lt,        Eq,        Gt,        Questionmark, NotAToken, Letter,
+    Letter,    Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Lb,        Backslash, Rb,           Triangle,  Underscore,
+    NotAToken, Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Letter,    Letter,    Letter,       Letter,    Letter,
+    Letter,    Letter,    Letter,    Lc,           Or,        Rc,
+    Neg};
 
 Lit::Lit(unsigned char u8) : ty(QualType(Type::get_u8())) { as.u8 = u8; }
 Lit::Lit(unsigned short u16) : ty(QualType(Type::get_u16())) { as.u16 = u16; }
@@ -127,11 +117,13 @@ Lit::Lit(long i64) : ty(QualType(Type::get_i64())) { as.i64 = i64; };
 Lit::Lit(bool b) : ty(QualType(Type::get_bool())) { as.b = b; };
 Lit::Lit(float f32) : ty(QualType(Type::get_f32())) { as.f32 = f32; };
 Lit::Lit(double f64) : ty(QualType(Type::get_f64())) { as.f64 = f64; };
-Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) { string = string; };
+Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) {
+  string = string;
+};
 
-Lit& Lit::operator=(const Lit& other) {
-    ty = other.ty;
-    as = other.as;
+Lit &Lit::operator=(const Lit &other) {
+  ty = other.ty;
+  as = other.as;
 }
 
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};
@@ -149,8 +141,6 @@ Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
 
 bool is_op(unsigned char ch) { return ch >= Not && ch <= And; }
 bool is_ws(unsigned char ch) { return ch == Tab || ch == Space; }
-
-
 
 static const std::map<unsigned int, Kw_e> kws{
     {hash("fn"), Fn},         {hash("for"), For},
@@ -182,9 +172,7 @@ Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
   }
 }
 
-Lit Lexer::stringlit(std::string s) {
-    return Lit(s);
-}
+Lit Lexer::stringlit(std::string s) { return Lit(s); }
 
 Token &Token::operator=(const Token &other) {
   type = other.type;
@@ -206,89 +194,89 @@ Token &Token::operator=(const Token &other) {
 }
 
 void Lexer::lex() {
-  if(!can_iter()) {
-    serror(Error_e::Unk,"Empty file");
+  if (!can_iter()) {
+    serror(Error_e::Unk, "Empty file");
   }
   while (can_iter()) {
     tokens.push_back(next());
   }
 }
-Token Lexer::lex_id_or_kw(SourceLocation& err_loc) {
+Token Lexer::lex_id_or_kw(SourceLocation &err_loc) {
   pop();
-    while ((eq[peek()] == Letter || eq[peek()] == Number ||
-            eq[peek()] == Underscore) &&
-           can_iter()) {
-      pop();
-    }
-    auto e = this->get_sourcelocation();
-    auto s = std::string(err_loc.it, e.it);
-    auto h = hash(s);
-    auto k = is_kw(h);
-    if (k != Unk) {
-      return Token(k, e);
-    }
-    return Token(s, e);
-}
-Token Lexer::lex_number(SourceLocation& err_loc) {
-   // Handle base
-    int base = 10;
-    while (eq[peek()] == Number) {
-      pop();
-    }
-    bool is_float = false;
-    if (eq[peek()] == Dot && eq[peek(1)] == Number) {
-      pop();
-      is_float = true;
-    }
-    while (eq[peek()] == Number) {
-      pop();
-    }
-
-    return Token(nolit(err_loc, is_float, base), err_loc);
-}
-
-Token Lexer::lex_string(SourceLocation& err_loc) {
-   pop(); // pop the quote
-    std::string buff;
-    while (eq[peek()] != Quote) {
-      if (eq[peek()] == Backslash) {
-        pop(); // pop backlash
-        buff += lex_escape(pop());
-        continue;
-      }
-      buff += pop();
-    }
-    pop(); // pop the ending quote
-
-    return Token(stringlit(buff), err_loc);
-}
-
-Token Lexer::lex_newline(SourceLocation& err_loc) {
+  while ((eq[peek()] == Letter || eq[peek()] == Number ||
+          eq[peek()] == Underscore) &&
+         can_iter()) {
     pop();
-    auto curr_indent = indent;
-    while (eq[peek()] == Space) {
-      pop();
-      curr_indent++;
-    }
-    while (eq[peek()] == Tab) {
-      pop();
-      curr_indent++;
-    }
-    if (eq[peek()] == N) {
-      return next();
-    }
-    if (indent < curr_indent) {
-      indent = curr_indent;
-      return Token(Token::Gi, this->get_sourcelocation());
-    }
-    if (indent > curr_indent) {
-      indent = curr_indent;
-      return Token(Token::Li, this->get_sourcelocation());
-    }
-    return Token(Token::N, err_loc);
+  }
+  auto e = this->get_sourcelocation();
+  auto s = std::string(err_loc.it, e.it);
+  auto h = hash(s);
+  auto k = is_kw(h);
+  if (k != Unk) {
+    return Token(k, e);
+  }
+  return Token(s, e);
+}
+Token Lexer::lex_number(SourceLocation &err_loc) {
+  // Handle base
+  int base = 10;
+  while (eq[peek()] == Number) {
+    pop();
+  }
+  bool is_float = false;
+  if (eq[peek()] == Dot && eq[peek(1)] == Number) {
+    pop();
+    is_float = true;
+  }
+  while (eq[peek()] == Number) {
+    pop();
+  }
+
+  return Token(nolit(err_loc, is_float, base), err_loc);
 }
 
-Token Lexer::lex_dots(SourceLocation& err_loc) {
+Token Lexer::lex_string(SourceLocation &err_loc) {
+  pop(); // pop the quote
+  std::string buff;
+  while (eq[peek()] != Quote) {
+    if (eq[peek()] == Backslash) {
+      pop(); // pop backlash
+      buff += lex_escape(pop());
+      continue;
+    }
+    buff += pop();
+  }
+  pop(); // pop the ending quote
+
+  return Token(stringlit(buff), err_loc);
+}
+
+Token Lexer::lex_newline(SourceLocation &err_loc) {
+  pop();
+  auto curr_indent = indent;
+  while (eq[peek()] == Space) {
+    pop();
+    curr_indent++;
+  }
+  while (eq[peek()] == Tab) {
+    pop();
+    curr_indent++;
+  }
+  if (eq[peek()] == N) {
+    return next();
+  }
+  if (indent < curr_indent) {
+    indent = curr_indent;
+    return Token(Token::Gi, this->get_sourcelocation());
+  }
+  if (indent > curr_indent) {
+    indent = curr_indent;
+    return Token(Token::Li, this->get_sourcelocation());
+  }
+  return Token(Token::N, err_loc);
+}
+
+Token Lexer::lex_dots(SourceLocation &err_loc) {
   pop();
   if (eq[peek()] == Dot) {
     pop();
@@ -301,104 +289,103 @@ Token Lexer::lex_dots(SourceLocation& err_loc) {
   return Token(Token::Dot, this->get_sourcelocation());
 }
 
-Token Lexer::lex_eq(SourceLocation& err_loc) {
-    pop();
-    if(eq[peek(1)]==Eq) {
-      pop();
-      return Token(Token::EqEq,err_loc);
-    } else {
-      return Token(Token::Eq,err_loc);
-    }
-}
-
-Token Lexer::lex_mul(SourceLocation& err_loc) {
+Token Lexer::lex_eq(SourceLocation &err_loc) {
   pop();
-  if(eq[peek(1)]==Eq) {
+  if (eq[peek(1)] == Eq) {
     pop();
-    return Token(Token::MulEq,err_loc);
+    return Token(Token::EqEq, err_loc);
   } else {
-    return Token(Token::Mul,err_loc);
+    return Token(Token::Eq, err_loc);
   }
 }
 
-Token Lexer::lex_div(SourceLocation& err_loc) {
-  //implement comments
+Token Lexer::lex_mul(SourceLocation &err_loc) {
   pop();
-  if(eq[peek(1)]==Eq) {
+  if (eq[peek(1)] == Eq) {
     pop();
-    return Token(Token::DivEq,err_loc);
-  }
-  return Token(Token::Div,err_loc);
-}
-
-Token Lexer::lex_not(SourceLocation& err_loc) {
-  pop();
-  if(eq[peek(1)]==Eq) {
-    pop();
-    return Token(Token::NotEq,err_loc);
+    return Token(Token::MulEq, err_loc);
   } else {
-    return Token(Token::Not,err_loc);
+    return Token(Token::Mul, err_loc);
   }
 }
 
-Token Lexer::lex_gt(SourceLocation& err_loc) {
+Token Lexer::lex_div(SourceLocation &err_loc) {
+  // implement comments
+  pop();
+  if (eq[peek(1)] == Eq) {
+    pop();
+    return Token(Token::DivEq, err_loc);
+  }
+  return Token(Token::Div, err_loc);
+}
+
+Token Lexer::lex_not(SourceLocation &err_loc) {
+  pop();
+  if (eq[peek(1)] == Eq) {
+    pop();
+    return Token(Token::NotEq, err_loc);
+  } else {
+    return Token(Token::Not, err_loc);
+  }
+}
+
+Token Lexer::lex_gt(SourceLocation &err_loc) {
   pop();
   auto n = eq[peek(1)];
-  if(n == Eq) {
+  if (n == Eq) {
     pop();
-    return Token(Token::GtEq,err_loc);
+    return Token(Token::GtEq, err_loc);
   }
-  return Token(Token::Gt,err_loc);
+  return Token(Token::Gt, err_loc);
 }
 
-Token Lexer::lex_lt(SourceLocation& err_loc) {
+Token Lexer::lex_lt(SourceLocation &err_loc) {
   pop();
   auto n = eq[peek(1)];
-  if(n == Eq) {
+  if (n == Eq) {
     pop();
-    return Token(Token::LtEq,err_loc);
+    return Token(Token::LtEq, err_loc);
   }
-  return Token(Token::Lt,err_loc);
+  return Token(Token::Lt, err_loc);
 }
 
-Token Lexer::lex_add(SourceLocation& err_loc) {
+Token Lexer::lex_add(SourceLocation &err_loc) {
   pop();
-  if(eq[peek(1)]==Eq) {
+  if (eq[peek(1)] == Eq) {
     pop();
-    return Token(Token::AddEq,err_loc);
+    return Token(Token::AddEq, err_loc);
   }
-  return Token(Token::Add,err_loc);
+  return Token(Token::Add, err_loc);
 }
 
-Token Lexer::lex_sub(SourceLocation& err_loc) {
+Token Lexer::lex_sub(SourceLocation &err_loc) {
   pop();
-  if(eq[peek(1)]==Eq) {
+  if (eq[peek(1)] == Eq) {
     pop();
-    return Token(Token::SubEq,err_loc);
+    return Token(Token::SubEq, err_loc);
   }
-  return Token(Token::Sub,err_loc);
+  return Token(Token::Sub, err_loc);
 }
 
-Token Lexer::lex_mod(SourceLocation& err_loc) {
+Token Lexer::lex_mod(SourceLocation &err_loc) {
   pop();
-  if(eq[peek(1)]==Eq) {
+  if (eq[peek(1)] == Eq) {
     pop();
-    return Token(Token::ModEq,err_loc);
+    return Token(Token::ModEq, err_loc);
   }
-  return Token(Token::Mod,err_loc);
+  return Token(Token::Mod, err_loc);
 }
 
-Token Lexer::lex_neg(SourceLocation& err_loc) {
+Token Lexer::lex_neg(SourceLocation &err_loc) {
   pop();
-  if(eq[peek(1)]==Eq) {
+  if (eq[peek(1)] == Eq) {
     pop();
-    return Token(Token::NegEq,err_loc);
+    return Token(Token::NegEq, err_loc);
   }
-  return Token(Token::Neg,err_loc);
+  return Token(Token::Neg, err_loc);
 }
 
-Lexer::Lexer(FSFile &file)
-    : SourceLocation(file), file(file){};
+Lexer::Lexer(FSFile &file) : SourceLocation(file), file(file){};
 Token Lexer::next() {
   while (eq[peek()] == Space) {
     pop();
@@ -409,17 +396,17 @@ Token Lexer::next() {
   switch (ch) {
   case Letter:
     return lex_id_or_kw(err_loc);
-  case Number: 
+  case Number:
     return lex_number(err_loc);
-  case Quote: 
+  case Quote:
     return lex_string(err_loc);
-  case N: 
+  case N:
     return lex_newline(err_loc);
-  case Dot: 
+  case Dot:
     return lex_dots(err_loc);
   case Eq:
     return lex_eq(err_loc);
-  case Mul: 
+  case Mul:
     return lex_mul(err_loc);
   case Div:
     return lex_div(err_loc);
@@ -437,16 +424,14 @@ Token Lexer::next() {
     return lex_mod(err_loc);
   case Neg:
     return lex_neg(err_loc);
-  
 
   default:
     break;
   }
-  
 
   if (is_op(ch)) {
     pop(); // pop the operator, it is stored in ch
-    //Add commnet lexer here
+    // Add commnet lexer here
     return Token(ch, this->get_sourcelocation());
   }
   LLVM_BUILTIN_UNREACHABLE;
@@ -515,6 +500,4 @@ SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
   return *this;
 }
 
-SourceLocation SourceLocation::get_sourcelocation() {
-    return *this;
-}
+SourceLocation SourceLocation::get_sourcelocation() { return *this; }
