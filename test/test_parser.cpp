@@ -8,7 +8,7 @@ TEST(parser, only_primary) {
   FusionCtx ctx;
   std::string code = "2";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   Token::Type tks[]{Token::Lit};
@@ -26,7 +26,7 @@ TEST(parser, primary_and_op) {
   FusionCtx ctx;
   std::string code = "2+";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   Token::Type tks[]{Token::Lit, Token::Add};
@@ -46,7 +46,7 @@ TEST(parser, outofbounnds) {
   FusionCtx ctx;
   std::string code = "2 + 3";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   Token::Type tks[]{Token::Lit, Token::Add, Token::Lit};
@@ -76,7 +76,7 @@ TEST(parser, addition) {
   FusionCtx ctx;
   std::string code = "2 + 3 * 2\n";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   EXPECT_EQ(tokens.size(), 5);
@@ -108,7 +108,7 @@ TEST(parser, binexpr) {
   FusionCtx ctx;
   std::string code = "5 = 3 + 2";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   EXPECT_EQ(tokens.size(), 5);
