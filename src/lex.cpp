@@ -115,6 +115,20 @@ static const unsigned eq[128] = {Null,     NotAToken,     NotAToken,        NotA
                                  Letter,    Letter, Letter,    Lc,
                                  Or,        Rc,     Neg};
 
+
+Lit::Lit(unsigned char u8) : as{ u8 },IntegralType("u8",IntegralType::U8,1) {}
+Lit(unsigned short u16) : as{u16},IntegralType("U16")
+Lit(unsigned int u32);
+Lit(unsigned long u64);
+Lit(char i8);
+Lit(short i16);
+Lit(int i32);
+Lit(long i64);
+Lit(bool b);
+Lit(float f32);
+Lit(double f64);
+Lit(std::string_view string);
+
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};
 Token::Token(u8 c, const SourceLocation &sl)
     : type(static_cast<Type>(c)), sl(sl) {}
@@ -155,28 +169,16 @@ Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
   if (f) {
     double D = 0.0;
     sr.getAsDouble(D);
-    return Lit(Type::getDouble(),
-               llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(D)));
+    return Lit(D);
   } else {
     int I = 0;
     sr.getAsInteger(base, I);
-    return Lit(Type::getI32(),
-               llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, I, true)));
+    return Lit(I);
   }
 }
 
 Lit Lexer::stringlit(std::string s) {
-  llvm::Type *i8ty = llvm::IntegerType::getInt8Ty(ctx.ctx);
-  llvm::ArrayType *sty = llvm::ArrayType::get(i8ty, s.size() + 1);
-  std::vector<llvm::Constant *> vals;
-  llvm::GlobalVariable *gstr = new llvm::GlobalVariable(
-      *ctx.mod, sty, true, llvm::GlobalValue::PrivateLinkage, 0, "str");
-  gstr->setAlignment(1);
-  llvm::Constant *cstr = llvm::ConstantDataArray::getString(ctx.ctx, s, true);
-  gstr->setInitializer(cstr);
-  return Lit(Type::getI8()->toPtr(),
-             (llvm::Constant *)llvm::ConstantExpr::getBitCast(
-                 gstr, ctx.getI8()->getPointerTo()));
+    return Lit(s);
 }
 
 Token &Token::operator=(const Token &other) {
@@ -390,8 +392,8 @@ Token Lexer::lex_neg(SourceLocation& err_loc) {
   return Token(Token::Neg,err_loc);
 }
 
-Lexer::Lexer(FSFile &file, FusionCtx &ctx)
-    : SourceLocation(file), file(file), ctx(ctx){};
+Lexer::Lexer(FSFile &file)
+    : SourceLocation(file), file(file){};
 Token Lexer::next() {
   while (eq[peek()] == Space) {
     pop();

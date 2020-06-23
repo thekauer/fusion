@@ -3,12 +3,6 @@
 #include "context.h"
 #include "source.h"
 #include "type.h"
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/APInt.h"
-#include "llvm/ADT/StringRef.h"
-#include "llvm/IR/Constant.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Value.h"
 #include <string>
 #include <variant>
 
@@ -52,9 +46,34 @@ bool is_ws(u8 ch);
 Kw_e is_kw(ptr h);
 
 struct Lit {
-  Type *ty;
-  llvm::Constant *val;
-  Lit(Type *ty, llvm::Constant *val) : ty(ty), val(val) {}
+    IntegralType ty;
+    union {
+        unsigned char u8;
+        unsigned short u16;
+        unsigned int u32;
+        unsigned long u64;
+        char i8;
+        short i16;
+        int i32;
+        long i64;
+        bool b;
+        float f32;
+        double f64;
+        std::string_view string="";
+    } as;
+    Lit(unsigned char u8);
+    Lit(unsigned short u16);
+    Lit(unsigned int u32);
+    Lit(unsigned long u64);
+    Lit(char i8);
+    Lit(short i16);
+    Lit(int i32);
+    Lit(long i64);
+    Lit(bool b);
+    Lit(float f32);
+    Lit(double f64);
+    Lit(std::string_view string);
+
 };
 
 struct Token {
@@ -130,20 +149,17 @@ struct Token {
 
 private:
 };
-template <typename T> static SourceLocation sl_cast(T *l) {
-  return *reinterpret_cast<SourceLocation *>(l);
-}
+
 
 class Lexer : public SourceLocation {
 public:
-  Lexer(FSFile &file, FusionCtx &ctx);
+  Lexer(FSFile &file);
   Token next();
   void lex();
   void test();
   std::vector<Token> tokens;
 
 private:
-  FusionCtx &ctx;
   FSFile &file;
   char lex_escape(const char esc);
   Lit nolit(const SourceLocation &s, bool f, int base);
