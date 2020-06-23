@@ -60,7 +60,7 @@ TEST(Lex,Operator) {
     std::string code = "+ - * / % ^ ! = & | ( ) # . .. ... : ; ? \\ [ ] { } _ ~ == != >= <= += -= /= %= *= ~=";
     //std::vector<Token::Type> correct {Token::Add,Token::Sub,Token::Mul};
     auto file = FSFile("",code);
-    Lexer l = Lexer(file);   
+    Lexer l = Lexer(file);
     auto t = l.next();
     EXPECT_EQ(t.type,Token::Add);
     t = l.next();
@@ -133,13 +133,13 @@ TEST(Lex,Operator) {
     EXPECT_EQ(t.type,Token::MulEq);
     t = l.next();
     EXPECT_EQ(t.type,Token::NegEq);
-    
+
 }
 
 TEST(Lex,OneInOther) {
     std::string code = "addi32i32";
     auto file = FSFile("",code);
-    Lexer l = Lexer(file);   
+    Lexer l = Lexer(file);
     auto t = l.next();
     EXPECT_EQ(t.type,Token::Id);
     t.getName();

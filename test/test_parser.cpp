@@ -12,9 +12,9 @@ TEST(parser,only_primary) {
     auto lexer = Lexer(file,ctx);
     lexer.lex();
     auto tokens = lexer.tokens;
-    Token::Type tks[]{Token::Lit};
+    Token::Type tks[] {Token::Lit};
     EXPECT_EQ(tokens.size(),1);
-    for(int i=0;i<tokens.size();i++) {
+    for(int i=0; i<tokens.size(); i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
     auto p = Parser(tokens,ctx,file);
@@ -30,15 +30,15 @@ TEST(parser,primary_and_op) {
     auto lexer = Lexer(file,ctx);
     lexer.lex();
     auto tokens = lexer.tokens;
-    Token::Type tks[]{Token::Lit,Token::Add};
+    Token::Type tks[] {Token::Lit,Token::Add};
     EXPECT_EQ(tokens.size(),2);
-    for(int i=0;i<tokens.size();i++) {
+    for(int i=0; i<tokens.size(); i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
     auto p = Parser(tokens,ctx,file);
     try {
-    auto expr = p.parse_expr();
-    ASSERT_EQ(expr,nullptr)<<"expr is null";
+        auto expr = p.parse_expr();
+        ASSERT_EQ(expr,nullptr)<<"expr is null";
     } catch(const std::exception& e) {
         ASSERT_EQ(1,0) << "crashed";
     }
@@ -50,9 +50,9 @@ TEST(parser,outofbounnds) {
     auto lexer = Lexer(file,ctx);
     lexer.lex();
     auto tokens = lexer.tokens;
-    Token::Type tks[]{Token::Lit,Token::Add,Token::Lit};
+    Token::Type tks[] {Token::Lit,Token::Add,Token::Lit};
     EXPECT_EQ(tokens.size(),3);
-    for(int i=0;i<tokens.size();i++) {
+    for(int i=0; i<tokens.size(); i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
     /*
@@ -60,16 +60,16 @@ TEST(parser,outofbounnds) {
           /   \
          2     3
     */
-    
+
     auto p = Parser(tokens,ctx,file);
     try {
-    auto expr = p.parse_expr();
-    ASSERT_NE(expr,nullptr)<<"expr is null";
-    ASSERT_EQ(expr->type,AstType::BinExpr);
-    auto bin = reinterpret_cast<BinExpr*>(expr.get());
-    EXPECT_EQ(bin->lhs->type,AstType::ValExpr);
-    EXPECT_EQ(bin->rhs->type,AstType::ValExpr);
-    }catch(const std::exception& e) {
+        auto expr = p.parse_expr();
+        ASSERT_NE(expr,nullptr)<<"expr is null";
+        ASSERT_EQ(expr->type,AstType::BinExpr);
+        auto bin = reinterpret_cast<BinExpr*>(expr.get());
+        EXPECT_EQ(bin->lhs->type,AstType::ValExpr);
+        EXPECT_EQ(bin->rhs->type,AstType::ValExpr);
+    } catch(const std::exception& e) {
         ASSERT_EQ(1,0) << "crashed";
     }
 
@@ -82,8 +82,8 @@ TEST(parser,addition) {
     lexer.lex();
     auto tokens = lexer.tokens;
     EXPECT_EQ(tokens.size(),5);
-    Token::Type tks[]{Token::Lit,Token::Add,Token::Lit,Token::Mul,Token::Lit};
-    for(int i=0;i<tokens.size();i++) {
+    Token::Type tks[] {Token::Lit,Token::Add,Token::Lit,Token::Mul,Token::Lit};
+    for(int i=0; i<tokens.size(); i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
     /*
@@ -115,8 +115,8 @@ TEST(parser,binexpr) {
     lexer.lex();
     auto tokens = lexer.tokens;
     EXPECT_EQ(tokens.size(),5);
-    Token::Type tks[]{Token::Lit,Token::Eq,Token::Lit,Token::Add,Token::Lit};
-    for(int i=0;i<tokens.size();i++) {
+    Token::Type tks[] {Token::Lit,Token::Eq,Token::Lit,Token::Add,Token::Lit};
+    for(int i=0; i<tokens.size(); i++) {
         EXPECT_EQ(tokens[i].type,tks[i]) <<"i: "<< i;
     }
     /*

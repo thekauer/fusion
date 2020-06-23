@@ -93,36 +93,36 @@ const IntegralType& Type::get_string() {
 
 IntegralType::IntegralType(const std::string_view name, Ty ty, const unsigned int size) : ty(ty), Type(name, Integral, size) {}
 
-llvm::Type *IntegralType::codegen(FusionCtx &ctx) const{
-  llvm::Type *ret;
-  switch (ty) {
-  case Bool:
-  case Char:
-  case U8:
-  case I8:
-    ret = ctx.getI8();
-    break;
-  case U16:
-  case I16:
-    ret = ctx.getI16();
-    break;
-  case U32:
-  case I32:
-    ret = ctx.getI32();
-    break;
-  case U64:
-  case I64:
-    ret = ctx.getI64();
-    break;
-  case String:
-      Error::ImplementMe("implement string literal code generation");
-  default:
-    return nullptr;
-  }/*
+llvm::Type *IntegralType::codegen(FusionCtx &ctx) const {
+    llvm::Type *ret;
+    switch (ty) {
+    case Bool:
+    case Char:
+    case U8:
+    case I8:
+        ret = ctx.getI8();
+        break;
+    case U16:
+    case I16:
+        ret = ctx.getI16();
+        break;
+    case U32:
+    case I32:
+        ret = ctx.getI32();
+        break;
+    case U64:
+    case I64:
+        ret = ctx.getI64();
+        break;
+    case String:
+        Error::ImplementMe("implement string literal code generation");
+    default:
+        return nullptr;
+    }/*
   if (mods &= Ptr) {
     ret->getPointerTo();
   }*/
-  return ret;
+    return ret;
 }
 
 QualType::QualType(const Type& type) : type(&type) {};
