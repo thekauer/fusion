@@ -14,7 +14,7 @@ static const IntegralType u16 = IntegralType("u16", IntegralType::U16, 2);
 static const IntegralType u32 = IntegralType("u32", IntegralType::U32, 4);
 static const IntegralType u64 = IntegralType("u64", IntegralType::U64, 8);
 static const IntegralType usize = IntegralType("usize", IntegralType::USize, 4);
-static const IntegralType bool_ = IntegralType("bool", IntegralType::I8, 1);
+static const IntegralType bool_ = IntegralType("bool", IntegralType::Bool, 1);
 static const IntegralType f32 = IntegralType("f32", IntegralType::F32, 4);
 static const IntegralType f64 = IntegralType("f64", IntegralType::F64, 8);
 
