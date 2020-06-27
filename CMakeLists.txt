@@ -30,19 +30,7 @@ core support irreader
 )
 
 message(STATUS "llvm libs: " ${LLVM_LIBS})
-if(CMAKE_SYSTEM MATCHES "-arch")
 target_link_libraries(fs LLVM)
-else()
-target_link_libraries(fs LLVM)
-endif()
-
-
-if(CMAKE_SYSTEM MATCHES "-arch")
-target_link_libraries(fs LLVM)
-else()
-target_link_libraries(fs ${llvm_libs})
-endif()
-
 
 set(CMAKE_CXX_STANDARD 17)
 #dont show the buggy header guard

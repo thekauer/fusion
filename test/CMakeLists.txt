@@ -19,10 +19,7 @@ llvm_map_components_to_libnames(LLVM_LIBS
 all
 )
 
-if(CMAKE_SYSTEM MATCHES "-arch")
 target_link_libraries(test gtest_main LLVM)
-else()
-target_link_libraries(test gtest_main LLVM})
-endif()
+
 
 add_test(NAME test COMMAND test)
