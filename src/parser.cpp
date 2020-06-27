@@ -405,7 +405,46 @@ void FnDecl::pretty_print() const {
   llvm::outs() << "\n";
 }
 
-void ValExpr::pretty_print() const { llvm::outs() << "val"; }
+void ValExpr::pretty_print() const { 
+    switch (val.ty.get_type_ptr()->get_typekind()) {
+    case Type::Integral: {
+        switch ( static_cast<const IntegralType*>(val.ty.get_type_ptr())->ty ) {
+        case IntegralType::I8:
+            llvm::outs() << val.as.i8;
+            return;
+        case IntegralType::I16:
+            llvm::outs() << val.as.i16;
+            return;
+        case IntegralType::I32:
+            llvm::outs() << val.as.i32;
+            return;
+        case IntegralType::I64:
+            llvm::outs() << val.as.i64;
+            return;
+        case IntegralType::ISize:
+            llvm::outs() << val.as.i64;
+            return;
+        case IntegralType::U8:
+            llvm::outs() << val.as.u8;
+            return;
+        case IntegralType::U16:
+            llvm::outs() << val.as.u16;
+            return;
+        case IntegralType::U32:
+            llvm::outs() << val.as.u32;
+            return;
+        case IntegralType::U64:
+            llvm::outs() << val.as.u64;
+            return;
+        case IntegralType::USize:
+            llvm::outs() << val.as.u64;
+            return;
+        }
+    }
+    default:
+        llvm::outs() << "val";
+    }
+}
 
 void VarDeclExpr::pretty_print() const {
   llvm::outs() << name << " : " << ty.get_type_ptr()->get_name().data();
@@ -427,6 +466,7 @@ void FnCall::pretty_print() const {
 
 void BinExpr::pretty_print() const {
   lhs->pretty_print();
+  llvm::outs() << " ";
   switch (op) {
   case Token::Add:
     llvm::outs() << "+";
@@ -441,6 +481,7 @@ void BinExpr::pretty_print() const {
     llvm::outs() << " op ";
     break;
   }
+  llvm::outs() << " ";
   rhs->pretty_print();
 }
 
