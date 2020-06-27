@@ -135,6 +135,15 @@ llvm::Value *ValExpr::codegen(FusionCtx &ctx) const {
   case IntegralType::F32: {
     return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(val.as.f32));
   }
+  case IntegralType::Bool: {
+      if (val.as.b) {
+          return llvm::ConstantInt::getTrue(ctx.ctx);
+      }
+      else {
+          return llvm::ConstantInt::getFalse(ctx.ctx);
+      }
+
+  }
   default:
     Error::ImplementMe(
         "Implement codegeneration for this type in ValExpr::codegen");
