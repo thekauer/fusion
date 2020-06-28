@@ -1,9 +1,10 @@
 #pragma once
-#include "context.h"
 #include "error.h"
 #include "lex.h"
 #include "type.h"
 #include <memory>
+
+struct FusionCtx; // insted of including "context.h" so we don't include any llvm
 
 enum class AstType : unsigned char {
   FnDecl,

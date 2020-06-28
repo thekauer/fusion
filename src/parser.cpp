@@ -1,8 +1,5 @@
 #include "parser.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/LLVMContext.h"
 #include "llvm/Support/raw_os_ostream.h"
-#include <csignal>
 
 Token Parser::pop() {
   if (it == end)

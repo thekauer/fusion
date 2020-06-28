@@ -1,6 +1,6 @@
 #include "lex.h"
-#include "llvm/IR/Constants.h"
 #include <map>
+
 unsigned int hash(const std::string &str) {
 
   unsigned int h = 123456;
@@ -160,14 +160,14 @@ Kw_e is_kw(unsigned int h) {
 }
 
 Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
-  llvm::StringRef sr(std::string(s.it, it));
+  std::string str(s.it, it);
   if (f) {
-    double D = 0.0;
-    sr.getAsDouble(D);
+    float D = 0.0;
+    D = std::stod(str);
     return Lit(D);
   } else {
     int I = 0;
-    sr.getAsInteger(base, I);
+    I = std::stoi(str);
     return Lit(I);
   }
 }

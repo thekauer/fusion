@@ -1,6 +1,5 @@
 #pragma once
 #include "compatibility.h"
-#include "context.h"
 #include "source.h"
 #include "type.h"
 #include <string>
