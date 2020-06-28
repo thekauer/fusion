@@ -79,8 +79,8 @@ TEST(parser, addition) {
   auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
-  EXPECT_EQ(tokens.size(), 5);
-  Token::Type tks[]{Token::Lit, Token::Add, Token::Lit, Token::Mul, Token::Lit};
+  EXPECT_EQ(tokens.size(), 6);
+  Token::Type tks[]{Token::Lit, Token::Add, Token::Lit, Token::Mul, Token::Lit,Token::N};
   for (int i = 0; i < tokens.size(); i++) {
     EXPECT_EQ(tokens[i].type, tks[i]) << "i: " << i;
   }
