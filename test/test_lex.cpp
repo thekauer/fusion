@@ -40,3 +40,23 @@ TEST(Lex, OneInOther) {
   EXPECT_EQ(t.type, Token::Id);
   t.getName();
 }
+
+TEST(Lex, Indent) {
+    std::string code = "\n\n  \n \n\n ";
+    auto file = FSFile("", code);
+    Lexer l = Lexer(file);
+    std::vector<Token::Type> correct  { Token::N,Token::Gi,Token::Li,Token::Li };
+    for (auto expected : correct) {
+        EXPECT_EQ(expected, l.next().type);
+    }
+}
+
+TEST(Lex, EmptyLines) {
+    std::string code = "fn\n 1\n\nfn\n 1";
+    auto file = FSFile("", code);
+    Lexer l = Lexer(file);
+    std::vector<Token::Type> correct{ Token::Kw,Token::Gi,Token::Lit,Token::Li,Token::N,Token::Kw,Token::Gi,Token::Lit};
+    for (auto expected : correct) {
+        EXPECT_EQ(expected, l.next().type);
+    }
+}
