@@ -31,6 +31,7 @@ enum Kw_e : unsigned char {
   String,
   Drop, /* _ */
   If,
+  Else,
   Import,
   Export,
   Extern,

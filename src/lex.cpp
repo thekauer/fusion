@@ -147,7 +147,8 @@ static const std::map<unsigned int, Kw_e> kws{
     {hash("i8"), I8},         {hash("i16"), I16},
     {hash("i32"), I32},       {hash("i64"), I64},
     {hash("string"), String}, {hash("_"), Drop},
-    {hash("if"), If},         {hash("import"), Import},
+    {hash("if"), If},         {hash("else"),Else},
+    {hash("import"), Import},
     {hash("extern"), Extern}, {hash("export"), Export},
     {hash("mod"), Module},    {hash("true"), True},
     {hash("false"), False},   {hash("bool"), Bool}};
@@ -252,8 +253,8 @@ Token Lexer::lex_string(SourceLocation &err_loc) {
 }
 
 Token Lexer::lex_newline(SourceLocation &err_loc) {
-  pop();
-  auto curr_indent = indent;
+  pop(); //pop the N
+  auto curr_indent =   0;
   while (eq[peek()] == Space) {
     pop();
     curr_indent++;
@@ -262,9 +263,10 @@ Token Lexer::lex_newline(SourceLocation &err_loc) {
     pop();
     curr_indent++;
   }
-  if (eq[peek()] == N) {
-    return next();
+  while(eq[peek()] == Token::N) {
+      return lex_newline(err_loc);
   }
+
   if (indent < curr_indent) {
     indent = curr_indent;
     return Token(Token::Gi, this->get_sourcelocation());
