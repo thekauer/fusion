@@ -40,6 +40,22 @@ struct Body : AstExpr {
     llvm::Value* codegen(FusionCtx& ctx) const override;
     void pretty_print() const override;
 };
+struct Stmt : AstExpr {
+    std::unique_ptr<Body> body;
+    Stmt(const SourceLocation& sl,AstType type ,std::unique_ptr<Body>&& body) : body(std::move(body)), AstExpr(type, sl) {};
+    virtual void print_name() const;
+    virtual llvm::Value* codegen(FusionCtx& ctx) const = 0;
+    virtual void pretty_print() const = 0;
+    virtual ~Stmt() {};
+};
+struct Expr : AstExpr {
+    QualType ty;
+    Expr(const SourceLocation& sl, AstType type, QualType ty) : ty(ty), AstExpr(type, sl) {};
+    virtual void print_name() const;
+    virtual llvm::Value* codegen(FusionCtx& ctx) const = 0;
+    virtual void pretty_print() const = 0;
+    virtual ~Expr() {};
+};
 struct VarDeclExpr : AstExpr {
   std::string name;
   QualType ty;
