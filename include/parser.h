@@ -16,9 +16,10 @@ enum class AstType : unsigned char {
   VarExpr,
   VarDeclExpr,
   RangeExpr,
-  IfExpr,
+  IfStmt,
   ImportExpr,
   ModExpr,
+  Body,
 };
 class AstExpr {
 public:
@@ -32,6 +33,13 @@ public:
   int indent = 0;
 };
 
+struct Body : AstExpr {
+    std::vector<std::unique_ptr<AstExpr>> body;
+    Body(const SourceLocation& sl, std::vector<std::unique_ptr<AstExpr>>&& body) : body(std::move(body)), AstExpr(AstType::Body, sl) {}
+    void print_name() const { std::cout << "body\n"; };
+    llvm::Value* codegen(FusionCtx& ctx) const override;
+    void pretty_print() const override;
+};
 struct VarDeclExpr : AstExpr {
   std::string name;
   QualType ty;
@@ -80,14 +88,14 @@ struct FnProto : AstExpr {
 struct FnDecl : AstExpr {
   FnModifiers::Type mods = 0;
   std::unique_ptr<FnProto> proto;
-  std::vector<std::unique_ptr<AstExpr>> body{};
+  std::unique_ptr<Body> body;
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto,
-         std::vector<std::unique_ptr<AstExpr>> &&body,
+         std::unique_ptr<Body> &&body,
          FnModifiers::Type mods = 0)
-      : AstExpr(AstType::FnDecl, sl), proto(move(proto)), body(move(body)),
+      : AstExpr(AstType::FnDecl, sl), proto(std::move(proto)), body(std::move(body)),
         mods(mods){};
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto)
-      : AstExpr(AstType::FnDecl, sl), proto(move(proto)),
+      : AstExpr(AstType::FnDecl, sl), proto(std::move(proto)),
         mods(FnModifiers::Extern) {}
   void print_name() const override {
     std::cout << "FnDecl: " << proto->name << "\n";
@@ -140,7 +148,7 @@ struct BinExpr : AstExpr {
   BinExpr(const SourceLocation &sl, Token::Type op,
           std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs)
       : AstExpr(AstType::BinExpr, sl), lhs(move(lhs)), rhs(move(rhs)), op(op){};
-  void print_name() const override { std::cout << "BinExpr\n"; }
+  void print_name() const override { std::cout << "BinExpr\n"; }    
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -154,10 +162,13 @@ struct RangeExpr : AstExpr {
   void pretty_print() const override;
 };
 
-struct IfExpr : AstExpr {
+struct IfStmt : AstExpr {
   std::unique_ptr<AstExpr> condition;
-  IfExpr(const SourceLocation &sl, std::unique_ptr<AstExpr> condition)
-      : AstExpr(AstType::IfExpr, sl), condition(std::move(condition)){};
+  std::unique_ptr<Body> body,else_body;
+  IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,std::unique_ptr<Body>&& body)
+      : AstExpr(AstType::IfStmt, sl), condition(std::move(condition)),body(std::move(body)){};
+  IfStmt(const SourceLocation& sl, std::unique_ptr<AstExpr> condition, std::unique_ptr<Body>&& body,std::unique_ptr<Body>&& else_body)
+      : AstExpr(AstType::IfStmt, sl), condition(std::move(condition)), body(std::move(body)),else_body(std::move(else_body)) {};
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -185,6 +196,10 @@ public:
   Token expect(Token::Type ty, const std::string &tk);
   Parser(std::vector<Token> &tokens, FusionCtx &ctx, const FSFile &file)
       : it(tokens.begin()), end(tokens.end()), ctx(ctx), file(file){};
+  std::unique_ptr<Body> parse();
+  std::unique_ptr<AstExpr> parse_expr();
+private:
+  std::unique_ptr<AstExpr> parse_top_level();
   std::unique_ptr<FnProto> parse_fnproto();
   std::unique_ptr<FnDecl> parse_fndecl();
   std::unique_ptr<AstExpr> parse_primary();
@@ -192,12 +207,12 @@ public:
   std::unique_ptr<AstExpr> parse_binary(std::unique_ptr<AstExpr> lhs,
                                         int p = 0);
   std::unique_ptr<ValExpr> parse_valexpr();
-  std::unique_ptr<AstExpr> parse_expr();
   std::unique_ptr<AstExpr> parse_infered_var_decl(const std::string &name);
   std::unique_ptr<AstExpr> parse_var_decl();
   std::unique_ptr<VarDeclExpr> parse_arg();
   std::unique_ptr<VarExpr> parse_var();
   std::unique_ptr<TypeExpr> parse_type_expr();
-  std::unique_ptr<IfExpr> parse_if_expr();
+  std::unique_ptr<IfStmt> parse_ifstmt();
   std::unique_ptr<ImportExpr> parse_import();
+  std::unique_ptr<Body> parse_body();
 };

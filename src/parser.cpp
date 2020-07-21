@@ -31,6 +31,21 @@ int precedence(Token::Type op) {
   }
   return -1;
 }
+std::unique_ptr<Body> Parser::parse()
+{
+    auto loc = peek().sl;
+    std::vector<std::unique_ptr<AstExpr>> body;
+    auto top_level_expr = parse_top_level();
+    while (top_level_expr) {
+        body.push_back(std::move(top_level_expr));
+        top_level_expr = parse_top_level();
+    }
+    return std::make_unique<Body>(loc, std::move(body));
+}
+std::unique_ptr<AstExpr> Parser::parse_top_level(){   
+    //in the future this should be extended to parse classes,mods etc. as well
+    return parse_fndecl();
+}
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
 
@@ -83,36 +98,14 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     if (peek().type != Token::N) {
       serror(Error_e::Unk, "should be new line");
     }
-    return std::make_unique<FnDecl>(peek().sl, move(proto));
+    return std::make_unique<FnDecl>(peek().sl, std::move(proto));
   }
-  expect(Token::Gi, "greater indentation");
-  ++indent;
-
-  std::vector<std::unique_ptr<AstExpr>> body;
-  auto expr = parse_expr();
-  if (!expr)
-    Error::EmptyFnBody(file, peek().sl);
-  while (expr) {
-    body.push_back(std::move(expr));
-
-    if (peek().sl.indent <= fn_indent) {
-      break;
-    }
-    if (peek().type == Token::Gi) {
-      pop();
-      ++indent;
-    }
-    if (peek().type == Token::Li) {
-      pop();
-      --indent;
-    }
-    if (peek().type == Token::N) {
-      pop();
-    }
-
-    expr = parse_expr();
+  auto body = parse_body();
+  if (!body) {
+      return nullptr;
   }
-  auto ret = std::make_unique<FnDecl>(proto->sl, move(proto), move(body), mods);
+  
+  auto ret = std::make_unique<FnDecl>(proto->sl, std::move(proto), std::move(body), mods);
   return ret;
 }
 
@@ -145,6 +138,9 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   expr = parse_fncall();
   if (expr)
     return expr;
+  expr = parse_ifstmt();
+  if (expr)
+      return expr;
   expr = parse_var_decl();
   if (expr)
     return expr;
@@ -316,7 +312,7 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs) // fix this
+  if (lhs && lhs->type != AstType::IfStmt) // fix this
     return parse_binary(std::move(lhs));
   return lhs;
 }
@@ -355,11 +351,25 @@ std::unique_ptr<VarExpr> Parser::parse_var() {
   return std::make_unique<VarExpr>(name.sl, name.getName());
 }
 
-std::unique_ptr<IfExpr> Parser::parse_if_expr() {
+std::unique_ptr<IfStmt> Parser::parse_ifstmt() {
   if (peek().type == Token::Kw && peek().getKw() == Kw_e::If) {
-    pop(); // pop if
-    auto ret = std::make_unique<IfExpr>(peek().sl, parse_expr());
-    // parse fn body
+    auto loc = pop().sl; // pop if
+    auto cond = parse_expr();
+    if (!cond) {
+        Error::ImplementMe("Expected expression after if statement.");
+    }
+    auto body = parse_body();
+    if (!body) {
+        return nullptr;
+    }
+    //else
+    if (peek().type == Token::Kw && peek().getKw() == Kw_e::Else) {
+        pop(); // pop the else
+        auto else_body = parse_body();
+        return std::make_unique<IfStmt>(loc,std::move(cond), std::move(body), std::move(else_body));
+    }
+
+    return std::make_unique<IfStmt>(loc, std::move(cond), std::move(body));
   }
   return nullptr;
 }
@@ -380,6 +390,37 @@ std::unique_ptr<ImportExpr> Parser::parse_import() {
   return nullptr;
 }
 
+std::unique_ptr<Body> Parser::parse_body()
+{
+    auto loc = peek().sl;
+    if (pop().type != Token::Gi) {
+        Error::EmptyFnBody(file, peek().sl);
+    }
+    std::vector<std::unique_ptr<AstExpr>> body;
+
+    while (peek().type != Token::Li) {
+        auto expr = parse_expr();
+        if (expr) {
+            body.push_back(std::move(expr));
+        }
+        else {
+            Error::ImplementMe("expr in body is null");
+            return nullptr;;    
+        }
+    }
+    pop(); //pop the Li
+    return std::make_unique<Body>(loc, std::move(body));
+}
+
+void Body::pretty_print() const {
+    for (const auto& line : body) {
+        for(int i=0;i<sl.indent;i++)
+        llvm::outs() << " ";
+        line->pretty_print();
+        llvm::outs() << "\n";
+    }
+}
+
 void FnProto::pretty_print() const {
   llvm::outs() << "fn " << name << "(";
   for (const auto &arg : args) {
@@ -394,11 +435,7 @@ void FnProto::pretty_print() const {
 void FnDecl::pretty_print() const {
   proto->pretty_print();
   llvm::outs() << "\n";
-  for (const auto &b : body) {
-    llvm::outs() << " ";
-    b->pretty_print();
-    llvm::outs() << "\n";
-  }
+  body->pretty_print();
   llvm::outs() << "\n";
 }
 
@@ -437,6 +474,14 @@ void ValExpr::pretty_print() const {
             llvm::outs() << val.as.u64;
             return;
         }
+        case Bool:
+            if (val.as.b) {
+                llvm::outs() << "true";
+            }
+            else {
+                llvm::outs() << "false";
+            }
+            return;
     }
     default:
         llvm::outs() << "val";
@@ -490,9 +535,15 @@ void RangeExpr::pretty_print() const {
     end->pretty_print();
 }
 
-void IfExpr::pretty_print() const {
+void IfStmt::pretty_print() const {
   llvm::outs() << "if ";
   condition->pretty_print();
+  llvm::outs() << "\n";
+  body->pretty_print();
+  if (else_body) {
+      llvm::outs() << "else\n";
+      else_body->pretty_print();
+  }
 }
 
 void ImportExpr::pretty_print() const { llvm::outs() << "import " << module; }
