@@ -9,6 +9,7 @@ class Compiler {
 public:
   Compiler() = default;
   void compile(int argc, char **argv);
+  void test();
 
 private:
   void mod_to_file(llvm::Module *m, const std::string &filename = "main.ll");

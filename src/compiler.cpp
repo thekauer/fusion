@@ -76,22 +76,13 @@ void Compiler::compile(int argc, char **argv) {
 
     Parser p(l.tokens, ctx, file);
 
-    auto m = p.parse_fndecl();
-    std::vector<std::unique_ptr<FnDecl>> fndecls;
-    llvm::outs() << "parse: ";
-    while (m) {
-      fndecls.push_back(move(m));
-      m = p.parse_fndecl();
-    }
-    std::cout << "\npretty print:\n";
-    for (auto &&decl : fndecls) {
-      decl->pretty_print();
-    }
 
+    llvm::outs() << "parse: ";
+    auto prog = p.parse();
+    llvm::outs() << "\npretty print: \n";
+    prog->pretty_print();
     llvm::outs() << "\ncodegen: \n";
-    for (auto &&decl : fndecls) {
-      decl->codegen(ctx);
-    }
+    prog->codegen(ctx);
   }
 
   generate_obj(ctx.mod.get());
@@ -109,6 +100,46 @@ void Compiler::compile(int argc, char **argv) {
     PM.add(llvm::createPrintModulePass(llvm::outs()));
     PM.run(*ctx.mod);
   }
+}
+
+void Compiler::test() {
+    
+
+    auto start = std::chrono::high_resolution_clock::now();
+    FusionCtx ctx;
+    create_fs_std_lib(ctx);
+
+    bool show_llvm = true;
+    SourceManager sm;
+    sm.open("main.fs");
+    auto file = sm.sources[0];
+    Lexer l(file);
+    l.lex();
+
+    Parser p(l.tokens, ctx, file);
+    llvm::outs() << "parse: ";
+    auto prog = p.parse();
+    llvm::outs() << "\npretty print: \n";
+    prog->pretty_print();
+    llvm::outs() << "\ncodegen: \n";
+    prog->codegen(ctx);
+
+    generate_obj(ctx.mod.get());
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
+        .count();
+    auto dd = (double)duration / 1000;
+    system("./compile.sh");
+    // link_fs();
+    std::cout << "[" << std::setprecision(4) << dd << "s]";
+
+    if (show_llvm) {
+        llvm::legacy::PassManager PM;
+        PM.add(llvm::createPrintModulePass(llvm::outs()));
+        PM.run(*ctx.mod);
+    }
+
 }
 
 void Compiler::generate_obj(llvm::Module *m, const std::string &filename) {
