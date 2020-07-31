@@ -31,7 +31,9 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) const {
   }
   std::vector<llvm::Value *> fn_args;
   for (auto &&arg : args) {
-    fn_args.push_back(arg->codegen(ctx));
+      if (arg) {
+          fn_args.push_back(arg->codegen(ctx));
+      }
   }
   return ctx.builder.CreateCall(fn, fn_args, "call");
 }
@@ -287,4 +289,13 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
 llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {
   // compile module
   return nullptr;
+}
+
+llvm::Value* ReturnStmt::codegen(FusionCtx& ctx) const
+{
+    auto *vexpr = expr->codegen(ctx);
+    if (vexpr) {
+        return ctx.builder.CreateRet(vexpr);
+    }
+    return nullptr;
 }

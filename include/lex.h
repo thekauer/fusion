@@ -38,7 +38,8 @@ enum Kw_e : unsigned char {
   Module,
   True,
   False,
-  Bool
+  Bool,
+  Return
 };
 
 bool is_op(unsigned char ch);

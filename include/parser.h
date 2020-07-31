@@ -20,6 +20,7 @@ enum class AstType : unsigned char {
   ImportExpr,
   ModExpr,
   Body,
+  ReturnStmt,
 };
 class AstExpr {
 public:
@@ -189,6 +190,13 @@ struct IfStmt : AstExpr {
   void pretty_print() const override;
 };
 
+struct ReturnStmt : AstExpr {
+    std::unique_ptr<AstExpr> expr;
+    ReturnStmt(const SourceLocation& sl, std::unique_ptr<AstExpr>&& expr) :  expr(std::move(expr)), AstExpr(AstType::ReturnStmt, sl) {}
+    llvm::Value* codegen(FusionCtx& ctx) const override;
+    void pretty_print() const override;
+};
+
 struct ImportExpr : AstExpr {
   std::string module;
   ImportExpr(const SourceLocation &sl, const std::string &module)
@@ -231,4 +239,5 @@ private:
   std::unique_ptr<IfStmt> parse_ifstmt();
   std::unique_ptr<ImportExpr> parse_import();
   std::unique_ptr<Body> parse_body();
+  std::unique_ptr<ReturnStmt> parse_return();
 };

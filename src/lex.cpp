@@ -148,7 +148,7 @@ static const std::map<unsigned int, Kw_e> kws{
     {hash("i32"), I32},       {hash("i64"), I64},
     {hash("string"), String}, {hash("_"), Drop},
     {hash("if"), If},         {hash("else"),Else},
-    {hash("import"), Import},
+    {hash("import"), Import}, {hash("return"),Return},
     {hash("extern"), Extern}, {hash("export"), Export},
     {hash("mod"), Module},    {hash("true"), True},
     {hash("false"), False},   {hash("bool"), Bool}};

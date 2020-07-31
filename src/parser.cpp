@@ -141,6 +141,9 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
   expr = parse_ifstmt();
   if (expr)
       return expr;
+  expr = parse_return();
+  if (expr)
+      return expr;
   expr = parse_var_decl();
   if (expr)
     return expr;
@@ -312,7 +315,7 @@ std::unique_ptr<AstExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs && lhs->type != AstType::IfStmt) // fix this
+  if (lhs && lhs->type != AstType::IfStmt && lhs->type!=AstType::ReturnStmt) // fix this
     return parse_binary(std::move(lhs));
   return lhs;
 }
@@ -412,6 +415,15 @@ std::unique_ptr<Body> Parser::parse_body()
     return std::make_unique<Body>(loc, std::move(body));
 }
 
+std::unique_ptr<ReturnStmt> Parser::parse_return() {
+    if (peek().type == Token::Kw && peek().getKw() == Kw_e::Return) {
+        auto sl = pop().sl; // pop the return
+        auto expr = parse_expr();
+        return std::make_unique<ReturnStmt>(sl, std::move(expr));
+    }
+    return nullptr;
+}
+
 void Body::pretty_print() const {
     for (const auto& line : body) {
         for(int i=0;i<sl.indent;i++)
@@ -498,8 +510,10 @@ void TypeExpr::pretty_print() const {
 void FnCall::pretty_print() const {
   llvm::outs() << name << "(";
   for (const auto &arg : args) {
-    arg->pretty_print();
-    llvm::outs() << ",";
+      if (arg) {
+          arg->pretty_print();
+          llvm::outs() << ",";
+      }
   }
   if (args.size() == 0)
     llvm::outs() << "(";
@@ -547,3 +561,8 @@ void IfStmt::pretty_print() const {
 }
 
 void ImportExpr::pretty_print() const { llvm::outs() << "import " << module; }
+
+void ReturnStmt::pretty_print() const {
+    llvm::outs() << "return ";
+    expr->pretty_print();
+}
