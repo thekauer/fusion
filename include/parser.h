@@ -211,12 +211,10 @@ private:
   std::vector<Token>::const_iterator it, end;
   Token pop();
   Token peek(int n = 0);
-  int indent = 0;
   FusionCtx &ctx;
   const FSFile &file;
 
 public:
-  int cnt = 0;
   Token expect(Token::Type ty, const std::string &tk);
   Parser(std::vector<Token> &tokens, FusionCtx &ctx, const FSFile &file)
       : it(tokens.begin()), end(tokens.end()), ctx(ctx), file(file){};

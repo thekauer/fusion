@@ -55,7 +55,8 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
   pop();
   auto namet = pop();
   if (namet.type != Token::Id) {
-    serror(Error_e::Unk, "NAMET-FNPROTO");
+    Error::ExpectedToken(file, namet.sl, "expected function name");
+    return nullptr;
   }
   auto name = namet.getName();
   // generics
