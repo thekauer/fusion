@@ -61,7 +61,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
   // generics
   expect(Token::Lp, "a (");
   // args
-  auto arg = parse_arg();
+  auto arg = parse_var_decl();
   std::vector<std::unique_ptr<VarDeclExpr>> args;
   while (arg) {
     args.push_back(std::move(arg));
@@ -75,7 +75,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
         serror(Error_e::Unk, "expected , or )");
       }
     }
-    arg = parse_arg();
+    arg = parse_var_decl();
   }
 
   expect(Token::Rp, "a )");
@@ -234,73 +234,9 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   return nullptr;
 }
 
-std::unique_ptr<AstExpr>
-Parser::parse_infered_var_decl(const std::string &name) {
-  if (peek().type != Token::Eq) {
-    serror(Error_e::Unk, "You must assign a value to an infered type decl.");
-  } else {
-    pop(); // pop the =
-    auto val = parse_valexpr();
-    if (!val) {
-      serror(Error_e::Unk, "expected a literal");
-    }
 
-    auto lhs = std::make_unique<VarDeclExpr>(peek().sl, name, val->val.ty);
-    return std::make_unique<BinExpr>(peek().sl, Token::Eq, std::move(lhs),
-                                     std::move(val));
-  }
-  return nullptr;
-}
 
-std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
-  auto ty_arg = parse_type_expr();
-  if (ty_arg) {
-    return std::make_unique<VarDeclExpr>(peek().sl, "", ty_arg->ty);
-  }
-
-  if (peek().type == Token::Id) {
-    std::string id = pop().getName();
-    if (peek().type == Token::DoubleDot) {
-      pop();
-      auto ty = parse_type_expr();
-      if (ty) {
-
-        return std::make_unique<VarDeclExpr>(peek().sl, id, ty->ty);
-      } else {
-        serror(Error_e::Unk, "invalid argument type");
-      }
-    }
-  }
-
-  if (peek().type == Token::Rp) {
-    return nullptr;
-  }
-  /*
-  auto id = peek();
-  if (peek().type != Token::Id)
-    return nullptr;
-  pop();
-  auto t = peek();
-  if (t.type == Token::Comma || t.type == Token::Rp) {
-    llvm::outs() << "Vardecl made here";
-    return std::make_unique<VarDeclExpr>(id.getName());
-  }
-
-  if(t.type==Token::DoubleDot) {
-    llvm::outs() << "DOUBLE DOT\n";
-    pop();
-    auto ty = parse_type_expr();
-    if (!ty) {
-      serror(Error_e::Unk, "Unknown type");
-    }
-
-    return std::make_unique<VarDeclExpr>(id.getName(),ty->ty);
-  }*/
-  serror(Error_e::Unk, "Parse arg unreachable");
-  return nullptr;
-}
-
-std::unique_ptr<AstExpr> Parser::parse_var_decl() {
+std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
   if (peek().type != Token::Id || peek(1).type != Token::DoubleDot) {
     return nullptr;
   }
