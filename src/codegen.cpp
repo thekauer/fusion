@@ -13,10 +13,6 @@ static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
   }
   return false;
 }
-static llvm::Type *fstypeof(AstExpr *expr) {
-  serror(Error_e::Unk, "type: " + std::to_string((int)expr->type));
-  return nullptr;
-}
 static llvm::Value *alloc(FusionCtx &ctx, llvm::Type *ty, std::string name) {
   llvm::AllocaInst *val = ctx.builder.CreateAlloca(ty, nullptr, name);
   ctx.named_values[name] = val;

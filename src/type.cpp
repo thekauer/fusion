@@ -122,9 +122,10 @@ bool QualType::is_mut() const { return mut == 1; }
 bool QualType::is_opt() const { return opt == 1; }
 
 const Type &QualType::get_type() const { return *type; }
-const Type const *QualType::get_type_ptr() const { return type; }
+const Type *QualType::get_type_ptr() const { return type; }
 
 QualType &QualType::operator=(const QualType &other) {
   type = other.type;
   mods = other.mods;
+  return *this;
 }

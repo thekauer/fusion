@@ -81,7 +81,7 @@ public:
   bool is_opt() const;
 
   const Type &get_type() const;
-  const Type const *get_type_ptr() const;
+  const Type *get_type_ptr() const;
 
   QualType &operator=(const QualType &other);
 

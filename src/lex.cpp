@@ -118,12 +118,13 @@ Lit::Lit(bool b) : ty(QualType(Type::get_bool())) { as.b = b; };
 Lit::Lit(float f32) : ty(QualType(Type::get_f32())) { as.f32 = f32; };
 Lit::Lit(double f64) : ty(QualType(Type::get_f64())) { as.f64 = f64; };
 Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) {
-  string = string;
+  as.string = string;
 };
 
 Lit &Lit::operator=(const Lit &other) {
   ty = other.ty;
   as = other.as;
+  return *this;
 }
 
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};

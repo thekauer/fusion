@@ -90,7 +90,6 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
     mods |= FnModifiers::Extern;
   }
 
-  auto fn_indent = peek().sl.indent;
   auto proto = parse_fnproto();
   if (!proto)
     return nullptr;
@@ -298,6 +297,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_arg() {
     return std::make_unique<VarDeclExpr>(id.getName(),ty->ty);
   }*/
   serror(Error_e::Unk, "Parse arg unreachable");
+  return nullptr;
 }
 
 std::unique_ptr<AstExpr> Parser::parse_var_decl() {
