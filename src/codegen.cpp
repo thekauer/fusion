@@ -91,15 +91,7 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) const {
   }
 
   body->codegen(ctx);
-  /*
-  if(proto->ret) {
-      //return with returntype
-  }else {
-  */
-  llvm::Constant *def_ret_val =
-      llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, 0, true));
-  ctx.builder.CreateRet(def_ret_val);
-  //}
+
 
   llvm::verifyFunction(*fn);
   return fn;
