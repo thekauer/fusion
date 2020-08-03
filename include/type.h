@@ -63,6 +63,7 @@ struct IntegralType : Type {
   llvm::Type *codegen(FusionCtx &ctx) const override;
 };
 
+
 class QualType {
 public:
   QualType(const Type &type);
@@ -91,4 +92,13 @@ private:
   unsigned mut : 1;
   unsigned ref : 1;
   unsigned opt : 1;
+};
+
+struct StructType : Type {
+private:
+    unsigned int get_struct_size();
+public:
+    std::vector<QualType> fields;
+    StructType(std::string_view name, std::vector<QualType>&& fields) : Type(name, Type::Struct, get_struct_size()) {};
+    llvm::Type* codegen(FusionCtx& ctx) const override;
 };

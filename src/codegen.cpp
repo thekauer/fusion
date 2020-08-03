@@ -287,3 +287,7 @@ llvm::Value* ReturnStmt::codegen(FusionCtx& ctx) const
     }
     return nullptr;
 }
+llvm::Value* ClassStmt::codegen(FusionCtx& ctx) const {
+    body->codegen(ctx);
+    return reinterpret_cast<llvm::Value*>(ty.get_type_ptr()->codegen(ctx));
+}

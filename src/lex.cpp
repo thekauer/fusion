@@ -152,7 +152,8 @@ static const std::map<unsigned int, Kw_e> kws{
     {hash("import"), Import}, {hash("return"),Return},
     {hash("extern"), Extern}, {hash("export"), Export},
     {hash("mod"), Module},    {hash("true"), True},
-    {hash("false"), False},   {hash("bool"), Bool}};
+    {hash("false"), False},   {hash("bool"), Bool},
+    {hash("class"),Class}, };
 Kw_e is_kw(unsigned int h) {
   auto k = kws.find(h);
   if (k != kws.end()) {

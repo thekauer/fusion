@@ -129,3 +129,19 @@ QualType &QualType::operator=(const QualType &other) {
   mods = other.mods;
   return *this;
 }
+
+
+unsigned int StructType::get_struct_size() {
+    unsigned int sum = 0;
+    for (const auto& t : fields) {
+        sum += t.get_type_ptr()->get_size();
+    }
+    return sum;
+}
+llvm::Type* StructType::codegen(FusionCtx& ctx) const {
+    std::vector<llvm::Type*> tys;
+    for (const auto& t : fields) {
+        tys.push_back(t.get_type_ptr()->codegen(ctx));
+    }
+    return llvm::StructType::create(ctx.ctx,llvm::ArrayRef(tys),llvm::StringRef(name.data()),false);
+}

@@ -31,6 +31,17 @@ int precedence(Token::Type op) {
   }
   return -1;
 }
+QualType ClassStmt::get_class_type() const {
+    std::vector<QualType> types;
+    for (auto const& line : body->body) {
+        if (line->type == AstType::VarDeclExpr) {
+            auto t = line->cast<VarDeclExpr>()->ty;
+            types.push_back(t);
+        }
+    }
+    return QualType(StructType(name,std::move(types)));
+}
+
 std::unique_ptr<Body> Parser::parse()
 {
     auto loc = peek().sl;
@@ -44,7 +55,13 @@ std::unique_ptr<Body> Parser::parse()
 }
 std::unique_ptr<AstExpr> Parser::parse_top_level(){   
     //in the future this should be extended to parse classes,mods etc. as well
-    return parse_fndecl();
+    std::unique_ptr<AstExpr> tle = parse_fndecl();
+    if (tle)
+        return tle;
+    tle = parse_class();
+    if (tle)
+        return tle;
+    return nullptr;
 }
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
@@ -306,6 +323,9 @@ std::unique_ptr<IfStmt> Parser::parse_ifstmt() {
     if (peek().type == Token::Kw && peek().getKw() == Kw_e::Else) {
         pop(); // pop the else
         auto else_body = parse_body();
+        if (!else_body) {
+            return nullptr;
+        }
         return std::make_unique<IfStmt>(loc,std::move(cond), std::move(body), std::move(else_body));
     }
 
@@ -357,6 +377,23 @@ std::unique_ptr<ReturnStmt> Parser::parse_return() {
         auto sl = pop().sl; // pop the return
         auto expr = parse_expr();
         return std::make_unique<ReturnStmt>(sl, std::move(expr));
+    }
+    return nullptr;
+}
+std::unique_ptr<ClassStmt> Parser::parse_class() {
+    if (peek().type == Token::Kw && peek().getKw() == Kw_e::Class) {
+        auto sl = pop().sl;//pop the class
+        auto id = parse_var();
+        if (!id) {
+            Error::ImplementMe("class must have a name");
+        }
+        auto name = id->name;
+        auto body = parse_body();
+        if (!body) {
+            return nullptr;
+        }
+        std::make_unique<ClassStmt>(sl, name, std::move(body));
+
     }
     return nullptr;
 }
@@ -502,4 +539,9 @@ void ImportExpr::pretty_print() const { llvm::outs() << "import " << module; }
 void ReturnStmt::pretty_print() const {
     llvm::outs() << "return ";
     expr->pretty_print();
+}
+
+void ClassStmt::pretty_print() const {
+    llvm::outs() << "class " << name.data();
+    body->pretty_print();
 }

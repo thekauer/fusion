@@ -21,6 +21,7 @@ enum class AstType : unsigned char {
   ModExpr,
   Body,
   ReturnStmt,
+  ClassStmt
 };
 class AstExpr {
 public:
@@ -32,6 +33,10 @@ public:
   virtual void pretty_print() const = 0;
   virtual ~AstExpr() {}
   int indent = 0;
+  template<typename T>
+  T* cast() {
+      return reinterpret_cast<T*>(this);
+  }
 };
 
 struct Body : AstExpr {
@@ -205,6 +210,18 @@ struct ImportExpr : AstExpr {
   void pretty_print() const override;
 };
 
+struct ClassStmt : AstExpr {
+private:
+    QualType get_class_type() const;
+public:
+    QualType ty;
+    std::unique_ptr<Body> body;
+    std::string_view name;
+    ClassStmt(const SourceLocation& sl, std::string_view name,std::unique_ptr<Body>&& body) : AstExpr(AstType::ClassStmt, sl), body(std::move(body)),name(name), ty(get_class_type()) {};
+    llvm::Value* codegen(FusionCtx& ctx) const override;
+    void pretty_print() const override;
+};
+
 int precedence(Token::Type op);
 class Parser {
 private:
@@ -236,4 +253,5 @@ private:
   std::unique_ptr<ImportExpr> parse_import();
   std::unique_ptr<Body> parse_body();
   std::unique_ptr<ReturnStmt> parse_return();
+  std::unique_ptr<ClassStmt> parse_class();
 };
