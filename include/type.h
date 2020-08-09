@@ -96,9 +96,9 @@ private:
 
 struct StructType : Type {
 private:
-    unsigned int get_struct_size();
+    static unsigned int get_struct_size(std::vector<QualType>& fields);
 public:
     std::vector<QualType> fields;
-    StructType(std::string_view name, std::vector<QualType>&& fields) : Type(name, Type::Struct, get_struct_size()) {};
+    StructType(std::string_view name, std::vector<QualType>&& fields) : fields(std::move(fields)),Type(name, Type::Struct, get_struct_size(fields)) {};
     llvm::Type* codegen(FusionCtx& ctx) const override;
 };

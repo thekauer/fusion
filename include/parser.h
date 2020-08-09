@@ -216,8 +216,8 @@ private:
 public:
     QualType ty;
     std::unique_ptr<Body> body;
-    std::string_view name;
-    ClassStmt(const SourceLocation& sl, std::string_view name,std::unique_ptr<Body>&& body) : AstExpr(AstType::ClassStmt, sl), body(std::move(body)),name(name), ty(get_class_type()) {};
+    std::unique_ptr<VarExpr> name;
+    ClassStmt(const SourceLocation& sl, std::unique_ptr<VarExpr>&& name, std::unique_ptr<Body>&& body) : AstExpr(AstType::ClassStmt, sl), body(std::move(body)), name(std::move(name)) { ty = get_class_type(); };
     llvm::Value* codegen(FusionCtx& ctx) const override;
     void pretty_print() const override;
 };
@@ -254,4 +254,6 @@ private:
   std::unique_ptr<Body> parse_body();
   std::unique_ptr<ReturnStmt> parse_return();
   std::unique_ptr<ClassStmt> parse_class();
+  std::unique_ptr<Body> parse_class_body();
+  std::unique_ptr<AstExpr> parse_inside_class();
 };

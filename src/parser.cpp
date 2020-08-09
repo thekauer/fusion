@@ -39,7 +39,7 @@ QualType ClassStmt::get_class_type() const {
             types.push_back(t);
         }
     }
-    return QualType(StructType(name,std::move(types)));
+    return QualType(StructType(name->name,std::move(types)));
 }
 
 std::unique_ptr<Body> Parser::parse()
@@ -66,39 +66,39 @@ std::unique_ptr<AstExpr> Parser::parse_top_level(){
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
 
-  if (peek().type != Token::Kw && peek().getKw() != Kw_e::Fn)
+    if (peek().type == Token::Kw && peek().getKw() == Kw_e::Fn) {
+        pop();
+        auto namet = pop();
+        if (namet.type != Token::Id) {
+            Error::ExpectedToken(file, namet.sl, "expected function name");
+            return nullptr;
+        }
+        auto name = namet.getName();
+        // generics
+        expect(Token::Lp, "a (");
+        // args
+        auto arg = parse_var_decl();
+        std::vector<std::unique_ptr<VarDeclExpr>> args;
+        while (arg) {
+            args.push_back(std::move(arg));
 
-    return nullptr;
-  pop();
-  auto namet = pop();
-  if (namet.type != Token::Id) {
-    Error::ExpectedToken(file, namet.sl, "expected function name");
-    return nullptr;
-  }
-  auto name = namet.getName();
-  // generics
-  expect(Token::Lp, "a (");
-  // args
-  auto arg = parse_var_decl();
-  std::vector<std::unique_ptr<VarDeclExpr>> args;
-  while (arg) {
-    args.push_back(std::move(arg));
+            if (peek().type == Token::Comma) {
+                pop();
+            }
 
-    if (peek().type == Token::Comma) {
-      pop();
+            else {
+                if (peek().type != Token::Rp) {
+                    serror(Error_e::Unk, "expected , or )");
+                }
+            }
+            arg = parse_var_decl();
+        }
+
+        expect(Token::Rp, "a )");
+        // MAybe return type
+        return std::make_unique<FnProto>(namet.sl, name, std::move(args));
     }
-
-    else {
-      if (peek().type != Token::Rp) {
-        serror(Error_e::Unk, "expected , or )");
-      }
-    }
-    arg = parse_var_decl();
-  }
-
-  expect(Token::Rp, "a )");
-  // MAybe return type
-  return std::make_unique<FnProto>(namet.sl, name, std::move(args));
+    return nullptr;
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
@@ -387,15 +387,43 @@ std::unique_ptr<ClassStmt> Parser::parse_class() {
         if (!id) {
             Error::ImplementMe("class must have a name");
         }
-        auto name = id->name;
-        auto body = parse_body();
+        auto body = parse_class_body();
         if (!body) {
             return nullptr;
         }
-        std::make_unique<ClassStmt>(sl, name, std::move(body));
+        return std::make_unique<ClassStmt>(sl, std::move(id), std::move(body));
 
     }
     return nullptr;
+}
+
+std::unique_ptr<Body> Parser::parse_class_body() {
+    auto loc = peek().sl;
+    if (pop().type != Token::Gi) {
+        Error::EmptyFnBody(file, peek().sl);
+    }
+    std::vector<std::unique_ptr<AstExpr>> body;
+
+    while (peek().type != Token::Li) {
+        auto expr = parse_inside_class();
+        if (expr) {
+            body.push_back(std::move(expr));
+        }
+        else {
+            Error::ImplementMe("expr in body is null");
+            return nullptr;;
+        }
+    }
+    pop(); //pop the Li
+    return std::make_unique<Body>(loc, std::move(body));
+
+}
+
+std::unique_ptr<AstExpr> Parser::parse_inside_class() {
+    std::unique_ptr<AstExpr> expr = parse_fndecl();
+    if (expr)
+        return expr;
+    return parse_var_decl();
 }
 
 void Body::pretty_print() const {
@@ -542,6 +570,6 @@ void ReturnStmt::pretty_print() const {
 }
 
 void ClassStmt::pretty_print() const {
-    llvm::outs() << "class " << name.data();
+    llvm::outs() << "class " << name->name << "\n";
     body->pretty_print();
 }

@@ -131,7 +131,7 @@ QualType &QualType::operator=(const QualType &other) {
 }
 
 
-unsigned int StructType::get_struct_size() {
+unsigned int StructType::get_struct_size(std::vector<QualType>& fields) {
     unsigned int sum = 0;
     for (const auto& t : fields) {
         sum += t.get_type_ptr()->get_size();
