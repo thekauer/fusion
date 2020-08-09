@@ -41,7 +41,6 @@ script:
   - cd build
   - cmake .. 
   - make test
-  - ./test/test
 
 notifications:
   email:
