@@ -14,7 +14,7 @@ static const IntegralType u16 = IntegralType("u16", IntegralType::U16, 2);
 static const IntegralType u32 = IntegralType("u32", IntegralType::U32, 4);
 static const IntegralType u64 = IntegralType("u64", IntegralType::U64, 8);
 static const IntegralType usize = IntegralType("usize", IntegralType::USize, 4);
-static const IntegralType bool_ = IntegralType("bool", IntegralType::I8, 1);
+static const IntegralType bool_ = IntegralType("bool", IntegralType::Bool, 1);
 static const IntegralType f32 = IntegralType("f32", IntegralType::F32, 4);
 static const IntegralType f64 = IntegralType("f64", IntegralType::F64, 8);
 
@@ -122,9 +122,26 @@ bool QualType::is_mut() const { return mut == 1; }
 bool QualType::is_opt() const { return opt == 1; }
 
 const Type &QualType::get_type() const { return *type; }
-const Type const *QualType::get_type_ptr() const { return type; }
+const Type *QualType::get_type_ptr() const { return type; }
 
 QualType &QualType::operator=(const QualType &other) {
   type = other.type;
   mods = other.mods;
+  return *this;
+}
+
+
+unsigned int StructType::get_struct_size(std::vector<QualType>& fields) {
+    unsigned int sum = 0;
+    for (const auto& t : fields) {
+        sum += t.get_type_ptr()->get_size();
+    }
+    return sum;
+}
+llvm::Type* StructType::codegen(FusionCtx& ctx) const {
+    std::vector<llvm::Type*> tys;
+    for (const auto& t : fields) {
+        tys.push_back(t.get_type_ptr()->codegen(ctx));
+    }
+    return llvm::StructType::create(ctx.ctx,llvm::ArrayRef(tys),llvm::StringRef(name.data()),false);
 }

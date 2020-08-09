@@ -8,7 +8,7 @@ TEST(parser, only_primary) {
   FusionCtx ctx;
   std::string code = "2";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   Token::Type tks[]{Token::Lit};
@@ -26,7 +26,7 @@ TEST(parser, primary_and_op) {
   FusionCtx ctx;
   std::string code = "2+";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   Token::Type tks[]{Token::Lit, Token::Add};
@@ -46,7 +46,7 @@ TEST(parser, outofbounnds) {
   FusionCtx ctx;
   std::string code = "2 + 3";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   Token::Type tks[]{Token::Lit, Token::Add, Token::Lit};
@@ -76,11 +76,11 @@ TEST(parser, addition) {
   FusionCtx ctx;
   std::string code = "2 + 3 * 2\n";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
-  EXPECT_EQ(tokens.size(), 5);
-  Token::Type tks[]{Token::Lit, Token::Add, Token::Lit, Token::Mul, Token::Lit};
+  EXPECT_EQ(tokens.size(), 6);
+  Token::Type tks[]{Token::Lit, Token::Add, Token::Lit, Token::Mul, Token::Lit,Token::N};
   for (int i = 0; i < tokens.size(); i++) {
     EXPECT_EQ(tokens[i].type, tks[i]) << "i: " << i;
   }
@@ -108,7 +108,7 @@ TEST(parser, binexpr) {
   FusionCtx ctx;
   std::string code = "5 = 3 + 2";
   auto file = FSFile("test", code);
-  auto lexer = Lexer(file, ctx);
+  auto lexer = Lexer(file);
   lexer.lex();
   auto tokens = lexer.tokens;
   EXPECT_EQ(tokens.size(), 5);
@@ -136,4 +136,18 @@ TEST(parser, binexpr) {
   EXPECT_EQ(r->lhs->type,AstType::ValExpr) << "3 should be a val";
   EXPECT_EQ(r->rhs->type,AstType::ValExpr) << "2 should be a type";
   */
+}
+TEST(parser, IfStmt) {
+    FusionCtx ctx;
+    std::string code = "if true\n 1+1\nelse\n 1+1\n";
+    auto file = FSFile("test", code);
+    auto lexer = Lexer(file);
+    lexer.lex();
+    auto p = Parser(lexer.tokens, ctx, file);
+    auto ifstmt = reinterpret_cast<IfStmt*>(p.parse_expr().get());
+    ASSERT_NE(ifstmt, nullptr);
+    ASSERT_NE(ifstmt->body, nullptr);
+    EXPECT_EQ(ifstmt->body->body.size(), 1);
+    ASSERT_NE(ifstmt->else_body, nullptr);
+    EXPECT_EQ(ifstmt->else_body->body.size(), 1);
 }

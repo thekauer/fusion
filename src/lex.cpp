@@ -1,6 +1,6 @@
 #include "lex.h"
-#include "llvm/IR/Constants.h"
 #include <map>
+
 unsigned int hash(const std::string &str) {
 
   unsigned int h = 123456;
@@ -118,12 +118,13 @@ Lit::Lit(bool b) : ty(QualType(Type::get_bool())) { as.b = b; };
 Lit::Lit(float f32) : ty(QualType(Type::get_f32())) { as.f32 = f32; };
 Lit::Lit(double f64) : ty(QualType(Type::get_f64())) { as.f64 = f64; };
 Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) {
-  string = string;
+  as.string = string;
 };
 
 Lit &Lit::operator=(const Lit &other) {
   ty = other.ty;
   as = other.as;
+  return *this;
 }
 
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};
@@ -147,10 +148,12 @@ static const std::map<unsigned int, Kw_e> kws{
     {hash("i8"), I8},         {hash("i16"), I16},
     {hash("i32"), I32},       {hash("i64"), I64},
     {hash("string"), String}, {hash("_"), Drop},
-    {hash("if"), If},         {hash("import"), Import},
+    {hash("if"), If},         {hash("else"),Else},
+    {hash("import"), Import}, {hash("return"),Return},
     {hash("extern"), Extern}, {hash("export"), Export},
     {hash("mod"), Module},    {hash("true"), True},
-    {hash("false"), False},   {hash("bool"), Bool}};
+    {hash("false"), False},   {hash("bool"), Bool},
+    {hash("class"),Class}, };
 Kw_e is_kw(unsigned int h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
@@ -160,14 +163,14 @@ Kw_e is_kw(unsigned int h) {
 }
 
 Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
-  llvm::StringRef sr(std::string(s.it, it));
+  std::string str(s.it, it);
   if (f) {
-    double D = 0.0;
-    sr.getAsDouble(D);
+    float D = 0.0;
+    D = std::stod(str);
     return Lit(D);
   } else {
     int I = 0;
-    sr.getAsInteger(base, I);
+    I = std::stoi(str);
     return Lit(I);
   }
 }
@@ -252,8 +255,8 @@ Token Lexer::lex_string(SourceLocation &err_loc) {
 }
 
 Token Lexer::lex_newline(SourceLocation &err_loc) {
-  pop();
-  auto curr_indent = indent;
+  pop(); //pop the N
+  auto curr_indent =   0;
   while (eq[peek()] == Space) {
     pop();
     curr_indent++;
@@ -262,9 +265,10 @@ Token Lexer::lex_newline(SourceLocation &err_loc) {
     pop();
     curr_indent++;
   }
-  if (eq[peek()] == N) {
-    return next();
+  while(eq[peek()] == Token::N) {
+      return lex_newline(err_loc);
   }
+
   if (indent < curr_indent) {
     indent = curr_indent;
     return Token(Token::Gi, this->get_sourcelocation());

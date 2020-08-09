@@ -1,6 +1,5 @@
 #pragma once
 #include "compatibility.h"
-#include "context.h"
 #include "source.h"
 #include "type.h"
 #include <string>
@@ -32,13 +31,16 @@ enum Kw_e : unsigned char {
   String,
   Drop, /* _ */
   If,
+  Else,
   Import,
   Export,
   Extern,
   Module,
   True,
   False,
-  Bool
+  Bool,
+  Return,
+  Class
 };
 
 bool is_op(unsigned char ch);

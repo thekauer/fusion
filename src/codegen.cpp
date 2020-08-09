@@ -13,10 +13,6 @@ static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
   }
   return false;
 }
-static llvm::Type *fstypeof(AstExpr *expr) {
-  serror(Error_e::Unk, "type: " + std::to_string((int)expr->type));
-  return nullptr;
-}
 static llvm::Value *alloc(FusionCtx &ctx, llvm::Type *ty, std::string name) {
   llvm::AllocaInst *val = ctx.builder.CreateAlloca(ty, nullptr, name);
   ctx.named_values[name] = val;
@@ -31,7 +27,9 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) const {
   }
   std::vector<llvm::Value *> fn_args;
   for (auto &&arg : args) {
-    fn_args.push_back(arg->codegen(ctx));
+      if (arg) {
+          fn_args.push_back(arg->codegen(ctx));
+      }
   }
   return ctx.builder.CreateCall(fn, fn_args, "call");
 }
@@ -92,18 +90,8 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) const {
     ctx.named_values[arg.getName().data()] = alloca; // probably buggy
   }
 
-  for (const auto &p : body) {
-    p->codegen(ctx);
-  }
-  /*
-  if(proto->ret) {
-      //return with returntype
-  }else {
-  */
-  llvm::Constant *def_ret_val =
-      llvm::ConstantInt::get(ctx.getI32(), llvm::APInt(32, 0, true));
-  ctx.builder.CreateRet(def_ret_val);
-  //}
+  body->codegen(ctx);
+
 
   llvm::verifyFunction(*fn);
   return fn;
@@ -134,6 +122,15 @@ llvm::Value *ValExpr::codegen(FusionCtx &ctx) const {
   }
   case IntegralType::F32: {
     return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(val.as.f32));
+  }
+  case IntegralType::Bool: {
+      if (val.as.b) {
+          return llvm::ConstantInt::getTrue(ctx.ctx);
+      }
+      else {
+          return llvm::ConstantInt::getFalse(ctx.ctx);
+      }
+
   }
   default:
     Error::ImplementMe(
@@ -229,9 +226,68 @@ llvm::Value *RangeExpr::codegen(FusionCtx &ctx) const {
   return nullptr; // implement me
 }
 
-llvm::Value *IfExpr::codegen(FusionCtx &ctx) const { return nullptr; }
+llvm::Value* Body::codegen(FusionCtx& ctx) const {
+    for (auto const& line : body) {
+        line->codegen(ctx);
+    }
+    return nullptr;
+}
+
+llvm::Value *IfStmt::codegen(FusionCtx &ctx) const { 
+    auto* condv = condition->codegen(ctx);
+    if (!condv) {
+        return nullptr;
+    }
+    //condv = ctx.builder.CreateFCmpONE(condv, llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(0.0)), "ifcond");
+    condv =ctx.builder.CreateICmpEQ(condv, llvm::ConstantInt::getTrue(ctx.ctx), "ifcond");
+    llvm::Function* func = ctx.builder.GetInsertBlock()->getParent();
+
+    llvm::BasicBlock* thenbb = llvm::BasicBlock::Create(ctx.ctx, "then");
+    llvm::BasicBlock* elsebb = llvm::BasicBlock::Create(ctx.ctx, "else");
+    llvm::BasicBlock* mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge");
+
+    ctx.builder.CreateCondBr(condv, thenbb, elsebb);
+
+    ctx.builder.SetInsertPoint(thenbb);
+    auto* thenv = body->codegen(ctx);
+    if (!thenv)
+        return nullptr;
+    ctx.builder.CreateBr(mergebb);
+    thenbb = ctx.builder.GetInsertBlock();
+
+    func->getBasicBlockList().push_back(elsebb);
+    ctx.builder.SetInsertPoint(elsebb);
+
+    auto* elsev = else_body->codegen(ctx);
+    if (!elsev)
+        return nullptr;
+
+    ctx.builder.CreateBr(mergebb);
+    elsebb = ctx.builder.GetInsertBlock();
+
+    func->getBasicBlockList().push_back(mergebb);
+    ctx.builder.SetInsertPoint(mergebb);
+    auto* pn = ctx.builder.CreatePHI(llvm::Type::getDoubleTy(ctx.ctx), 2, "iftmp");
+    pn->addIncoming(thenv, thenbb);
+    pn->addIncoming(elsev, elsebb);
+
+    return pn; 
+}
 
 llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {
   // compile module
   return nullptr;
+}
+
+llvm::Value* ReturnStmt::codegen(FusionCtx& ctx) const
+{
+    auto *vexpr = expr->codegen(ctx);
+    if (vexpr) {
+        return ctx.builder.CreateRet(vexpr);
+    }
+    return nullptr;
+}
+llvm::Value* ClassStmt::codegen(FusionCtx& ctx) const {
+    body->codegen(ctx);
+    return reinterpret_cast<llvm::Value*>(ty.get_type_ptr()->codegen(ctx));
 }

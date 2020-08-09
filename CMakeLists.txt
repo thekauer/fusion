@@ -3,8 +3,9 @@ cmake_minimum_required(VERSION 3.10)
 # set the project name
 project(fs)
 
-
-find_package(LLVM REQUIRED CONFIG)
+SET(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
+SET(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC) #put latest llvm instalation first find latest
+find_package(LLVM 10 REQUIRED CONFIG)
 SET (LLVM_DIR llvm/cmake/modules)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
@@ -29,20 +30,8 @@ core support irreader
 )
 
 message(STATUS "llvm libs: " ${LLVM_LIBS})
-if(CMAKE_SYSTEM MATCHES "-arch")
 target_link_libraries(fs LLVM)
-else()
-target_link_libraries(fs LLVM)
-endif()
 
-
-if(CMAKE_SYSTEM MATCHES "-arch")
-target_link_libraries(fs LLVM)
-else()
-target_link_libraries(fs ${llvm_libs})
-endif()
-
-
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 #dont show the buggy header guard
 set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -Wno-extra-tokens -Wno-char-subscripts -ferror-limit=3")
