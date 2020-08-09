@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.10)
 include(FetchContent)
 
 find_package(LLVM 10 REQUIRED CONFIG)
@@ -17,14 +17,16 @@ add_executable(test ${srcs} ${FS_SRC})
 llvm_map_components_to_libnames(LLVM_LIBS
 all
 )
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        release-1.10.0
+
+include(ExternalProject)
+ExternalProject_Add(gtest
+  URL https://github.com/google/googletest/archive/release-1.10.0.zip
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
+  INSTALL_COMMAND ""
 )
-FetchContent_MakeAvailable(googletest)
+ExternalProject_Get_Property(gtest source_dir binary_dir)
 
 set(CMAKE_CXX_FLAGS "-pthread")
-target_link_libraries(test gtest gtest_main LLVM)
+target_link_libraries(test ${binary_dir}/gtest ${binary_dir}/gtest_main LLVM)
 
 add_test(NAME test COMMAND test)
