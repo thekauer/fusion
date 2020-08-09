@@ -148,12 +148,13 @@ static const std::map<unsigned int, Kw_e> kws{
     {hash("i8"), I8},         {hash("i16"), I16},
     {hash("i32"), I32},       {hash("i64"), I64},
     {hash("string"), String}, {hash("_"), Drop},
-    {hash("if"), If},         {hash("else"),Else},
-    {hash("import"), Import}, {hash("return"),Return},
+    {hash("if"), If},         {hash("else"), Else},
+    {hash("import"), Import}, {hash("return"), Return},
     {hash("extern"), Extern}, {hash("export"), Export},
     {hash("mod"), Module},    {hash("true"), True},
     {hash("false"), False},   {hash("bool"), Bool},
-    {hash("class"),Class}, };
+    {hash("class"), Class},
+};
 Kw_e is_kw(unsigned int h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
@@ -255,8 +256,8 @@ Token Lexer::lex_string(SourceLocation &err_loc) {
 }
 
 Token Lexer::lex_newline(SourceLocation &err_loc) {
-  pop(); //pop the N
-  auto curr_indent =   0;
+  pop(); // pop the N
+  auto curr_indent = 0;
   while (eq[peek()] == Space) {
     pop();
     curr_indent++;
@@ -265,8 +266,8 @@ Token Lexer::lex_newline(SourceLocation &err_loc) {
     pop();
     curr_indent++;
   }
-  while(eq[peek()] == Token::N) {
-      return lex_newline(err_loc);
+  while (eq[peek()] == Token::N) {
+    return lex_newline(err_loc);
   }
 
   if (indent < curr_indent) {

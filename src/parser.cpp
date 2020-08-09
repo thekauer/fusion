@@ -32,73 +32,72 @@ int precedence(Token::Type op) {
   return -1;
 }
 QualType ClassStmt::get_class_type() const {
-    std::vector<QualType> types;
-    for (auto const& line : body->body) {
-        if (line->type == AstType::VarDeclExpr) {
-            auto t = line->cast<VarDeclExpr>()->ty;
-            types.push_back(t);
-        }
+  std::vector<QualType> types;
+  for (auto const &line : body->body) {
+    if (line->type == AstType::VarDeclExpr) {
+      auto t = line->cast<VarDeclExpr>()->ty;
+      types.push_back(t);
     }
-    return QualType(StructType(name->name,std::move(types)));
+  }
+  return QualType(StructType(name->name, std::move(types)));
 }
 
-std::unique_ptr<Body> Parser::parse()
-{
-    auto loc = peek().sl;
-    std::vector<std::unique_ptr<AstExpr>> body;
-    auto top_level_expr = parse_top_level();
-    while (top_level_expr) {
-        body.push_back(std::move(top_level_expr));
-        top_level_expr = parse_top_level();
-    }
-    return std::make_unique<Body>(loc, std::move(body));
+std::unique_ptr<Body> Parser::parse() {
+  auto loc = peek().sl;
+  std::vector<std::unique_ptr<AstExpr>> body;
+  auto top_level_expr = parse_top_level();
+  while (top_level_expr) {
+    body.push_back(std::move(top_level_expr));
+    top_level_expr = parse_top_level();
+  }
+  return std::make_unique<Body>(loc, std::move(body));
 }
-std::unique_ptr<AstExpr> Parser::parse_top_level(){   
-    //in the future this should be extended to parse classes,mods etc. as well
-    std::unique_ptr<AstExpr> tle = parse_fndecl();
-    if (tle)
-        return tle;
-    tle = parse_class();
-    if (tle)
-        return tle;
-    return nullptr;
+std::unique_ptr<AstExpr> Parser::parse_top_level() {
+  // in the future this should be extended to parse classes,mods etc. as well
+  std::unique_ptr<AstExpr> tle = parse_fndecl();
+  if (tle)
+    return tle;
+  tle = parse_class();
+  if (tle)
+    return tle;
+  return nullptr;
 }
 
 std::unique_ptr<FnProto> Parser::parse_fnproto() {
 
-    if (peek().type == Token::Kw && peek().getKw() == Kw_e::Fn) {
-        pop();
-        auto namet = pop();
-        if (namet.type != Token::Id) {
-            Error::ExpectedToken(file, namet.sl, "expected function name");
-            return nullptr;
-        }
-        auto name = namet.getName();
-        // generics
-        expect(Token::Lp, "a (");
-        // args
-        auto arg = parse_var_decl();
-        std::vector<std::unique_ptr<VarDeclExpr>> args;
-        while (arg) {
-            args.push_back(std::move(arg));
-
-            if (peek().type == Token::Comma) {
-                pop();
-            }
-
-            else {
-                if (peek().type != Token::Rp) {
-                    serror(Error_e::Unk, "expected , or )");
-                }
-            }
-            arg = parse_var_decl();
-        }
-
-        expect(Token::Rp, "a )");
-        // MAybe return type
-        return std::make_unique<FnProto>(namet.sl, name, std::move(args));
+  if (peek().type == Token::Kw && peek().getKw() == Kw_e::Fn) {
+    pop();
+    auto namet = pop();
+    if (namet.type != Token::Id) {
+      Error::ExpectedToken(file, namet.sl, "expected function name");
+      return nullptr;
     }
-    return nullptr;
+    auto name = namet.getName();
+    // generics
+    expect(Token::Lp, "a (");
+    // args
+    auto arg = parse_var_decl();
+    std::vector<std::unique_ptr<VarDeclExpr>> args;
+    while (arg) {
+      args.push_back(std::move(arg));
+
+      if (peek().type == Token::Comma) {
+        pop();
+      }
+
+      else {
+        if (peek().type != Token::Rp) {
+          serror(Error_e::Unk, "expected , or )");
+        }
+      }
+      arg = parse_var_decl();
+    }
+
+    expect(Token::Rp, "a )");
+    // MAybe return type
+    return std::make_unique<FnProto>(namet.sl, name, std::move(args));
+  }
+  return nullptr;
 }
 
 std::unique_ptr<FnDecl> Parser::parse_fndecl() {
@@ -119,10 +118,11 @@ std::unique_ptr<FnDecl> Parser::parse_fndecl() {
   }
   auto body = parse_body();
   if (!body) {
-      return nullptr;
+    return nullptr;
   }
-  
-  auto ret = std::make_unique<FnDecl>(proto->sl, std::move(proto), std::move(body), mods);
+
+  auto ret = std::make_unique<FnDecl>(proto->sl, std::move(proto),
+                                      std::move(body), mods);
   return ret;
 }
 
@@ -157,10 +157,10 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
     return expr;
   expr = parse_ifstmt();
   if (expr)
-      return expr;
+    return expr;
   expr = parse_return();
   if (expr)
-      return expr;
+    return expr;
   expr = parse_var_decl();
   if (expr)
     return expr;
@@ -252,8 +252,6 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   return nullptr;
 }
 
-
-
 std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
   if (peek().type != Token::Id || peek(1).type != Token::DoubleDot) {
     return nullptr;
@@ -269,7 +267,8 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs && lhs->type != AstType::IfStmt && lhs->type!=AstType::ReturnStmt) // fix this
+  if (lhs && lhs->type != AstType::IfStmt &&
+      lhs->type != AstType::ReturnStmt) // fix this
     return parse_binary(std::move(lhs));
   return lhs;
 }
@@ -313,20 +312,21 @@ std::unique_ptr<IfStmt> Parser::parse_ifstmt() {
     auto loc = pop().sl; // pop if
     auto cond = parse_expr();
     if (!cond) {
-        Error::ImplementMe("Expected expression after if statement.");
+      Error::ImplementMe("Expected expression after if statement.");
     }
     auto body = parse_body();
     if (!body) {
-        return nullptr;
+      return nullptr;
     }
-    //else
+    // else
     if (peek().type == Token::Kw && peek().getKw() == Kw_e::Else) {
-        pop(); // pop the else
-        auto else_body = parse_body();
-        if (!else_body) {
-            return nullptr;
-        }
-        return std::make_unique<IfStmt>(loc,std::move(cond), std::move(body), std::move(else_body));
+      pop(); // pop the else
+      auto else_body = parse_body();
+      if (!else_body) {
+        return nullptr;
+      }
+      return std::make_unique<IfStmt>(loc, std::move(cond), std::move(body),
+                                      std::move(else_body));
     }
 
     return std::make_unique<IfStmt>(loc, std::move(cond), std::move(body));
@@ -350,89 +350,86 @@ std::unique_ptr<ImportExpr> Parser::parse_import() {
   return nullptr;
 }
 
-std::unique_ptr<Body> Parser::parse_body()
-{
-    auto loc = peek().sl;
-    if (pop().type != Token::Gi) {
-        Error::EmptyFnBody(file, peek().sl);
-    }
-    std::vector<std::unique_ptr<AstExpr>> body;
+std::unique_ptr<Body> Parser::parse_body() {
+  auto loc = peek().sl;
+  if (pop().type != Token::Gi) {
+    Error::EmptyFnBody(file, peek().sl);
+  }
+  std::vector<std::unique_ptr<AstExpr>> body;
 
-    while (peek().type != Token::Li) {
-        auto expr = parse_expr();
-        if (expr) {
-            body.push_back(std::move(expr));
-        }
-        else {
-            Error::ImplementMe("expr in body is null");
-            return nullptr;;    
-        }
+  while (peek().type != Token::Li) {
+    auto expr = parse_expr();
+    if (expr) {
+      body.push_back(std::move(expr));
+    } else {
+      Error::ImplementMe("expr in body is null");
+      return nullptr;
+      ;
     }
-    pop(); //pop the Li
-    return std::make_unique<Body>(loc, std::move(body));
+  }
+  pop(); // pop the Li
+  return std::make_unique<Body>(loc, std::move(body));
 }
 
 std::unique_ptr<ReturnStmt> Parser::parse_return() {
-    if (peek().type == Token::Kw && peek().getKw() == Kw_e::Return) {
-        auto sl = pop().sl; // pop the return
-        auto expr = parse_expr();
-        return std::make_unique<ReturnStmt>(sl, std::move(expr));
-    }
-    return nullptr;
+  if (peek().type == Token::Kw && peek().getKw() == Kw_e::Return) {
+    auto sl = pop().sl; // pop the return
+    auto expr = parse_expr();
+    return std::make_unique<ReturnStmt>(sl, std::move(expr));
+  }
+  return nullptr;
 }
 std::unique_ptr<ClassStmt> Parser::parse_class() {
-    if (peek().type == Token::Kw && peek().getKw() == Kw_e::Class) {
-        auto sl = pop().sl;//pop the class
-        auto id = parse_var();
-        if (!id) {
-            Error::ImplementMe("class must have a name");
-        }
-        auto body = parse_class_body();
-        if (!body) {
-            return nullptr;
-        }
-        return std::make_unique<ClassStmt>(sl, std::move(id), std::move(body));
-
+  if (peek().type == Token::Kw && peek().getKw() == Kw_e::Class) {
+    auto sl = pop().sl; // pop the class
+    auto id = parse_var();
+    if (!id) {
+      Error::ImplementMe("class must have a name");
     }
-    return nullptr;
+    auto body = parse_class_body();
+    if (!body) {
+      return nullptr;
+    }
+    return std::make_unique<ClassStmt>(sl, std::move(id), std::move(body));
+  }
+  return nullptr;
 }
 
 std::unique_ptr<Body> Parser::parse_class_body() {
-    auto loc = peek().sl;
-    if (pop().type != Token::Gi) {
-        Error::EmptyFnBody(file, peek().sl);
-    }
-    std::vector<std::unique_ptr<AstExpr>> body;
+  auto loc = peek().sl;
+  if (pop().type != Token::Gi) {
+    Error::EmptyFnBody(file, peek().sl);
+  }
+  std::vector<std::unique_ptr<AstExpr>> body;
 
-    while (peek().type != Token::Li) {
-        auto expr = parse_inside_class();
-        if (expr) {
-            body.push_back(std::move(expr));
-        }
-        else {
-            Error::ImplementMe("expr in body is null");
-            return nullptr;;
-        }
+  while (peek().type != Token::Li) {
+    auto expr = parse_inside_class();
+    if (expr) {
+      body.push_back(std::move(expr));
+    } else {
+      Error::ImplementMe("expr in body is null");
+      return nullptr;
+      ;
     }
-    pop(); //pop the Li
-    return std::make_unique<Body>(loc, std::move(body));
-
+  }
+  pop(); // pop the Li
+  return std::make_unique<Body>(loc, std::move(body));
 }
 
 std::unique_ptr<AstExpr> Parser::parse_inside_class() {
-    std::unique_ptr<AstExpr> expr = parse_fndecl();
-    if (expr)
-        return expr;
-    return parse_var_decl();
+  std::unique_ptr<AstExpr> expr = parse_fndecl();
+  if (expr)
+    return expr;
+  return parse_var_decl();
 }
 
 void Body::pretty_print() const {
-    for (const auto& line : body) {
-        for(int i=0;i<sl.indent;i++)
-        llvm::outs() << " ";
-        line->pretty_print();
-        llvm::outs() << "\n";
-    }
+  for (const auto &line : body) {
+    for (int i = 0; i < sl.indent; i++)
+      llvm::outs() << " ";
+    line->pretty_print();
+    llvm::outs() << "\n";
+  }
 }
 
 void FnProto::pretty_print() const {
@@ -453,53 +450,52 @@ void FnDecl::pretty_print() const {
   llvm::outs() << "\n";
 }
 
-void ValExpr::pretty_print() const { 
-    switch (val.ty.get_type_ptr()->get_typekind()) {
-    case Type::Integral: {
-        switch ( static_cast<const IntegralType*>(val.ty.get_type_ptr())->ty ) {
-        case IntegralType::I8:
-            llvm::outs() << val.as.i8;
-            return;
-        case IntegralType::I16:
-            llvm::outs() << val.as.i16;
-            return;
-        case IntegralType::I32:
-            llvm::outs() << val.as.i32;
-            return;
-        case IntegralType::I64:
-            llvm::outs() << val.as.i64;
-            return;
-        case IntegralType::ISize:
-            llvm::outs() << val.as.i64;
-            return;
-        case IntegralType::U8:
-            llvm::outs() << val.as.u8;
-            return;
-        case IntegralType::U16:
-            llvm::outs() << val.as.u16;
-            return;
-        case IntegralType::U32:
-            llvm::outs() << val.as.u32;
-            return;
-        case IntegralType::U64:
-            llvm::outs() << val.as.u64;
-            return;
-        case IntegralType::USize:
-            llvm::outs() << val.as.u64;
-            return;
-        }
-        case Bool:
-            if (val.as.b) {
-                llvm::outs() << "true";
-            }
-            else {
-                llvm::outs() << "false";
-            }
-            return;
+void ValExpr::pretty_print() const {
+  switch (val.ty.get_type_ptr()->get_typekind()) {
+  case Type::Integral: {
+    switch (static_cast<const IntegralType *>(val.ty.get_type_ptr())->ty) {
+    case IntegralType::I8:
+      llvm::outs() << val.as.i8;
+      return;
+    case IntegralType::I16:
+      llvm::outs() << val.as.i16;
+      return;
+    case IntegralType::I32:
+      llvm::outs() << val.as.i32;
+      return;
+    case IntegralType::I64:
+      llvm::outs() << val.as.i64;
+      return;
+    case IntegralType::ISize:
+      llvm::outs() << val.as.i64;
+      return;
+    case IntegralType::U8:
+      llvm::outs() << val.as.u8;
+      return;
+    case IntegralType::U16:
+      llvm::outs() << val.as.u16;
+      return;
+    case IntegralType::U32:
+      llvm::outs() << val.as.u32;
+      return;
+    case IntegralType::U64:
+      llvm::outs() << val.as.u64;
+      return;
+    case IntegralType::USize:
+      llvm::outs() << val.as.u64;
+      return;
     }
-    default:
-        llvm::outs() << "val";
+  case Bool:
+    if (val.as.b) {
+      llvm::outs() << "true";
+    } else {
+      llvm::outs() << "false";
     }
+    return;
+  }
+  default:
+    llvm::outs() << "val";
+  }
 }
 
 void VarDeclExpr::pretty_print() const {
@@ -512,10 +508,10 @@ void TypeExpr::pretty_print() const {
 void FnCall::pretty_print() const {
   llvm::outs() << name << "(";
   for (const auto &arg : args) {
-      if (arg) {
-          arg->pretty_print();
-          llvm::outs() << ",";
-      }
+    if (arg) {
+      arg->pretty_print();
+      llvm::outs() << ",";
+    }
   }
   if (args.size() == 0)
     llvm::outs() << "(";
@@ -557,19 +553,19 @@ void IfStmt::pretty_print() const {
   llvm::outs() << "\n";
   body->pretty_print();
   if (else_body) {
-      llvm::outs() << "else\n";
-      else_body->pretty_print();
+    llvm::outs() << "else\n";
+    else_body->pretty_print();
   }
 }
 
 void ImportExpr::pretty_print() const { llvm::outs() << "import " << module; }
 
 void ReturnStmt::pretty_print() const {
-    llvm::outs() << "return ";
-    expr->pretty_print();
+  llvm::outs() << "return ";
+  expr->pretty_print();
 }
 
 void ClassStmt::pretty_print() const {
-    llvm::outs() << "class " << name->name << "\n";
-    body->pretty_print();
+  llvm::outs() << "class " << name->name << "\n";
+  body->pretty_print();
 }
