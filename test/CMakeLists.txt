@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.10)
-
+cmake_minimum_required(VERSION 3.14)
+include(FetchContent)
 
 find_package(LLVM 10 REQUIRED CONFIG)
 SET (LLVM_DIR llvm/cmake/modules)
@@ -17,6 +17,12 @@ add_executable(test ${srcs} ${FS_SRC})
 llvm_map_components_to_libnames(LLVM_LIBS
 all
 )
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        release-1.10.0
+)
+FetchContent_MakeAvailable(googletest)
 
 set(CMAKE_CXX_FLAGS "-pthread")
 target_link_libraries(test gtest gtest_main LLVM)
