@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "type.h"
 #include "llvm/IR/Verifier.h"
+#include "error.h"
 static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
   if (rhs->isPointerTy()) {
     return rhs->isPointerTy();
@@ -23,7 +24,8 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) const {
   auto *fn = ctx.mod->getFunction(name);
   if (!fn) {
     std::string err_msg = "unknown function called " + name;
-    serror(Error_e::FnNotExsits, err_msg /*, name.sl*/);
+    Error::ImplementMe(err_msg);
+    return nullptr;
   }
   std::vector<llvm::Value *> fn_args;
   for (auto &&arg : args) {
@@ -43,14 +45,8 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) const {
     }
   }
 
-  /*
-   */
-  // args and set name for them
-  llvm::Type *ret_t = nullptr;
-  // if(!ret_t) {
-  ret_t = ctx.getI32();
-  //}
-  // check linkagetype
+
+  llvm::Type *ret_t = ctx.getI32();
   llvm::GlobalValue::LinkageTypes lt = llvm::Function::ExternalLinkage;
   llvm::FunctionType *ft = llvm::FunctionType::get(ret_t, fn_args, false);
 
@@ -62,8 +58,7 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) const {
     arg.setName(n);
     ;
   }
-  /*
-   */
+
   return f;
 }
 
@@ -78,7 +73,8 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) const {
   }
   if (!fn) {
     std::string err_msg = "unknown function called " + fname;
-    serror(Error_e::FnNotExsits, err_msg /*, name.sl*/);
+    Error::ImplementMe(err_msg);
+    return nullptr;
   }
   llvm::BasicBlock *bb = llvm::BasicBlock::Create(ctx.ctx, "entry", fn);
   ctx.builder.SetInsertPoint(bb);
@@ -133,8 +129,8 @@ llvm::Value *ValExpr::codegen(FusionCtx &ctx) const {
 
   }
   default:
-    Error::ImplementMe(
-        "Implement codegeneration for this type in ValExpr::codegen");
+    Error::ImplementMe("Implement codegeneration for this type in ValExpr::codegen");
+    return nullptr;
   }
 
   return nullptr;
@@ -150,12 +146,14 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
     auto *vlhs = lhs->codegen(ctx);
     auto *vrhs = rhs->codegen(ctx);
     if (!vrhs) {
-      serror(Error_e::Unk, "No value");
+        Error::ImplementMe("No value");
+        return nullptr;
     }
     if (vlhs == (llvm::Value *)~0) { // left hand side is an infered type decl
       auto *ty = vrhs->getType();
       if (lhs->type != AstType::VarExpr) {
-        serror(Error_e::Unk, "Expected a var expr");
+          Error::ImplementMe("expected left-hand side to be varexpr");
+          return nullptr;
       }
       std::string name = reinterpret_cast<VarExpr *>(lhs.get())->name;
       auto *var = alloc(ctx, ty, name);
@@ -163,7 +161,8 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
     }
 
     if (!type_check(vrhs->getType(), vlhs->getType())) {
-      serror(Error_e::Unk, "types don't match");
+        Error::ImplementMe("types don't match");
+        return nullptr;
     }
 
     llvm::Value *var = ctx.named_values[vlhs->getName()];
@@ -186,7 +185,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
     return nullptr;
   }
   default:
-    serror(Error_e::Unk, "Codegen: Unimplemented operator!");
+    Error::ImplementMe("Codegen: Unimplemented operator!");
     return nullptr;
   }
   return nullptr;
@@ -210,10 +209,10 @@ llvm::Value *VarExpr::codegen(FusionCtx &ctx) const {
 
 llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) const {
   if (!ty.get_type_ptr()) {
-    serror(Error_e::CouldNotInferType, "Couldn't infer type of expression");
+    Error::ImplementMe("could not infer type of expression");
+    return nullptr;
   }
   if (ctx.named_values.find(name) != ctx.named_values.end()) {
-    // serror(Error_e::Unk, "redaclaration of variable");
     return ctx.named_values[name.data()];
   }
   llvm::AllocaInst *val =
@@ -223,6 +222,7 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) const {
 }
 
 llvm::Value *RangeExpr::codegen(FusionCtx &ctx) const {
+  Error::ImplementMe("implement RangeExpr");
   return nullptr; // implement me
 }
 
@@ -238,7 +238,6 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
     if (!condv) {
         return nullptr;
     }
-    //condv = ctx.builder.CreateFCmpONE(condv, llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(0.0)), "ifcond");
     condv =ctx.builder.CreateICmpEQ(condv, llvm::ConstantInt::getTrue(ctx.ctx), "ifcond");
     llvm::Function* func = ctx.builder.GetInsertBlock()->getParent();
 
@@ -276,6 +275,7 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
 
 llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {
   // compile module
+  Error::ImplementMe("ImportExpr::codegen");
   return nullptr;
 }
 

@@ -12,50 +12,10 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
 
-//#include "lld/Common/Driver.h"
 
 #include <chrono>
 #include <iomanip>
 
-void link_fs() {
-  const char *args[] = {
-      "--eh-frame-hdr",
-      "-m",
-      "elf_x86_64",
-      "-dynamic-linker",
-      "/lib64/ld-linux-x86-64.so.2",
-      "-o",
-      "main",
-      "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0/../../../../lib64/"
-      "Scrt1.o",
-      "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0/../../../../lib64/"
-      "crti.o",
-      "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0/crtbeginS.o",
-      "-L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0",
-      "-L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0/../../../../lib64",
-      "-L/usr/bin/../lib64",
-      "-L/lib/../lib64",
-      "-L/usr/lib/../lib64",
-      "-L/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0/../../..",
-      "-L/usr/bin/../lib",
-      "-L/lib",
-      "-L/usr/lib",
-      "std.o"
-      "main.o",
-      "-lgcc",
-      "--as-needed",
-      "-lgcc_s",
-      "--no-as-needed",
-      "-lc",
-      "-lgcc",
-      "--as-needed",
-      "-lgcc_s",
-      "--no-as-needed",
-      "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0/crtendS.o",
-      "/usr/bin/../lib64/gcc/x86_64-pc-linux-gnu/9.2.0/../../../../lib64/"
-      "crtn.o"};
-  // lld::elf::link(args,true,llvm::outs(),llvm::errs());
-}
 void Compiler::compile(int argc, char **argv) {
   if (argc < 2) {
     serror(Error_e::TooFewArgumentsForFs, "expected at least one argument.");
@@ -67,7 +27,6 @@ void Compiler::compile(int argc, char **argv) {
 
   bool show_llvm = true;
   SourceManager sm;
-  // sm.open("main.fs");
   for (int i = 1; i < argc; i++) {
     sm.open(argv[i]);
     auto file = sm.sources[i - 1];
@@ -91,8 +50,6 @@ void Compiler::compile(int argc, char **argv) {
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
           .count();
   auto dd = (double)duration / 1000;
-  system("./compile.sh");
-  // link_fs();
   std::cout << "[" << std::setprecision(4) << dd << "s]";
 
   if (show_llvm) {
@@ -174,7 +131,6 @@ void Compiler::generate_obj(llvm::Module *m, const std::string &filename) {
     serror(Error_e::Unk, s);
   }
   llvm::legacy::PassManager pass;
-  // llvm::FunctionPassManager pass;
   auto FileType = llvm::CGFT_ObjectFile;
 
   if (TargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {

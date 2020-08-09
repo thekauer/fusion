@@ -54,7 +54,6 @@ std::unique_ptr<Body> Parser::parse()
     return std::make_unique<Body>(loc, std::move(body));
 }
 std::unique_ptr<AstExpr> Parser::parse_top_level(){   
-    //in the future this should be extended to parse classes,mods etc. as well
     std::unique_ptr<AstExpr> tle = parse_fndecl();
     if (tle)
         return tle;
@@ -74,7 +73,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
             return nullptr;
         }
         auto name = namet.getName();
-        // generics
+        // implement generics
         expect(Token::Lp, "a (");
         // args
         auto arg = parse_var_decl();
@@ -168,33 +167,6 @@ std::unique_ptr<AstExpr> Parser::parse_primary() {
 }
 std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
                                               int p) {
-  /*
-  if (!lhs)
-    return nullptr;
-  if (it == end)
-    return lhs;
-  auto op = peek().type;
-  auto loc = peek().sl;
-  // check if op is actually an operator
-  if (pre(op) == -1)
-    return lhs;
-  pop();
-  auto tp = pre(op);
-  auto rhs = parse_primary();
-  if (it == end) {
-    return std::make_unique<BinExpr>(loc, op, move(lhs), move(rhs));
-  }
-  auto np = pre(peek(1).type); // peek
-  if (np == -1) {
-    return std::make_unique<BinExpr>(loc, op, move(lhs), move(rhs));
-  }
-  if (tp >= np) {
-    return parse_binary(
-        std::make_unique<BinExpr>(loc, op, move(lhs), move(rhs)));
-  }
-
-  return std::make_unique<BinExpr>(loc, op, move(lhs), parse_binary(move(rhs)));
-  */
   while (it != end) {
     auto op = peek().type;
     auto loc = peek().sl;
