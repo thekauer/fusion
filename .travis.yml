@@ -36,6 +36,7 @@ before_install:
   - export CC="clang-10" CXX="clang++-10"
 # Build scripts
 script: 
+  - apt-get install cmake
   - llvm-config --version
   - mkdir -p build
   - cd build
