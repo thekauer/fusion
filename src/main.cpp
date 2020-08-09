@@ -3,7 +3,7 @@
 
 int main(int argc, char **argv) {
   Compiler compiler;
-  // compiler.compile(argc, argv);
+  //compiler.compile(argc, argv);
   compiler.test();
   return 0;
 }
