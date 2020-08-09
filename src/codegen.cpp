@@ -1,7 +1,7 @@
+#include "error.h"
 #include "parser.h"
 #include "type.h"
 #include "llvm/IR/Verifier.h"
-#include "error.h"
 static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
   if (rhs->isPointerTy()) {
     return rhs->isPointerTy();
@@ -29,9 +29,9 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) const {
   }
   std::vector<llvm::Value *> fn_args;
   for (auto &&arg : args) {
-      if (arg) {
-          fn_args.push_back(arg->codegen(ctx));
-      }
+    if (arg) {
+      fn_args.push_back(arg->codegen(ctx));
+    }
   }
   return ctx.builder.CreateCall(fn, fn_args, "call");
 }
@@ -44,7 +44,6 @@ llvm::Value *FnProto::codegen(FusionCtx &ctx) const {
       fn_args.push_back(vd->ty.get_type_ptr()->codegen(ctx));
     }
   }
-
 
   llvm::Type *ret_t = ctx.getI32();
   llvm::GlobalValue::LinkageTypes lt = llvm::Function::ExternalLinkage;
@@ -88,7 +87,6 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) const {
 
   body->codegen(ctx);
 
-
   llvm::verifyFunction(*fn);
   return fn;
 }
@@ -120,16 +118,15 @@ llvm::Value *ValExpr::codegen(FusionCtx &ctx) const {
     return llvm::ConstantFP::get(ctx.ctx, llvm::APFloat(val.as.f32));
   }
   case IntegralType::Bool: {
-      if (val.as.b) {
-          return llvm::ConstantInt::getTrue(ctx.ctx);
-      }
-      else {
-          return llvm::ConstantInt::getFalse(ctx.ctx);
-      }
-
+    if (val.as.b) {
+      return llvm::ConstantInt::getTrue(ctx.ctx);
+    } else {
+      return llvm::ConstantInt::getFalse(ctx.ctx);
+    }
   }
   default:
-    Error::ImplementMe("Implement codegeneration for this type in ValExpr::codegen");
+    Error::ImplementMe(
+        "Implement codegeneration for this type in ValExpr::codegen");
     return nullptr;
   }
 
@@ -146,14 +143,14 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
     auto *vlhs = lhs->codegen(ctx);
     auto *vrhs = rhs->codegen(ctx);
     if (!vrhs) {
-        Error::ImplementMe("No value");
-        return nullptr;
+      Error::ImplementMe("No value");
+      return nullptr;
     }
     if (vlhs == (llvm::Value *)~0) { // left hand side is an infered type decl
       auto *ty = vrhs->getType();
       if (lhs->type != AstType::VarExpr) {
-          Error::ImplementMe("expected left-hand side to be varexpr");
-          return nullptr;
+        Error::ImplementMe("expected left-hand side to be varexpr");
+        return nullptr;
       }
       std::string name = reinterpret_cast<VarExpr *>(lhs.get())->name;
       auto *var = alloc(ctx, ty, name);
@@ -161,8 +158,8 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
     }
 
     if (!type_check(vrhs->getType(), vlhs->getType())) {
-        Error::ImplementMe("types don't match");
-        return nullptr;
+      Error::ImplementMe("types don't match");
+      return nullptr;
     }
 
     llvm::Value *var = ctx.named_values[vlhs->getName()];
@@ -226,51 +223,53 @@ llvm::Value *RangeExpr::codegen(FusionCtx &ctx) const {
   return nullptr; // implement me
 }
 
-llvm::Value* Body::codegen(FusionCtx& ctx) const {
-    for (auto const& line : body) {
-        line->codegen(ctx);
-    }
-    return nullptr;
+llvm::Value *Body::codegen(FusionCtx &ctx) const {
+  for (auto const &line : body) {
+    line->codegen(ctx);
+  }
+  return nullptr;
 }
 
-llvm::Value *IfStmt::codegen(FusionCtx &ctx) const { 
-    auto* condv = condition->codegen(ctx);
-    if (!condv) {
-        return nullptr;
-    }
-    condv =ctx.builder.CreateICmpEQ(condv, llvm::ConstantInt::getTrue(ctx.ctx), "ifcond");
-    llvm::Function* func = ctx.builder.GetInsertBlock()->getParent();
+llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
+  auto *condv = condition->codegen(ctx);
+  if (!condv) {
+    return nullptr;
+  }
+  condv = ctx.builder.CreateICmpEQ(condv, llvm::ConstantInt::getTrue(ctx.ctx),
+                                   "ifcond");
+  llvm::Function *func = ctx.builder.GetInsertBlock()->getParent();
 
-    llvm::BasicBlock* thenbb = llvm::BasicBlock::Create(ctx.ctx, "then");
-    llvm::BasicBlock* elsebb = llvm::BasicBlock::Create(ctx.ctx, "else");
-    llvm::BasicBlock* mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge");
+  llvm::BasicBlock *thenbb = llvm::BasicBlock::Create(ctx.ctx, "then");
+  llvm::BasicBlock *elsebb = llvm::BasicBlock::Create(ctx.ctx, "else");
+  llvm::BasicBlock *mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge");
 
-    ctx.builder.CreateCondBr(condv, thenbb, elsebb);
+  ctx.builder.CreateCondBr(condv, thenbb, elsebb);
 
-    ctx.builder.SetInsertPoint(thenbb);
-    auto* thenv = body->codegen(ctx);
-    if (!thenv)
-        return nullptr;
-    ctx.builder.CreateBr(mergebb);
-    thenbb = ctx.builder.GetInsertBlock();
+  ctx.builder.SetInsertPoint(thenbb);
+  auto *thenv = body->codegen(ctx);
+  if (!thenv)
+    return nullptr;
+  ctx.builder.CreateBr(mergebb);
+  thenbb = ctx.builder.GetInsertBlock();
 
-    func->getBasicBlockList().push_back(elsebb);
-    ctx.builder.SetInsertPoint(elsebb);
+  func->getBasicBlockList().push_back(elsebb);
+  ctx.builder.SetInsertPoint(elsebb);
 
-    auto* elsev = else_body->codegen(ctx);
-    if (!elsev)
-        return nullptr;
+  auto *elsev = else_body->codegen(ctx);
+  if (!elsev)
+    return nullptr;
 
-    ctx.builder.CreateBr(mergebb);
-    elsebb = ctx.builder.GetInsertBlock();
+  ctx.builder.CreateBr(mergebb);
+  elsebb = ctx.builder.GetInsertBlock();
 
-    func->getBasicBlockList().push_back(mergebb);
-    ctx.builder.SetInsertPoint(mergebb);
-    auto* pn = ctx.builder.CreatePHI(llvm::Type::getDoubleTy(ctx.ctx), 2, "iftmp");
-    pn->addIncoming(thenv, thenbb);
-    pn->addIncoming(elsev, elsebb);
+  func->getBasicBlockList().push_back(mergebb);
+  ctx.builder.SetInsertPoint(mergebb);
+  auto *pn =
+      ctx.builder.CreatePHI(llvm::Type::getDoubleTy(ctx.ctx), 2, "iftmp");
+  pn->addIncoming(thenv, thenbb);
+  pn->addIncoming(elsev, elsebb);
 
-    return pn; 
+  return pn;
 }
 
 llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {
@@ -279,15 +278,14 @@ llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {
   return nullptr;
 }
 
-llvm::Value* ReturnStmt::codegen(FusionCtx& ctx) const
-{
-    auto *vexpr = expr->codegen(ctx);
-    if (vexpr) {
-        return ctx.builder.CreateRet(vexpr);
-    }
-    return nullptr;
+llvm::Value *ReturnStmt::codegen(FusionCtx &ctx) const {
+  auto *vexpr = expr->codegen(ctx);
+  if (vexpr) {
+    return ctx.builder.CreateRet(vexpr);
+  }
+  return nullptr;
 }
-llvm::Value* ClassStmt::codegen(FusionCtx& ctx) const {
-    body->codegen(ctx);
-    return reinterpret_cast<llvm::Value*>(ty.get_type_ptr()->codegen(ctx));
+llvm::Value *ClassStmt::codegen(FusionCtx &ctx) const {
+  body->codegen(ctx);
+  return reinterpret_cast<llvm::Value *>(ty.get_type_ptr()->codegen(ctx));
 }

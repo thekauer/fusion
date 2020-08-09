@@ -80,7 +80,8 @@ TEST(parser, addition) {
   lexer.lex();
   auto tokens = lexer.tokens;
   EXPECT_EQ(tokens.size(), 6);
-  Token::Type tks[]{Token::Lit, Token::Add, Token::Lit, Token::Mul, Token::Lit,Token::N};
+  Token::Type tks[]{Token::Lit, Token::Add, Token::Lit,
+                    Token::Mul, Token::Lit, Token::N};
   for (int i = 0; i < tokens.size(); i++) {
     EXPECT_EQ(tokens[i].type, tks[i]) << "i: " << i;
   }
@@ -138,16 +139,16 @@ TEST(parser, binexpr) {
   */
 }
 TEST(parser, IfStmt) {
-    FusionCtx ctx;
-    std::string code = "if true\n 1+1\nelse\n 1+1\n";
-    auto file = FSFile("test", code);
-    auto lexer = Lexer(file);
-    lexer.lex();
-    auto p = Parser(lexer.tokens, ctx, file);
-    auto ifstmt = reinterpret_cast<IfStmt*>(p.parse_expr().get());
-    ASSERT_NE(ifstmt, nullptr);
-    ASSERT_NE(ifstmt->body, nullptr);
-    EXPECT_EQ(ifstmt->body->body.size(), 1);
-    ASSERT_NE(ifstmt->else_body, nullptr);
-    EXPECT_EQ(ifstmt->else_body->body.size(), 1);
+  FusionCtx ctx;
+  std::string code = "if true\n 1+1\nelse\n 1+1\n";
+  auto file = FSFile("test", code);
+  auto lexer = Lexer(file);
+  lexer.lex();
+  auto p = Parser(lexer.tokens, ctx, file);
+  auto ifstmt = reinterpret_cast<IfStmt *>(p.parse_expr().get());
+  ASSERT_NE(ifstmt, nullptr);
+  ASSERT_NE(ifstmt->body, nullptr);
+  EXPECT_EQ(ifstmt->body->body.size(), 1);
+  ASSERT_NE(ifstmt->else_body, nullptr);
+  EXPECT_EQ(ifstmt->else_body->body.size(), 1);
 }
