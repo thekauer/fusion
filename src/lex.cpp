@@ -468,7 +468,6 @@ char Lexer::lex_escape(const char esc) {
     return '\v';
     break;
   default:
-    // serror(Error_e::UnkEsc, "Unknown escape character."/*, err_loc*/);
     Error::UnkEscapeChar(file, err_loc, esc);
     break;
   }

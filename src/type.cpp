@@ -82,10 +82,7 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) const {
     Error::ImplementMe("implement string literal code generation");
   default:
     return nullptr;
-  } /*
- if (mods &= Ptr) {
-   ret->getPointerTo();
- }*/
+  } 
   return ret;
 }
 
