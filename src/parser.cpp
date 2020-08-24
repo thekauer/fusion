@@ -202,6 +202,10 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
 
   // eh
   if (peek().type != Token::Kw) {
+    if (peek().type == Token::Id) {
+      return std::make_unique<TypeExpr>(peek().sl,
+                                        QualType(ResolveType(pop().getName())));
+    }
     return nullptr;
   }
   auto sl = peek().sl;
@@ -375,6 +379,9 @@ std::unique_ptr<Body> Parser::parse_class_body() {
   std::vector<std::unique_ptr<AstExpr>> body;
 
   while (peek().type != Token::Li) {
+    if (peek().type == Token::N) {
+      pop();
+    }
     auto expr = parse_inside_class();
     if (expr) {
       body.push_back(std::move(expr));
