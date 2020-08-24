@@ -86,9 +86,12 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) const {
   return ret;
 }
 
+ResolveType::ResolveType(std::string_view name) : Type(name,Type::Resolve,0) {}
+
 QualType::QualType(const Type &type) : type(&type){};
 QualType::QualType(const IntegralType &type)
     : type(&static_cast<const Type &>(type)) {}
+QualType::QualType(const ResolveType &type) :type(&type){}
 
 QualType QualType::to_val() {
   ref = 0;
@@ -141,4 +144,8 @@ llvm::Type *StructType::codegen(FusionCtx &ctx) const {
   }
   return llvm::StructType::create(ctx.ctx, llvm::ArrayRef(tys),
                                   llvm::StringRef(name.data()), false);
+}
+
+llvm::Type *ResolveType::codegen(FusionCtx &ctx) const { 
+    return nullptr;
 }

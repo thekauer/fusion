@@ -7,7 +7,7 @@
 struct IntegralType;
 class Type {
 public:
-  enum TypeKind : unsigned char { Integral, Array, Struct, Tuple };
+  enum TypeKind : unsigned char { Integral, Array, Struct, Tuple,Resolve };
   Type(const std::string_view name, TypeKind tk, const unsigned int size);
 
   unsigned int get_size() const;
@@ -63,10 +63,16 @@ struct IntegralType : Type {
   llvm::Type *codegen(FusionCtx &ctx) const override;
 };
 
+struct ResolveType : Type {
+  ResolveType(std::string_view name);
+  llvm::Type *codegen(FusionCtx &ctx) const override;
+};
+
 class QualType {
 public:
   QualType(const Type &type);
   QualType(const IntegralType &type);
+  QualType(const ResolveType &type);
   QualType() = default;
 
   QualType to_val();

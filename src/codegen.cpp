@@ -224,10 +224,11 @@ llvm::Value *RangeExpr::codegen(FusionCtx &ctx) const {
 }
 
 llvm::Value *Body::codegen(FusionCtx &ctx) const {
+  llvm::Value *last = nullptr;
   for (auto const &line : body) {
-    line->codegen(ctx);
+    last = line->codegen(ctx);
   }
-  return nullptr;
+  return last;
 }
 
 llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
@@ -240,34 +241,40 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
   llvm::Function *func = ctx.builder.GetInsertBlock()->getParent();
 
   llvm::BasicBlock *thenbb = llvm::BasicBlock::Create(ctx.ctx, "then");
-  llvm::BasicBlock *elsebb = llvm::BasicBlock::Create(ctx.ctx, "else");
   llvm::BasicBlock *mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge");
-
-  ctx.builder.CreateCondBr(condv, thenbb, elsebb);
-
+  llvm::BasicBlock *elsebb = llvm::BasicBlock::Create(ctx.ctx, "else");
+  llvm::Value *elsev = nullptr;
+  if (else_body) {
+    ctx.builder.CreateCondBr(condv, thenbb, elsebb);
+  } else {
+    ctx.builder.CreateCondBr(condv, thenbb, mergebb);
+  }
   ctx.builder.SetInsertPoint(thenbb);
   auto *thenv = body->codegen(ctx);
   if (!thenv)
     return nullptr;
   ctx.builder.CreateBr(mergebb);
   thenbb = ctx.builder.GetInsertBlock();
+  if (else_body) {
 
-  func->getBasicBlockList().push_back(elsebb);
-  ctx.builder.SetInsertPoint(elsebb);
+    func->getBasicBlockList().push_back(elsebb);
+    ctx.builder.SetInsertPoint(elsebb);
 
-  auto *elsev = else_body->codegen(ctx);
-  if (!elsev)
-    return nullptr;
+    elsev = else_body->codegen(ctx);
+    if (!elsev)
+      return nullptr;
 
-  ctx.builder.CreateBr(mergebb);
-  elsebb = ctx.builder.GetInsertBlock();
-
+    ctx.builder.CreateBr(mergebb);
+    elsebb = ctx.builder.GetInsertBlock();
+  }
   func->getBasicBlockList().push_back(mergebb);
   ctx.builder.SetInsertPoint(mergebb);
   auto *pn =
-      ctx.builder.CreatePHI(llvm::Type::getDoubleTy(ctx.ctx), 2, "iftmp");
+      ctx.builder.CreatePHI(llvm::Type::getInt32Ty(ctx.ctx), 2, "iftmp");
   pn->addIncoming(thenv, thenbb);
-  pn->addIncoming(elsev, elsebb);
+  if (else_body) {
+    pn->addIncoming(elsev, elsebb);
+  }
 
   return pn;
 }
@@ -286,6 +293,12 @@ llvm::Value *ReturnStmt::codegen(FusionCtx &ctx) const {
   return nullptr;
 }
 llvm::Value *ClassStmt::codegen(FusionCtx &ctx) const {
-  body->codegen(ctx);
-  return reinterpret_cast<llvm::Value *>(ty.get_type_ptr()->codegen(ctx));
+  std::vector<QualType> tys;
+  for (const auto &line : body->body) {
+    if (line->type != AstType::VarDeclExpr) {
+      tys.push_back(line->cast<VarDeclExpr>()->ty);
+    }
+  }
+  auto *tyv = StructType(name->cast<VarExpr>()->name, std::move(tys)).codegen(ctx);
+  return reinterpret_cast<llvm::Value *>(tyv);
 }
