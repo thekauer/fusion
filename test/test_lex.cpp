@@ -54,10 +54,14 @@ TEST(Lex, OneInOther) {
 }
 
 TEST(Lex, Indent) {
-  std::string code = "\n\n  \n \n\n ";
+  std::string code = "class A\n a : i32\n b:i32 \n fn one()\n  return 1\n\n";
   auto file = FSFile("", code);
   Lexer l = Lexer(file);
-  std::vector<Token::Type> correct{Token::N, Token::Gi, Token::Li, Token::Li};
+  std::vector<Token::Type> correct{Token::Kw,Token::Id,Token::Gi,
+      Token::Id,Token::DoubleDot,Token::Kw,Token::N,
+      Token::Id,Token::DoubleDot,Token::Kw,Token::N,
+      Token::Kw,Token::Id,Token::Lp,Token::Rp,Token::Gi,
+      Token::Kw,Token::Lit,Token::Li,Token::Li};
   for (auto expected : correct) {
     EXPECT_EQ(expected, l.next().type);
   }
