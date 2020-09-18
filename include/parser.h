@@ -236,9 +236,10 @@ public:
 int precedence(Token::Type op);
 class Parser {
 private:
-  std::vector<Token>::const_iterator it, end;
+  std::vector<Token>::iterator it, end;
   Token pop();
   Token peek(int n = 0);
+  void consume_li();
   FusionCtx &ctx;
   const FSFile &file;
 

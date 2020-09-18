@@ -275,6 +275,7 @@ Token Lexer::lex_newline(SourceLocation &err_loc) {
     return Token(Token::Gi, this->get_sourcelocation());
   }
   if (indent > curr_indent) {
+    li = indent - curr_indent -1;
     indent = curr_indent;
     return Token(Token::Li, this->get_sourcelocation());
   }
@@ -494,13 +495,14 @@ void Lexer::test() {
 }
 
 SourceLocation::SourceLocation(FSFile &file)
-    : pos(0), indent(0), it(file.code.begin()), end(file.code.end()) {}
+    : pos(0), indent(0),li(0), it(file.code.begin()), end(file.code.end()) {}
 
 SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
   pos = other.pos;
   indent = other.indent;
   it = other.it;
   end = other.end;
+  li = other.li;
   return *this;
 }
 

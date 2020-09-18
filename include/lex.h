@@ -10,7 +10,7 @@ struct FSFile;
 unsigned int hash(const std::string &str);
 class SourceLocation {
 public:
-  unsigned int pos, indent;
+  unsigned int pos, indent,li;
   std::string::const_iterator it, end;
   SourceLocation(FSFile &file);
   INLINE char peek(const int n = 0);

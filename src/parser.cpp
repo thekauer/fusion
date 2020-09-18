@@ -8,6 +8,14 @@ Token Parser::pop() {
 }
 Token Parser::peek(int n) { return *(it + n); }
 
+void Parser::consume_li() {
+  if (peek().sl.li == 0) {
+    pop(); // pop the Li
+  } else {
+    it->sl.li--;
+  }
+}
+
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
@@ -376,7 +384,7 @@ std::unique_ptr<Body> Parser::parse_body() {
       ;
     }
   }
-  pop(); // pop the Li
+  consume_li();
   return std::make_unique<Body>(loc, std::move(body));
 }
 
@@ -424,7 +432,7 @@ std::unique_ptr<Body> Parser::parse_class_body() {
       ;
     }
   }
-  pop(); // pop the Li
+  consume_li();
   return std::make_unique<Body>(loc, std::move(body));
 }
 
