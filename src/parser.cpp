@@ -31,6 +31,37 @@ int precedence(Token::Type op) {
   }
   return -1;
 }
+Type *lookup_type(AstExpr *head, const std::string& name) { 
+    if (!head) {
+    return nullptr;
+    }
+    switch (head->type) {
+    case AstType::ClassStmt: {
+      auto* pclass = head->cast<ClassStmt>();
+      if (pclass->name->name == name) {
+        return const_cast<Type*>(pclass->ty.get_type_ptr());
+      } else {
+        return lookup_type(pclass, name);
+      }
+    }
+    case AstType::Body: {
+      Type *res=nullptr;
+      auto *pbody = head->cast<Body>();
+      for (auto &line : pbody->body) {
+        res = lookup_type(line.get(),name);
+        if (res) {
+          return res;
+        }
+      }
+      return nullptr;
+    }
+    
+  default:
+      return nullptr;
+  }
+    
+    return nullptr;
+}
 QualType ClassStmt::get_class_type() const {
   std::vector<QualType> types;
   for (auto const &line : body->body) {
@@ -50,7 +81,9 @@ std::unique_ptr<Body> Parser::parse() {
     body.push_back(std::move(top_level_expr));
     top_level_expr = parse_top_level();
   }
-  return std::make_unique<Body>(loc, std::move(body));
+  auto ret = std::make_unique<Body>(loc, std::move(body));
+  ctx.head = ret.get();
+  return ret;
 }
 std::unique_ptr<AstExpr> Parser::parse_top_level() {
   std::unique_ptr<AstExpr> tle = parse_fndecl();

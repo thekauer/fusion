@@ -269,3 +269,4 @@ private:
   std::unique_ptr<Body> parse_class_body();
   std::unique_ptr<AstExpr> parse_inside_class();
 };
+Type *lookup_type(AstExpr* head,const std::string& name);
