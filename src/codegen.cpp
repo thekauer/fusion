@@ -212,10 +212,17 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) const {
   if (ctx.named_values.find(name) != ctx.named_values.end()) {
     return ctx.named_values[name.data()];
   }
-  llvm::AllocaInst *val =
-      ctx.builder.CreateAlloca(ty.get_type_ptr()->codegen(ctx), nullptr, name);
-  ctx.named_values[name] = val;
-  return val;
+  if (!ty.get_type_ptr()) {
+    return nullptr;
+  }
+  auto *tyc = ty.get_type_ptr()->codegen(ctx);
+  if (tyc) {
+
+    llvm::AllocaInst *val = ctx.builder.CreateAlloca(tyc, nullptr, name);
+    ctx.named_values[name] = val;
+    return val;
+  }
+  return nullptr;
 }
 
 llvm::Value *RangeExpr::codegen(FusionCtx &ctx) const {
