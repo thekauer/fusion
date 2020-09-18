@@ -64,7 +64,7 @@ struct IntegralType : Type {
 };
 
 struct ResolveType : Type {
-  ResolveType(std::string_view name);
+  ResolveType(const std::string& name);
   llvm::Type *codegen(FusionCtx &ctx) const override;
 };
 
