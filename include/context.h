@@ -2,12 +2,14 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include <map>
+struct AstExpr;
 enum class Linkage : unsigned char { Ext };
 enum class Inline : unsigned char { Alway, Never, Def };
 
 struct FusionCtx {
   std::vector<llvm::Value *> string_table;
   llvm::LLVMContext ctx;
+  AstExpr *head;
   llvm::IRBuilder<> builder = llvm::IRBuilder<>(ctx);
   std::unique_ptr<llvm::Module> mod =
       std::make_unique<llvm::Module>("global", ctx);
