@@ -29,7 +29,6 @@ public:
   AstType type;
   SourceLocation sl;
   AstExpr(AstType type, const SourceLocation &sl) : type(type), sl(sl){};
-  virtual void print_name() const { std::cout << "AstExpr\n"; };
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual ~AstExpr() {}
@@ -41,7 +40,6 @@ struct Body : AstExpr {
   std::vector<std::unique_ptr<AstExpr>> body;
   Body(const SourceLocation &sl, std::vector<std::unique_ptr<AstExpr>> &&body)
       : body(std::move(body)), AstExpr(AstType::Body, sl) {}
-  void print_name() const { std::cout << "body\n"; };
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -49,7 +47,6 @@ struct Stmt : AstExpr {
   std::unique_ptr<Body> body;
   Stmt(const SourceLocation &sl, AstType type, std::unique_ptr<Body> &&body)
       : body(std::move(body)), AstExpr(type, sl){};
-  virtual void print_name() const;
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual ~Stmt(){};
@@ -58,7 +55,6 @@ struct Expr : AstExpr {
   QualType ty;
   Expr(const SourceLocation &sl, AstType type, QualType ty)
       : ty(ty), AstExpr(type, sl){};
-  virtual void print_name() const;
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual ~Expr(){};
@@ -72,7 +68,6 @@ struct VarDeclExpr : AstExpr {
   VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType &ty)
       : AstExpr(AstType::VarDeclExpr, sl), name(name), ty(ty){};
   llvm::Value *codegen(FusionCtx &ctx) const override;
-  void print_name() const override { std::cout << "VarDeclExpr\n"; }
   void pretty_print() const override;
 };
 struct FnModifiers {
@@ -103,7 +98,6 @@ struct FnProto : AstExpr {
       : AstExpr(AstType::FnProto, sl), ret(std::move(ret)),
         args(std::move(args)), name(name) {}
 
-  void print_name() const override { std::cout << "FnProto\n"; }
   void pretty_print() const override;
   llvm::Value *codegen(FusionCtx &ctx) const override;
 };
@@ -119,9 +113,6 @@ struct FnDecl : AstExpr {
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto)
       : AstExpr(AstType::FnDecl, sl), proto(std::move(proto)),
         mods(FnModifiers::Extern) {}
-  void print_name() const override {
-    std::cout << "FnDecl: " << proto->name << "\n";
-  }
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -129,7 +120,6 @@ struct ValExpr : AstExpr {
   Lit val;
   ValExpr(const SourceLocation &sl, Lit val)
       : AstExpr(AstType::ValExpr, sl), val(val) {}
-  void print_name() const override { std::cout << "ValExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -138,7 +128,6 @@ struct VarExpr : AstExpr {
 
   VarExpr(const SourceLocation &sl, const std::string &name)
       : AstExpr(AstType::VarExpr, sl), name(name) {}
-  void print_name() const override { std::cout << "VarExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -160,7 +149,6 @@ struct FnCall : AstExpr {
   FnCall(const SourceLocation &sl, const std::string &name,
          std::vector<std::unique_ptr<AstExpr>> &&args)
       : AstExpr(AstType::FnCall, sl), name(name), args(std::move(args)){};
-  void print_name() const override { std::cout << "FnCall\n"; }
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -170,7 +158,6 @@ struct BinExpr : AstExpr {
   BinExpr(const SourceLocation &sl, Token::Type op,
           std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs)
       : AstExpr(AstType::BinExpr, sl), lhs(move(lhs)), rhs(move(rhs)), op(op){};
-  void print_name() const override { std::cout << "BinExpr\n"; }
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
