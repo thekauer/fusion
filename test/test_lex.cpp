@@ -61,9 +61,10 @@ TEST(Lex, Indent) {
       Token::Id,Token::DoubleDot,Token::Kw,Token::N,
       Token::Id,Token::DoubleDot,Token::Kw,Token::N,
       Token::Kw,Token::Id,Token::Lp,Token::Rp,Token::Gi,
-      Token::Kw,Token::Lit,Token::Li,Token::Li};
+      Token::Kw,Token::Lit,Token::Li,Token::Null};
   for (auto expected : correct) {
-    EXPECT_EQ(expected, l.next().type);
+    auto next = l.next().type;
+    EXPECT_EQ(expected, next);
   }
 }
 
@@ -72,9 +73,10 @@ TEST(Lex, EmptyLines) {
   auto file = FSFile("", code);
   Lexer l = Lexer(file);
   std::vector<Token::Type> correct{Token::Kw, Token::Gi, Token::Lit,
-                                   Token::Li, Token::N,  Token::Kw,
-                                   Token::Gi, Token::Lit};
+                                   Token::Li, Token::Kw,
+                                   Token::Gi, Token::Lit,Token::Null};
   for (auto expected : correct) {
-    EXPECT_EQ(expected, l.next().type);
+    auto next = l.next().type;
+    EXPECT_EQ(expected, next);
   }
 }
