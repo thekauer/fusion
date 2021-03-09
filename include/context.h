@@ -2,7 +2,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include <map>
-struct AstExpr;
+class AstExpr;
 enum class Linkage : unsigned char { Ext };
 enum class Inline : unsigned char { Alway, Never, Def };
 
