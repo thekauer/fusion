@@ -443,6 +443,60 @@ std::unique_ptr<AstExpr> Parser::parse_inside_class() {
   return parse_var_decl();
 }
 
+Body::Body(const SourceLocation &sl,
+           std::vector<std::unique_ptr<AstExpr>> &&body)
+    : AstExpr(AstType::Body, sl), body(std::move(body)) {}
+
+Stmt::Stmt(const SourceLocation &sl, AstType type,
+           std::unique_ptr<Body> &&body) : AstExpr(type,sl), body(std::move(body)){}
+Expr::Expr(const SourceLocation &sl, AstType type, QualType ty) : AstExpr(type,sl),ty(ty) {}
+VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::VarDeclExpr,sl),name(name) {}
+VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name,
+                         QualType &ty) : AstExpr(AstType::VarDeclExpr,sl),name(name),ty(ty) {}
+
+FnProto::FnProto(const SourceLocation &sl, const std::string &name,
+                 std::unique_ptr<AstExpr> ret) : AstExpr(AstType::FnProto,sl),ret(std::move(ret)),name(name) {}
+
+FnProto::FnProto(const SourceLocation &sl, const std::string &name,
+                 std::vector<std::unique_ptr<VarDeclExpr>> &&args,
+                 std::unique_ptr<AstExpr> ret)
+    : AstExpr(AstType::FnProto,sl), ret(std::move(ret)), args(std::move(args)),
+      name(name) {}
+FnDecl::FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto,
+               std::unique_ptr<Body> &&body, FnModifiers::Type mods)
+    : AstExpr(AstType::FnDecl, sl), mods(mods),
+      proto(std::move(proto)) ,body(std::move(body)) {}
+FnDecl::FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto)
+    : AstExpr(AstType::FnDecl, sl), mods(FnModifiers::Extern),
+      proto(std::move(proto)) {}
+
+ValExpr::ValExpr(const SourceLocation &sl, Lit val) : AstExpr(AstType::ValExpr,sl),val(val){}
+VarExpr::VarExpr(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::VarExpr,sl),name(name) {}
+TypeExpr::TypeExpr(const SourceLocation &sl, QualType ty) : AstExpr(AstType::TypeExpr,sl),ty(ty) {}
+TypeExpr::TypeExpr(const SourceLocation &sl) : AstExpr(AstType::TypeExpr,sl) {}
+FnCall::FnCall(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::FnCall,sl),name(name) {}
+FnCall::FnCall(const SourceLocation &sl, const std::string &name,
+       std::vector<std::unique_ptr<AstExpr>> &&args)
+    : AstExpr(AstType::FnCall,sl), name(name), args(std::move(args)) {}
+BinExpr::BinExpr(const SourceLocation &sl, Token::Type op,
+                 std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs) : AstExpr(AstType::BinExpr,sl),lhs(std::move(lhs)),rhs(std::move(rhs)),op(op) {}
+RangeExpr::RangeExpr(const SourceLocation &sl, std::unique_ptr<ValExpr> begin,
+                     std::unique_ptr<ValExpr> end) : AstExpr(AstType::RangeExpr,sl),begin(std::move(begin)),end(std::move(end)){}
+IfStmt::IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
+               std::unique_ptr<Body> &&body) : AstExpr(AstType::IfStmt,sl),condition(std::move(condition)),body(std::move(body)){}
+IfStmt::IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
+               std::unique_ptr<Body> &&body, std::unique_ptr<Body> &&else_body)
+    : AstExpr(AstType::IfStmt, sl), condition(std::move(condition)),
+      body(std::move(body)), else_body(std::move(else_body)) {}
+ReturnStmt::ReturnStmt(const SourceLocation &sl,
+                       std::unique_ptr<AstExpr> &&expr)
+    : AstExpr(AstType::ReturnStmt, sl), expr(std::move(expr)) {}
+ImportExpr::ImportExpr(const SourceLocation &sl, const std::string &module) : AstExpr(AstType::ImportExpr,sl),module(module) {}
+ClassStmt::ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> &&name,
+                     std::unique_ptr<Body> &&body)
+    : AstExpr(AstType::ClassStmt, sl), body(std::move(body)),
+      name(std::move(name)), ty(get_class_type()) {}
+
 void Body::pretty_print() const {
   for (const auto &line : body) {
     for (int i = 0; i < sl.indent; i++)
