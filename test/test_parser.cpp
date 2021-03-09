@@ -145,10 +145,27 @@ TEST(parser, IfStmt) {
   auto lexer = Lexer(file);
   lexer.lex();
   auto p = Parser(lexer.tokens, ctx, file);
-  auto ifstmt = reinterpret_cast<IfStmt *>(p.parse_expr().get());
+  auto expr = p.parse_expr();
+  auto ifstmt = reinterpret_cast<IfStmt *>(expr.get());
   ASSERT_NE(ifstmt, nullptr);
+
+  ASSERT_NE(ifstmt->condition, nullptr);
+  EXPECT_EQ(ifstmt->condition->cast<ValExpr>()->val.as.i32, 1);
+
   ASSERT_NE(ifstmt->body, nullptr);
   EXPECT_EQ(ifstmt->body->body.size(), 1);
+  EXPECT_EQ(ifstmt->body->body[0]->type, AstType::BinExpr);
+  auto body = ifstmt->body->body[0]->cast<BinExpr>();
+  EXPECT_EQ(body->lhs->type, AstType::ValExpr);
+  EXPECT_EQ(body->lhs->cast<ValExpr>()->val.as.i32, 1);
+  EXPECT_EQ(body->rhs->type, AstType::ValExpr);
+  EXPECT_EQ(body->rhs->cast<ValExpr>()->val.as.i32, 1);
+
   ASSERT_NE(ifstmt->else_body, nullptr);
   EXPECT_EQ(ifstmt->else_body->body.size(), 1);
+  auto else_body = ifstmt->else_body->body[0]->cast<BinExpr>();
+  EXPECT_EQ(else_body->lhs->type, AstType::ValExpr);
+  EXPECT_EQ(else_body->lhs->cast<ValExpr>()->val.as.i32, 1);
+  EXPECT_EQ(else_body->rhs->type, AstType::ValExpr);
+  EXPECT_EQ(else_body->rhs->cast<ValExpr>()->val.as.i32, 1);
 }
