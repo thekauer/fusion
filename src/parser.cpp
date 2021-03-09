@@ -495,7 +495,7 @@ ImportExpr::ImportExpr(const SourceLocation &sl, const std::string &module) : As
 ClassStmt::ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> &&name,
                      std::unique_ptr<Body> &&body)
     : AstExpr(AstType::ClassStmt, sl), body(std::move(body)),
-      name(std::move(name)), ty(get_class_type()) {}
+      ty(get_class_type()), name(std::move(name)) {}
 
 void Body::pretty_print() const {
   for (const auto &line : body) {
