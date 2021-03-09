@@ -1,46 +1,6 @@
 #include "lex.h"
 #include <map>
 
-unsigned int hash(const std::string &str) {
-
-  unsigned int h = 123456;
-  unsigned int len = str.size();
-  const unsigned char *key = (const unsigned char *)(&str[0]);
-  if (len > 3) {
-    const unsigned int *key_x4 = (const uint32_t *)(&str[0]);
-    size_t i = len >> 2;
-    do {
-      unsigned int k = *key_x4++;
-      k *= 0xcc9e2d51;
-      k = (k << 15) | (k >> 17);
-      k *= 0x1b873593;
-      h ^= k;
-      h = (h << 13) | (h >> 19);
-      h = h * 5 + 0xe6546b64;
-    } while (--i);
-    key = (const unsigned char *)key_x4;
-  }
-  if (len & 3) {
-    size_t i = len & 3;
-    unsigned int k = 0;
-    key = &key[i - 1];
-    do {
-      k <<= 8;
-      k |= *key--;
-    } while (--i);
-    k *= 0xcc9e2d51;
-    k = (k << 15) | (k >> 17);
-    k *= 0x1b873593;
-    h ^= k;
-  }
-  h ^= len;
-  h ^= h >> 16;
-  h *= 0x85ebca6b;
-  h ^= h >> 13;
-  h *= 0xc2b2ae35;
-  h ^= h >> 16;
-  return h;
-}
 
 enum Eq : unsigned char {
   Not = Token::Not,
@@ -143,19 +103,19 @@ Kw_e Token::getKw() const { return std::get<Kw_e>(data); }
 bool is_op(unsigned char ch) { return ch >= Not && ch <= And; }
 bool is_ws(unsigned char ch) { return ch == Tab || ch == Space; }
 
-static const std::map<unsigned int, Kw_e> kws{
-    {hash("fn"), Fn},         {hash("for"), For},
-    {hash("i8"), I8},         {hash("i16"), I16},
-    {hash("i32"), I32},       {hash("i64"), I64},
-    {hash("string"), String}, {hash("_"), Drop},
-    {hash("if"), If},         {hash("else"), Else},
-    {hash("import"), Import}, {hash("return"), Return},
-    {hash("extern"), Extern}, {hash("export"), Export},
-    {hash("mod"), Module},    {hash("true"), True},
-    {hash("false"), False},   {hash("bool"), Bool},
-    {hash("class"), Class},
+static const std::map<std::string, Kw_e> kws{
+    {"fn", Fn},         {"for", For},
+    {"i8", I8},         {"i16", I16},
+    {"i32", I32},       {"i64", I64},
+    {"string", String}, {"_", Drop},
+    {"if", If},         {"else", Else},
+    {"import", Import}, {"return", Return},
+    {"extern", Extern}, {"export", Export},
+    {"mod", Module},    {"true", True},
+    {"false", False},   {"bool", Bool},
+    {"class", Class},
 };
-Kw_e is_kw(unsigned int h) {
+Kw_e is_kw(const std::string& h) {
   auto k = kws.find(h);
   if (k != kws.end()) {
     return k->second;
@@ -214,7 +174,7 @@ Token Lexer::lex_id_or_kw(SourceLocation &err_loc) {
   }
   auto e = this->get_sourcelocation();
   auto s = std::string(err_loc.it, e.it);
-  auto h = hash(s);
+  auto h = s;
   auto k = is_kw(h);
   if (k != Unk) {
     return Token(k, e);
