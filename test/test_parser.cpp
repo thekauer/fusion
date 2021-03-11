@@ -169,3 +169,45 @@ TEST(parser, IfStmt) {
   EXPECT_EQ(else_body->rhs->type, AstType::ValExpr);
   EXPECT_EQ(else_body->rhs->cast<ValExpr>()->val.as.i32, 1);
 }
+TEST(parser, ResolveType) {
+  FusionCtx ctx;
+  /*
+  class A
+   a : i32
+   b : i32
+  fn main()
+   a : A
+  */
+  std::string code = "class A\n a : i32\n b : i32\n\nfn main()\n a : A";
+  auto file = FSFile("test", code);
+  auto lexer = Lexer(file);
+  lexer.lex();
+  auto p = Parser(lexer.tokens, ctx, file);
+  
+  auto body = p.parse();
+  ASSERT_EQ(body->body.size(), 2); // class ,fndecl
+  auto class_stmt = body->body[0].get();
+  ASSERT_EQ(class_stmt->type, AstType::ClassStmt);
+  auto fndecl = body->body[1].get();
+  ASSERT_EQ(fndecl->type, AstType::FnDecl);
+
+  auto class_body = class_stmt->cast<ClassStmt>()->body.get();
+  ASSERT_EQ(class_body->body.size(), 2); // 2x vardecl
+
+  ASSERT_EQ(class_body->body[0]->type, AstType::VarDeclExpr);
+  auto a_ty = class_body->body[0]->cast<VarDeclExpr>()->ty;
+  ASSERT_EQ(a_ty.get_type_ptr()->get_typekind(), Type::Integral);
+  EXPECT_EQ(reinterpret_cast<const IntegralType *>(a_ty.get_type_ptr())->ty,
+            IntegralType::I32);
+
+  ASSERT_EQ(class_body->body[1]->type, AstType::VarDeclExpr);
+  auto b_ty = class_body->body[1]->cast<VarDeclExpr>()->ty;
+  ASSERT_EQ(b_ty.get_type_ptr()->get_typekind(), Type::Integral);
+  EXPECT_EQ(reinterpret_cast<const IntegralType *>(b_ty.get_type_ptr())->ty,
+            IntegralType::I32);
+
+  auto fn_body = fndecl->cast<FnDecl>()->body.get();
+  ASSERT_EQ(fn_body->body.size(), 1); // vardecl
+  ASSERT_EQ(fn_body->body[0]->type, AstType::VarDeclExpr);
+
+}
