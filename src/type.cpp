@@ -82,13 +82,16 @@ llvm::Type *IntegralType::codegen(FusionCtx &ctx) const {
     Error::ImplementMe("implement string literal code generation");
   default:
     return nullptr;
-  } 
+  }
   return ret;
 }
+
+ResolveType::ResolveType(const std::string& name) : Type(name,Type::Resolve,0) {}
 
 QualType::QualType(const Type &type) : type(&type){};
 QualType::QualType(const IntegralType &type)
     : type(&static_cast<const Type &>(type)) {}
+QualType::QualType(const ResolveType &type) :type(&type){}
 
 QualType QualType::to_val() {
   ref = 0;
@@ -127,18 +130,25 @@ QualType &QualType::operator=(const QualType &other) {
   return *this;
 }
 
-
-unsigned int StructType::get_struct_size(std::vector<QualType>& fields) {
-    unsigned int sum = 0;
-    for (const auto& t : fields) {
-        sum += t.get_type_ptr()->get_size();
-    }
-    return sum;
+unsigned int StructType::get_struct_size(std::vector<QualType> &fields) {
+  unsigned int sum = 0;
+  for (const auto &t : fields) {
+    sum += t.get_type_ptr()->get_size();
+  }
+  return sum;
 }
-llvm::Type* StructType::codegen(FusionCtx& ctx) const {
-    std::vector<llvm::Type*> tys;
-    for (const auto& t : fields) {
-        tys.push_back(t.get_type_ptr()->codegen(ctx));
-    }
-    return llvm::StructType::create(ctx.ctx,llvm::ArrayRef(tys),llvm::StringRef(name.data()),false);
+llvm::Type *StructType::codegen(FusionCtx &ctx) const {
+  std::vector<llvm::Type *> tys;
+  for (const auto &t : fields) {
+    tys.push_back(t.get_type_ptr()->codegen(ctx));
+  }
+  return llvm::StructType::create(ctx.ctx, llvm::ArrayRef(tys),
+                                  llvm::StringRef(name.data()), false);
+}
+
+struct AstExpr;
+Type *lookup_type(AstExpr *, const std::string &);
+llvm::Type *ResolveType::codegen(FusionCtx &ctx) const { 
+    auto *rty = lookup_type(ctx.head, name);
+    return rty?rty->codegen(ctx):nullptr;
 }

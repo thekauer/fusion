@@ -7,10 +7,9 @@
 
 struct FSFile;
 
-unsigned int hash(const std::string &str);
 class SourceLocation {
 public:
-  unsigned int pos, indent;
+  unsigned int pos, indent,li;
   std::string::const_iterator it, end;
   SourceLocation(FSFile &file);
   INLINE char peek(const int n = 0);
@@ -45,7 +44,7 @@ enum Kw_e : unsigned char {
 
 bool is_op(unsigned char ch);
 bool is_ws(unsigned char ch);
-Kw_e is_kw(unsigned int h);
+Kw_e is_kw(const std::string& h);
 
 struct Lit {
   QualType ty;

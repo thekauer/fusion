@@ -7,7 +7,7 @@
 struct IntegralType;
 class Type {
 public:
-  enum TypeKind : unsigned char { Integral, Array, Struct, Tuple };
+  enum TypeKind : unsigned char { Integral, Array, Struct, Tuple,Resolve };
   Type(const std::string_view name, TypeKind tk, const unsigned int size);
 
   unsigned int get_size() const;
@@ -63,11 +63,16 @@ struct IntegralType : Type {
   llvm::Type *codegen(FusionCtx &ctx) const override;
 };
 
+struct ResolveType : Type {
+  ResolveType(const std::string& name);
+  llvm::Type *codegen(FusionCtx &ctx) const override;
+};
 
 class QualType {
 public:
   QualType(const Type &type);
   QualType(const IntegralType &type);
+  QualType(const ResolveType &type);
   QualType() = default;
 
   QualType to_val();
@@ -96,9 +101,12 @@ private:
 
 struct StructType : Type {
 private:
-    static unsigned int get_struct_size(std::vector<QualType>& fields);
+  static unsigned int get_struct_size(std::vector<QualType> &fields);
+
 public:
-    std::vector<QualType> fields;
-    StructType(std::string_view name, std::vector<QualType>&& fields) : fields(std::move(fields)),Type(name, Type::Struct, get_struct_size(fields)) {};
-    llvm::Type* codegen(FusionCtx& ctx) const override;
+  std::vector<QualType> fields;
+  StructType(std::string_view name, std::vector<QualType> &&fields)
+      : fields(std::move(fields)),
+        Type(name, Type::Struct, get_struct_size(fields)){};
+  llvm::Type *codegen(FusionCtx &ctx) const override;
 };
