@@ -9,6 +9,7 @@ class Type {
 public:
   enum TypeKind : unsigned char { Integral, Array, Struct, Tuple,Resolve };
   Type(const std::string_view name, TypeKind tk, const unsigned int size);
+  virtual ~Type(){};
 
   unsigned int get_size() const;
   std::string_view get_name() const;
@@ -106,7 +107,7 @@ private:
 public:
   std::vector<QualType> fields;
   StructType(std::string_view name, std::vector<QualType> &&fields)
-      : fields(std::move(fields)),
-        Type(name, Type::Struct, get_struct_size(fields)){};
+      : Type(name, Type::Struct, get_struct_size(fields)),
+        fields(std::move(fields)) {};
   llvm::Type *codegen(FusionCtx &ctx) const override;
 };

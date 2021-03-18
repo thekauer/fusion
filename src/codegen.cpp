@@ -215,7 +215,8 @@ llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) const {
   if (!ty.get_type_ptr()) {
     return nullptr;
   }
-  auto *tyc = ty.get_type_ptr()->codegen(ctx);
+  auto *typ = ty.get_type_ptr();
+  auto *tyc = typ->codegen(ctx);
   if (tyc) {
 
     llvm::AllocaInst *val = ctx.builder.CreateAlloca(tyc, nullptr, name);
@@ -247,9 +248,9 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
                                    "ifcond");
   llvm::Function *func = ctx.builder.GetInsertBlock()->getParent();
 
-  llvm::BasicBlock *thenbb = llvm::BasicBlock::Create(ctx.ctx, "then");
-  llvm::BasicBlock *mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge");
-  llvm::BasicBlock *elsebb = llvm::BasicBlock::Create(ctx.ctx, "else");
+  llvm::BasicBlock *thenbb = llvm::BasicBlock::Create(ctx.ctx, "then",func);
+  llvm::BasicBlock *elsebb = llvm::BasicBlock::Create(ctx.ctx, "else",func);
+  llvm::BasicBlock *mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge",func);
   llvm::Value *elsev = nullptr;
   if (else_body) {
     ctx.builder.CreateCondBr(condv, thenbb, elsebb);
@@ -276,6 +277,7 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
   }
   func->getBasicBlockList().push_back(mergebb);
   ctx.builder.SetInsertPoint(mergebb);
+  /*
   auto *pn =
       ctx.builder.CreatePHI(llvm::Type::getInt32Ty(ctx.ctx), 2, "iftmp");
   pn->addIncoming(thenv, thenbb);
@@ -283,7 +285,8 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
     pn->addIncoming(elsev, elsebb);
   }
 
-  return pn;
+  return pn;*/
+  return mergebb;
 }
 
 llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {

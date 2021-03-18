@@ -497,8 +497,9 @@ ReturnStmt::ReturnStmt(const SourceLocation &sl,
 ImportExpr::ImportExpr(const SourceLocation &sl, const std::string &module) : AstExpr(AstType::ImportExpr,sl),module(module) {}
 ClassStmt::ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> name,
                      std::unique_ptr<Body> body, std::unique_ptr<Type> ty)
-    : AstExpr(AstType::ClassStmt, sl), body(std::move(body)),
-      name(std::move(name)),ty(std::move(ty)) {}
+    : AstExpr(AstType::ClassStmt, sl), ty(std::move(ty)),
+      body(std::move(body)),
+      name(std::move(name)) {}
 
 void Body::pretty_print() const {
   for (const auto &line : body) {
@@ -561,8 +562,7 @@ void ValExpr::pretty_print() const {
     case IntegralType::USize:
       llvm::outs() << val.as.u64;
       return;
-    }
-  case Bool:
+  case IntegralType::Bool:
     if (val.as.b) {
       llvm::outs() << "true";
     } else {
@@ -570,6 +570,7 @@ void ValExpr::pretty_print() const {
     }
     return;
   }
+    }
   default:
     llvm::outs() << "val";
   }
