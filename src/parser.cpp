@@ -47,7 +47,7 @@ Type *lookup_type(AstExpr *head, const std::string& name) {
     case AstType::ClassStmt: {
       auto* pclass = head->cast<ClassStmt>();
       if (pclass->name->name == name) {
-        return const_cast<Type*>(pclass->ty.get_type_ptr());
+        return const_cast<Type*>(pclass->ty.get());
       } else {
         return lookup_type(pclass, name);
       }
@@ -55,7 +55,7 @@ Type *lookup_type(AstExpr *head, const std::string& name) {
     case AstType::Body: {
       Type *res=nullptr;
       auto *pbody = head->cast<Body>();
-      for (auto &line : pbody->body) {
+      for (auto const &line : pbody->body) {
         res = lookup_type(line.get(),name);
         if (res) {
           return res;
@@ -70,7 +70,9 @@ Type *lookup_type(AstExpr *head, const std::string& name) {
     
     return nullptr;
 }
-QualType ClassStmt::get_class_type() const {
+std::unique_ptr<Type>
+ClassStmt::get_class_type(const std::unique_ptr<VarExpr> &name,
+                          const std::unique_ptr<Body> &body) {
   std::vector<QualType> types;
   for (auto const &line : body->body) {
     if (line->type == AstType::VarDeclExpr) {
@@ -78,7 +80,7 @@ QualType ClassStmt::get_class_type() const {
       types.push_back(t);
     }
   }
-  return QualType(StructType(name->name, std::move(types)));
+  return std::make_unique<StructType>(name->name, std::move(types));
 }
 
 std::unique_ptr<Body> Parser::parse() {
@@ -244,8 +246,9 @@ std::unique_ptr<TypeExpr> Parser::parse_type_expr() {
   // eh
   if (peek().type != Token::Kw) {
     if (peek().type == Token::Id) {
+      auto name = pop().getName();
       return std::make_unique<TypeExpr>(peek().sl,
-                                        QualType(ResolveType(pop().getName())));
+                                        QualType(*new ResolveType(name)));
     }
     return nullptr;
   }
@@ -381,7 +384,6 @@ std::unique_ptr<Body> Parser::parse_body() {
     } else {
       Error::ImplementMe("expr in body is null");
       return nullptr;
-      ;
     }
   }
   consume_li();
@@ -407,7 +409,8 @@ std::unique_ptr<ClassStmt> Parser::parse_class() {
     if (!body) {
       return nullptr;
     }
-    return std::make_unique<ClassStmt>(sl, std::move(id), std::move(body));
+    auto class_ty = ClassStmt::get_class_type(id, body);
+    return std::make_unique<ClassStmt>(sl, std::move(id), std::move(body),std::move(class_ty));
   }
   return nullptr;
 }
@@ -444,11 +447,11 @@ std::unique_ptr<AstExpr> Parser::parse_inside_class() {
 }
 
 Body::Body(const SourceLocation &sl,
-           std::vector<std::unique_ptr<AstExpr>> &&body)
+           std::vector<std::unique_ptr<AstExpr>> body)
     : AstExpr(AstType::Body, sl), body(std::move(body)) {}
 
 Stmt::Stmt(const SourceLocation &sl, AstType type,
-           std::unique_ptr<Body> &&body) : AstExpr(type,sl), body(std::move(body)){}
+           std::unique_ptr<Body> body) : AstExpr(type,sl), body(std::move(body)){}
 Expr::Expr(const SourceLocation &sl, AstType type, QualType ty) : AstExpr(type,sl),ty(ty) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::VarDeclExpr,sl),name(name) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name,
@@ -458,12 +461,12 @@ FnProto::FnProto(const SourceLocation &sl, const std::string &name,
                  std::unique_ptr<AstExpr> ret) : AstExpr(AstType::FnProto,sl),ret(std::move(ret)),name(name) {}
 
 FnProto::FnProto(const SourceLocation &sl, const std::string &name,
-                 std::vector<std::unique_ptr<VarDeclExpr>> &&args,
+                 std::vector<std::unique_ptr<VarDeclExpr>> args,
                  std::unique_ptr<AstExpr> ret)
     : AstExpr(AstType::FnProto,sl), ret(std::move(ret)), args(std::move(args)),
       name(name) {}
 FnDecl::FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto,
-               std::unique_ptr<Body> &&body, FnModifiers::Type mods)
+               std::unique_ptr<Body> body, FnModifiers::Type mods)
     : AstExpr(AstType::FnDecl, sl), mods(mods),
       proto(std::move(proto)) ,body(std::move(body)) {}
 FnDecl::FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto)
@@ -476,26 +479,26 @@ TypeExpr::TypeExpr(const SourceLocation &sl, QualType ty) : AstExpr(AstType::Typ
 TypeExpr::TypeExpr(const SourceLocation &sl) : AstExpr(AstType::TypeExpr,sl) {}
 FnCall::FnCall(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::FnCall,sl),name(name) {}
 FnCall::FnCall(const SourceLocation &sl, const std::string &name,
-       std::vector<std::unique_ptr<AstExpr>> &&args)
+       std::vector<std::unique_ptr<AstExpr>> args)
     : AstExpr(AstType::FnCall,sl), name(name), args(std::move(args)) {}
 BinExpr::BinExpr(const SourceLocation &sl, Token::Type op,
                  std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs) : AstExpr(AstType::BinExpr,sl),lhs(std::move(lhs)),rhs(std::move(rhs)),op(op) {}
 RangeExpr::RangeExpr(const SourceLocation &sl, std::unique_ptr<ValExpr> begin,
                      std::unique_ptr<ValExpr> end) : AstExpr(AstType::RangeExpr,sl),begin(std::move(begin)),end(std::move(end)){}
 IfStmt::IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
-               std::unique_ptr<Body> &&body) : AstExpr(AstType::IfStmt,sl),condition(std::move(condition)),body(std::move(body)){}
+               std::unique_ptr<Body> body) : AstExpr(AstType::IfStmt,sl),condition(std::move(condition)),body(std::move(body)){}
 IfStmt::IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
-               std::unique_ptr<Body> &&body, std::unique_ptr<Body> &&else_body)
+               std::unique_ptr<Body> body, std::unique_ptr<Body> else_body)
     : AstExpr(AstType::IfStmt, sl), condition(std::move(condition)),
       body(std::move(body)), else_body(std::move(else_body)) {}
 ReturnStmt::ReturnStmt(const SourceLocation &sl,
-                       std::unique_ptr<AstExpr> &&expr)
+                       std::unique_ptr<AstExpr> expr)
     : AstExpr(AstType::ReturnStmt, sl), expr(std::move(expr)) {}
 ImportExpr::ImportExpr(const SourceLocation &sl, const std::string &module) : AstExpr(AstType::ImportExpr,sl),module(module) {}
-ClassStmt::ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> &&name,
-                     std::unique_ptr<Body> &&body)
+ClassStmt::ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> name,
+                     std::unique_ptr<Body> body, std::unique_ptr<Type> ty)
     : AstExpr(AstType::ClassStmt, sl), body(std::move(body)),
-      ty(get_class_type()), name(std::move(name)) {}
+      name(std::move(name)),ty(std::move(ty)) {}
 
 void Body::pretty_print() const {
   for (const auto &line : body) {
