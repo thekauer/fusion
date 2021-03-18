@@ -178,7 +178,7 @@ TEST(parser, ResolveType) {
   fn main()
    a : A
   */
-  std::string code = "class A\n a : i32\n b : i32\n\nfn main()\n a : A";
+  std::string code = "class A\n a : i32\n b : i32\n\nfn main()\n a : A\n";
   auto file = FSFile("test", code);
   auto lexer = Lexer(file);
   lexer.lex();
