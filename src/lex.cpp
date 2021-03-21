@@ -81,11 +81,7 @@ Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) {
   as.string = string;
 };
 
-Lit &Lit::operator=(const Lit &other) {
-  ty = other.ty;
-  as = other.as;
-  return *this;
-}
+
 
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};
 Token::Token(unsigned char c, const SourceLocation &sl)

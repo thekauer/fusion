@@ -75,7 +75,6 @@ struct Lit {
   Lit(double f64);
   Lit(std::string_view string);
 
-  Lit &operator=(const Lit &other);
 };
 
 struct Token {
