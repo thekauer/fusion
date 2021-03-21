@@ -15,7 +15,6 @@ public:
   INLINE char peek(const int n = 0);
   INLINE char pop();
   INLINE bool can_iter();
-  SourceLocation &operator=(const SourceLocation &other);
   SourceLocation get_sourcelocation();
 };
 

@@ -435,13 +435,5 @@ void Lexer::test() {
 SourceLocation::SourceLocation(FSFile &file)
     : pos(0), indent(0),li(0), it(file.code.begin()), end(file.code.end()) {}
 
-SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
-  pos = other.pos;
-  indent = other.indent;
-  it = other.it;
-  end = other.end;
-  li = other.li;
-  return *this;
-}
 
 SourceLocation SourceLocation::get_sourcelocation() { return *this; }
