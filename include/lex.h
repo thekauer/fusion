@@ -142,7 +142,6 @@ struct Token {
   Token(::Lit val, const SourceLocation &sl);
   Token(const std::string &str, const SourceLocation &sl);
   Token(Kw_e kw, const SourceLocation &sl);
-  Token &operator=(const Token &other);
   ::Lit getValue() const;
   std::string getName() const;
   Kw_e getKw() const;

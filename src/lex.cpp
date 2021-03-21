@@ -138,24 +138,6 @@ Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
 
 Lit Lexer::stringlit(std::string s) { return Lit(s); }
 
-Token &Token::operator=(const Token &other) {
-  type = other.type;
-  sl = other.sl;
-  switch (other.type) {
-  case Lit:
-    data = other.data;
-    break;
-  case Kw:
-    data = other.data;
-    break;
-  case Id:
-    data = other.data;
-    break;
-  default:
-    break;
-  }
-  return *this;
-}
 
 void Lexer::lex() {
   if (!can_iter()) {
