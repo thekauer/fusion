@@ -226,5 +226,7 @@ private:
   std::unique_ptr<ClassStmt> parse_class();
   std::unique_ptr<Body> parse_class_body();
   std::unique_ptr<AstExpr> parse_inside_class();
+
+  bool is_end_of_body();
 };
 Type *lookup_type(AstExpr* head,const std::string& name);

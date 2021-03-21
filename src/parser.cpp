@@ -96,6 +96,9 @@ std::unique_ptr<Body> Parser::parse() {
   return ret;
 }
 std::unique_ptr<AstExpr> Parser::parse_top_level() {
+  if (it == end) {
+    return nullptr;
+  }
   std::unique_ptr<AstExpr> tle = parse_fndecl();
   if (tle)
     return tle;
@@ -377,7 +380,7 @@ std::unique_ptr<Body> Parser::parse_body() {
   }
   std::vector<std::unique_ptr<AstExpr>> body;
 
-  while (peek().type != Token::Li) {
+  while (!is_end_of_body()) {
     auto expr = parse_expr();
     if (expr) {
       body.push_back(std::move(expr));
@@ -422,7 +425,7 @@ std::unique_ptr<Body> Parser::parse_class_body() {
   }
   std::vector<std::unique_ptr<AstExpr>> body;
 
-  while (peek().type != Token::Li) {
+  while (!is_end_of_body()) {
     if (peek().type == Token::N) {
       pop();
     }
@@ -444,6 +447,9 @@ std::unique_ptr<AstExpr> Parser::parse_inside_class() {
   if (expr)
     return expr;
   return parse_var_decl();
+}
+bool Parser::is_end_of_body() {
+  return peek().type == Token::Li || peek().type == Token::Null;
 }
 
 Body::Body(const SourceLocation &sl,
