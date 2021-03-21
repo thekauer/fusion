@@ -9,7 +9,7 @@ Token Parser::pop() {
 Token Parser::peek(int n) { return *(it + n); }
 
 void Parser::consume_li() {
-  if (peek().sl.li == 0) {
+  if (it!=end &&peek().sl.li == 0) {
     pop(); // pop the Li
   } else {
     it->sl.li--;
@@ -449,7 +449,7 @@ std::unique_ptr<AstExpr> Parser::parse_inside_class() {
   return parse_var_decl();
 }
 bool Parser::is_end_of_body() {
-  return peek().type == Token::Li || peek().type == Token::Null;
+  return it==end ||  peek().type == Token::Li || peek().type == Token::Null;
 }
 
 Body::Body(const SourceLocation &sl,
