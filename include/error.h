@@ -25,7 +25,8 @@ enum class Error_e : int {
   MustbeFsFile,
   TooFewArgumentsForFs,
   UnkEsc,
-  CouldNotInferType
+  CouldNotInferType,
+  MainNoreturn
 };
 
 void serror(Error_e code, const std::string &msg);
@@ -44,5 +45,6 @@ public:
   static void ExpectedToken(const FSFile &file, const SourceLocation &sl,
                             const std::string &msg);
   static void EmptyFnBody(const FSFile &file, const SourceLocation &sl);
+  static void MainNoReturn(const FSFile &file, const SourceLocation &sl);
   static void ImplementMe(std::string_view msg);
 };

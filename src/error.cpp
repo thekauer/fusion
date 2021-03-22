@@ -80,6 +80,12 @@ void Error::ExpectedToken(const FSFile &file, const SourceLocation &sl,
 void Error::EmptyFnBody(const FSFile &file, const SourceLocation &sl) {
   error(Error_e::EmptyFnBody, file, sl, "Empty Function Body");
 }
+
+void Error::MainNoReturn(const FSFile &file, const SourceLocation &sl) {
+  error(Error_e::MainNoreturn, file, sl,
+        "You must put a return statement in the main function.");
+}
+
 void Error::ImplementMe(std::string_view msg) {
   llvm::outs() << "Error you didn't implement: " << msg.data() << "\n";
 }
