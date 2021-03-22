@@ -433,7 +433,7 @@ void Lexer::test() {
 }
 
 SourceLocation::SourceLocation(FSFile &file)
-    : pos(0), indent(0),li(0), it(file.code.begin()), end(file.code.end()) {}
+    : pos(0), indent(0),li(0), it(file.code.begin()), end(file.code.end()),file(file) {}
 
 
 SourceLocation SourceLocation::get_sourcelocation() { return *this; }

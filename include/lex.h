@@ -11,6 +11,7 @@ class SourceLocation {
 public:
   unsigned int pos, indent,li;
   std::string::const_iterator it, end;
+  const FSFile& file;
   SourceLocation(FSFile &file);
   INLINE char peek(const int n = 0);
   INLINE char pop();
