@@ -2,7 +2,7 @@
 #include "parser.h"
 #include "type.h"
 #include "llvm/IR/Verifier.h"
-static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
+static bool codegen_type_check(llvm::Type *lhs, llvm::Type *rhs) {
   if (rhs->isPointerTy()) {
     return rhs->isPointerTy();
   }
@@ -157,7 +157,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
       return ctx.builder.CreateStore(vrhs, var);
     }
 
-    if (!type_check(vrhs->getType(), vlhs->getType())) {
+    if (!codegen_type_check(vrhs->getType(), vlhs->getType())) {
       Error::ImplementMe("types don't match");
       return nullptr;
     }
