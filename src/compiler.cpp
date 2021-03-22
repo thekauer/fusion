@@ -74,6 +74,7 @@ void Compiler::test() {
   llvm::outs() << "parse: ";
   auto prog = p.parse();
   llvm::outs() << "\npretty print: \n";
+  prog->type_check();
   prog->pretty_print();
   llvm::outs() << "\ncodegen: \n";
   prog->codegen(ctx);
@@ -84,7 +85,7 @@ void Compiler::test() {
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
           .count();
   auto dd = (double)duration / 1000;
-  system("./compile.sh");
+  //system("./compile.sh");
   // link_fs();
   std::cout << "[" << std::setprecision(4) << dd << "s]";
 
@@ -133,7 +134,7 @@ void Compiler::generate_obj(llvm::Module *m, const std::string &filename) {
     llvm::errs() << "Could not emit to file";
     std::exit(1);
   }
-  // pass.add(llvm::createPrintModulePass(llvm::outs()));
+  //pass.add(llvm::createPrintModulePass(llvm::outs()));
   pass.run(*m);
   dest.flush();
 }
