@@ -28,11 +28,12 @@ class AstExpr {
 public:
   AstType type;
   SourceLocation sl;
+  int indent = 0;
   AstExpr(AstType type, const SourceLocation &sl) : type(type), sl(sl){};
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
+  virtual void type_check() const;
   virtual ~AstExpr() {}
-  int indent = 0;
   template <typename T> T *cast() { return reinterpret_cast<T *>(this); }
 };
 
@@ -41,12 +42,14 @@ struct Body : AstExpr {
   Body(const SourceLocation &sl, std::vector<std::unique_ptr<AstExpr>> body);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 struct Stmt : AstExpr {
   std::unique_ptr<Body> body;
   Stmt(const SourceLocation &sl, AstType type, std::unique_ptr<Body> body);
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
+  virtual void type_check() const;
   virtual ~Stmt(){};
 };
 struct Expr : AstExpr {
@@ -54,6 +57,7 @@ struct Expr : AstExpr {
   Expr(const SourceLocation &sl, AstType type, QualType ty);
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
+  virtual void type_check() const;
   virtual ~Expr(){};
 };
 struct VarDeclExpr : AstExpr {
@@ -64,6 +68,7 @@ struct VarDeclExpr : AstExpr {
   VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType &ty);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 struct FnModifiers {
   using Type = unsigned char;
@@ -90,6 +95,7 @@ struct FnProto : AstExpr {
           std::unique_ptr<AstExpr> ret = nullptr);
 
   void pretty_print() const override;
+  void type_check() const override;
   llvm::Value *codegen(FusionCtx &ctx) const override;
 };
 
@@ -102,12 +108,14 @@ struct FnDecl : AstExpr {
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 struct ValExpr : AstExpr {
   Lit val;
   ValExpr(const SourceLocation &sl, Lit val);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 struct VarExpr : AstExpr {
   std::string name;
@@ -115,6 +123,7 @@ struct VarExpr : AstExpr {
   VarExpr(const SourceLocation &sl, const std::string &name);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 struct TypeExpr : AstExpr {
@@ -123,6 +132,7 @@ struct TypeExpr : AstExpr {
   TypeExpr(const SourceLocation &sl);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 struct FnCall : AstExpr {
   std::string name;
@@ -133,6 +143,7 @@ struct FnCall : AstExpr {
          std::vector<std::unique_ptr<AstExpr>> args);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 struct BinExpr : AstExpr {
   std::unique_ptr<AstExpr> lhs, rhs;
@@ -141,6 +152,7 @@ struct BinExpr : AstExpr {
           std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 struct RangeExpr : AstExpr {
@@ -149,6 +161,7 @@ struct RangeExpr : AstExpr {
             std::unique_ptr<ValExpr> end);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 struct IfStmt : AstExpr {
@@ -160,6 +173,7 @@ struct IfStmt : AstExpr {
          std::unique_ptr<Body> body, std::unique_ptr<Body> else_body);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 struct ReturnStmt : AstExpr {
@@ -167,6 +181,7 @@ struct ReturnStmt : AstExpr {
   ReturnStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> expr);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 struct ImportExpr : AstExpr {
@@ -174,6 +189,7 @@ struct ImportExpr : AstExpr {
   ImportExpr(const SourceLocation &sl, const std::string &module);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 struct ClassStmt : AstExpr {
@@ -188,6 +204,7 @@ public:
             std::unique_ptr<Body> body, std::unique_ptr<Type> ty);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 int precedence(Token::Type op);
