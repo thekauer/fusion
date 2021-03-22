@@ -6,10 +6,12 @@ Token Parser::pop() {
     return Token(Token::Eof, (it - 1)->sl);
   return *it++;
 }
-Token Parser::peek(int n) { return *(it + n); }
+Token Parser::peek(int n) { return it!=end?*(it + n):Token(Token::Null,(it-1)->sl); }
 
 void Parser::consume_li() {
-  if (it!=end &&peek().sl.li == 0) {
+  if (it == end)
+    return;
+  if (peek().sl.li == 0) {
     pop(); // pop the Li
   } else {
     it->sl.li--;
