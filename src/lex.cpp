@@ -81,11 +81,7 @@ Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) {
   as.string = string;
 };
 
-Lit &Lit::operator=(const Lit &other) {
-  ty = other.ty;
-  as = other.as;
-  return *this;
-}
+
 
 Token::Token(Type type, const SourceLocation &sl) : type(type), sl(sl){};
 Token::Token(unsigned char c, const SourceLocation &sl)
@@ -138,24 +134,6 @@ Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
 
 Lit Lexer::stringlit(std::string s) { return Lit(s); }
 
-Token &Token::operator=(const Token &other) {
-  type = other.type;
-  sl = other.sl;
-  switch (other.type) {
-  case Lit:
-    data = other.data;
-    break;
-  case Kw:
-    data = other.data;
-    break;
-  case Id:
-    data = other.data;
-    break;
-  default:
-    break;
-  }
-  return *this;
-}
 
 void Lexer::lex() {
   if (!can_iter()) {
@@ -457,13 +435,5 @@ void Lexer::test() {
 SourceLocation::SourceLocation(FSFile &file)
     : pos(0), indent(0),li(0), it(file.code.begin()), end(file.code.end()) {}
 
-SourceLocation &SourceLocation::operator=(const SourceLocation &other) {
-  pos = other.pos;
-  indent = other.indent;
-  it = other.it;
-  end = other.end;
-  li = other.li;
-  return *this;
-}
 
 SourceLocation SourceLocation::get_sourcelocation() { return *this; }

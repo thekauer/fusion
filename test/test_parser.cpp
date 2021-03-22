@@ -169,3 +169,91 @@ TEST(parser, IfStmt) {
   EXPECT_EQ(else_body->rhs->type, AstType::ValExpr);
   EXPECT_EQ(else_body->rhs->cast<ValExpr>()->val.as.i32, 1);
 }
+TEST(parser, ResolveType) {
+  FusionCtx ctx;
+  /*
+  class A
+   a : i32
+   b : i32
+  fn main()
+   a : A
+  */
+  std::string code = "class A\n a : i32\n b : i32\n\nfn main()\n a : A\n";
+  auto file = FSFile("test", code);
+  auto lexer = Lexer(file);
+  lexer.lex();
+  auto p = Parser(lexer.tokens, ctx, file);
+  
+  auto body = p.parse();
+  ASSERT_EQ(body->body.size(), 2); // class ,fndecl
+  auto class_stmt = body->body[0].get();
+  ASSERT_EQ(class_stmt->type, AstType::ClassStmt);
+  auto fndecl = body->body[1].get();
+  ASSERT_EQ(fndecl->type, AstType::FnDecl);
+
+  auto class_body = class_stmt->cast<ClassStmt>()->body.get();
+  ASSERT_EQ(class_body->body.size(), 2); // 2x vardecl
+
+  ASSERT_EQ(class_body->body[0]->type, AstType::VarDeclExpr);
+  auto a_ty = class_body->body[0]->cast<VarDeclExpr>()->ty;
+  ASSERT_EQ(a_ty.get_type_ptr()->get_typekind(), Type::Integral);
+  EXPECT_EQ(reinterpret_cast<const IntegralType *>(a_ty.get_type_ptr())->ty,
+            IntegralType::I32);
+
+  ASSERT_EQ(class_body->body[1]->type, AstType::VarDeclExpr);
+  auto b_ty = class_body->body[1]->cast<VarDeclExpr>()->ty;
+  ASSERT_EQ(b_ty.get_type_ptr()->get_typekind(), Type::Integral);
+  EXPECT_EQ(reinterpret_cast<const IntegralType *>(b_ty.get_type_ptr())->ty,
+            IntegralType::I32);
+
+  auto fn_body = fndecl->cast<FnDecl>()->body.get();
+  ASSERT_EQ(fn_body->body.size(), 1); // vardecl
+  ASSERT_EQ(fn_body->body[0]->type, AstType::VarDeclExpr);
+
+}
+
+TEST(parser, VarDeclExpr) {
+  FusionCtx ctx;
+  std::string code = "fn main()\n a : i32\n b : i32 = 1\n";
+  auto file = FSFile("test", code);
+  auto lexer = Lexer(file);
+  lexer.lex();
+  auto tokens = lexer.tokens;
+  Token::Type tks[]{Token::Kw,Token::Id,Token::Lp,Token::Rp,Token::Gi, // fn main()
+                    Token::Id,Token::DoubleDot, Token::Kw,Token::N, // a : i32
+                    Token::Id,Token::DoubleDot,Token::Kw,Token::Eq,Token::Lit,Token::Li // b : i32 = 1
+                    };
+  ASSERT_EQ(tokens.size(), sizeof(tks)/sizeof(tks[0]) );
+  for (int i = 0; i < tokens.size(); i++) {
+    ASSERT_EQ(tokens[i].type, tks[i]) << "i: " << i;
+  }
+  auto p = Parser(tokens, ctx, file);
+  auto tle = p.parse();
+  ASSERT_NE(tle, nullptr) << "top level expr is null";
+  ASSERT_EQ(tle->type, AstType::Body);
+  ASSERT_EQ(tle->body.size(), 1);
+  auto main = tle->body[0].get();
+  ASSERT_EQ(main->type, AstType::FnDecl);
+  auto body = main->cast<FnDecl>()->body.get();
+  ASSERT_EQ(body->body.size(), 2);
+  auto first = body->body[0].get();
+  ASSERT_EQ(first->type, AstType::VarDeclExpr);
+  auto second = body->body[1].get();
+  ASSERT_EQ(second->type, AstType::BinExpr);
+
+  auto first_vardecl = first->cast<VarDeclExpr>();
+  auto second_binexpr = second->cast<BinExpr>();
+
+  ASSERT_EQ(first_vardecl->name, "a");
+  ASSERT_EQ(first_vardecl->ty.get_type_ptr(), &Type::get_i32());
+
+  ASSERT_EQ(second_binexpr->lhs->type, AstType::VarDeclExpr);
+  ASSERT_EQ(second_binexpr->rhs->type, AstType::ValExpr);
+  auto second_lhs = second_binexpr->lhs->cast<VarDeclExpr>();
+  auto second_rhs = second_binexpr->rhs->cast<ValExpr>();
+
+  ASSERT_EQ(second_lhs->name, "b");
+  ASSERT_EQ(second_lhs->ty.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(second_rhs->val.ty.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(second_rhs->val.as.i32, 1);
+}

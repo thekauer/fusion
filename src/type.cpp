@@ -2,7 +2,7 @@
 #include "error.h"
 
 Type::Type(const std::string_view name, TypeKind tk, const unsigned int size)
-    : name(name), tk(tk), size(size) {}
+    : tk(tk), size(size), name(name) {}
 
 static const IntegralType i8 = IntegralType("i8", IntegralType::I8, 1);
 static const IntegralType i16 = IntegralType("i16", IntegralType::I16, 2);
@@ -55,7 +55,7 @@ const IntegralType &Type::get_string() {
 
 IntegralType::IntegralType(const std::string_view name, Ty ty,
                            const unsigned int size)
-    : ty(ty), Type(name, Integral, size) {}
+    : Type(name, Integral, size), ty(ty) {}
 
 llvm::Type *IntegralType::codegen(FusionCtx &ctx) const {
   llvm::Type *ret;
@@ -146,9 +146,12 @@ llvm::Type *StructType::codegen(FusionCtx &ctx) const {
                                   llvm::StringRef(name.data()), false);
 }
 
-struct AstExpr;
+class AstExpr;
 Type *lookup_type(AstExpr *, const std::string &);
 llvm::Type *ResolveType::codegen(FusionCtx &ctx) const { 
     auto *rty = lookup_type(ctx.head, name);
+    if (!rty) {
+      Error::ImplementMe("didnt find resolve type");
+    }
     return rty?rty->codegen(ctx):nullptr;
 }

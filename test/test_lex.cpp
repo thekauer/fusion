@@ -80,3 +80,14 @@ TEST(Lex, EmptyLines) {
     EXPECT_EQ(expected, next);
   }
 }
+
+TEST(Lex, ResolveType) {
+  std::string code = "a : A";
+  auto file = FSFile("", code);
+  Lexer l = Lexer(file);
+  std::vector<Token::Type> correct{ Token::Id,Token::DoubleDot,Token::Id ,Token::Null};
+  for (auto expected : correct) {
+    auto next = l.next();
+    EXPECT_EQ(expected, next.type);
+  }
+}

@@ -15,7 +15,6 @@ public:
   INLINE char peek(const int n = 0);
   INLINE char pop();
   INLINE bool can_iter();
-  SourceLocation &operator=(const SourceLocation &other);
   SourceLocation get_sourcelocation();
 };
 
@@ -75,7 +74,6 @@ struct Lit {
   Lit(double f64);
   Lit(std::string_view string);
 
-  Lit &operator=(const Lit &other);
 };
 
 struct Token {
@@ -142,7 +140,6 @@ struct Token {
   Token(::Lit val, const SourceLocation &sl);
   Token(const std::string &str, const SourceLocation &sl);
   Token(Kw_e kw, const SourceLocation &sl);
-  Token &operator=(const Token &other);
   ::Lit getValue() const;
   std::string getName() const;
   Kw_e getKw() const;

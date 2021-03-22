@@ -38,13 +38,13 @@ public:
 
 struct Body : AstExpr {
   std::vector<std::unique_ptr<AstExpr>> body;
-  Body(const SourceLocation &sl, std::vector<std::unique_ptr<AstExpr>> &&body);
+  Body(const SourceLocation &sl, std::vector<std::unique_ptr<AstExpr>> body);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
 struct Stmt : AstExpr {
   std::unique_ptr<Body> body;
-  Stmt(const SourceLocation &sl, AstType type, std::unique_ptr<Body> &&body);
+  Stmt(const SourceLocation &sl, AstType type, std::unique_ptr<Body> body);
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual ~Stmt(){};
@@ -86,7 +86,7 @@ struct FnProto : AstExpr {
           std::unique_ptr<AstExpr> ret);
 
   FnProto(const SourceLocation &sl, const std::string &name,
-          std::vector<std::unique_ptr<VarDeclExpr>> &&args,
+          std::vector<std::unique_ptr<VarDeclExpr>> args,
           std::unique_ptr<AstExpr> ret = nullptr);
 
   void pretty_print() const override;
@@ -98,7 +98,7 @@ struct FnDecl : AstExpr {
   std::unique_ptr<FnProto> proto;
   std::unique_ptr<Body> body;
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto,
-         std::unique_ptr<Body> &&body, FnModifiers::Type mods = 0);
+         std::unique_ptr<Body> body, FnModifiers::Type mods = 0);
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
@@ -130,7 +130,7 @@ struct FnCall : AstExpr {
 
   FnCall(const SourceLocation &sl, const std::string &name);
   FnCall(const SourceLocation &sl, const std::string &name,
-         std::vector<std::unique_ptr<AstExpr>> &&args);
+         std::vector<std::unique_ptr<AstExpr>> args);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -155,16 +155,16 @@ struct IfStmt : AstExpr {
   std::unique_ptr<AstExpr> condition;
   std::unique_ptr<Body> body, else_body;
   IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
-         std::unique_ptr<Body> &&body);
+         std::unique_ptr<Body> body);
   IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
-         std::unique_ptr<Body> &&body, std::unique_ptr<Body> &&else_body);
+         std::unique_ptr<Body> body, std::unique_ptr<Body> else_body);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
 
 struct ReturnStmt : AstExpr {
   std::unique_ptr<AstExpr> expr;
-  ReturnStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> &&expr);
+  ReturnStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> expr);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -178,14 +178,14 @@ struct ImportExpr : AstExpr {
 
 struct ClassStmt : AstExpr {
 private:
-  QualType get_class_type() const;
 
 public:
-  QualType ty;
+  static std::unique_ptr<Type> get_class_type(const std::unique_ptr<VarExpr>& name,const std::unique_ptr<Body>& body);
+  std::unique_ptr<Type> ty;
   std::unique_ptr<Body> body;
   std::unique_ptr<VarExpr> name;
-  ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> &&name,
-            std::unique_ptr<Body> &&body);
+  ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> name,
+            std::unique_ptr<Body> body, std::unique_ptr<Type> ty);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
 };
@@ -226,5 +226,7 @@ private:
   std::unique_ptr<ClassStmt> parse_class();
   std::unique_ptr<Body> parse_class_body();
   std::unique_ptr<AstExpr> parse_inside_class();
+
+  bool is_end_of_body();
 };
 Type *lookup_type(AstExpr* head,const std::string& name);
