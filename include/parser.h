@@ -34,6 +34,7 @@ public:
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
   template <typename T> T *cast() { return reinterpret_cast<T *>(this); }
+  virtual bool is_expr() const = 0;
   virtual ~AstExpr() {}
 };
 
@@ -42,6 +43,7 @@ struct Stmt : AstExpr {
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
+  bool is_expr() const override;
   virtual ~Stmt(){};
 };
 struct Expr : AstExpr {
@@ -51,6 +53,7 @@ struct Expr : AstExpr {
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
+  bool is_expr() const override;
   virtual ~Expr(){};
 };
 

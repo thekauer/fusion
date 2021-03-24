@@ -291,8 +291,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs && lhs->ast_type != AstType::IfStmt &&
-      lhs->ast_type != AstType::ReturnStmt) // fix this
+  if (lhs && lhs->is_expr())
     return parse_binary(std::move(lhs));
   return lhs;
 }
@@ -459,10 +458,12 @@ Body::Body(const SourceLocation &sl,
 
 Stmt::Stmt(AstType ast_type, const SourceLocation &sl)
     : AstExpr(ast_type, sl) {}
+bool Stmt::is_expr() const { return false; }
 Expr::Expr(AstType ast_type, const SourceLocation &sl)
     : AstExpr(ast_type, sl) {}
 Expr::Expr(AstType ast_type, const SourceLocation &sl, QualType ty)
     : AstExpr(ast_type, sl), ty(ty) {}
+bool Expr::is_expr() const { return true; }
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : Expr(AstType::VarDeclExpr,sl),name(name) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name,
                          QualType &ty) : Expr(AstType::VarDeclExpr,sl,ty),name(name) {}
