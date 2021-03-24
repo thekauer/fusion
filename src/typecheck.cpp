@@ -13,9 +13,11 @@ void FnProto::type_check() const {}
 bool has_return(AstExpr *ast) {
   switch (ast->ast_type) { 
     case AstType::Body: {
+    bool result = false;
     for (const auto &line : ast->cast<Body>()->body) {
-        has_return(line.get());
+        result = has_return(line.get()) || result;
     }
+    return result;
     break;
     }
     case AstType::ReturnStmt: {
