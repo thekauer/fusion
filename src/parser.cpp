@@ -45,7 +45,7 @@ Type *lookup_type(AstExpr *head, const std::string& name) {
     if (!head) {
     return nullptr;
     }
-    switch (head->type) {
+    switch (head->ast_type) {
     case AstType::ClassStmt: {
       auto* pclass = head->cast<ClassStmt>();
       if (pclass->name->name == name) {
@@ -77,7 +77,7 @@ ClassStmt::get_class_type(const std::unique_ptr<VarExpr> &name,
                           const std::unique_ptr<Body> &body) {
   std::vector<QualType> types;
   for (auto const &line : body->body) {
-    if (line->type == AstType::VarDeclExpr) {
+    if (line->ast_type == AstType::VarDeclExpr) {
       auto t = line->cast<VarDeclExpr>()->ty;
       types.push_back(t);
     }
@@ -292,8 +292,8 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs && lhs->type != AstType::IfStmt &&
-      lhs->type != AstType::ReturnStmt) // fix this
+  if (lhs && lhs->ast_type != AstType::IfStmt &&
+      lhs->ast_type != AstType::ReturnStmt) // fix this
     return parse_binary(std::move(lhs));
   return lhs;
 }
@@ -458,9 +458,9 @@ Body::Body(const SourceLocation &sl,
            std::vector<std::unique_ptr<AstExpr>> body)
     : AstExpr(AstType::Body, sl), body(std::move(body)) {}
 
-Stmt::Stmt(const SourceLocation &sl, AstType type,
-           std::unique_ptr<Body> body) : AstExpr(type,sl), body(std::move(body)){}
-Expr::Expr(const SourceLocation &sl, AstType type, QualType ty) : AstExpr(type,sl),ty(ty) {}
+Stmt::Stmt(const SourceLocation &sl, AstType ast_type,
+           std::unique_ptr<Body> body) : AstExpr(ast_type,sl), body(std::move(body)){}
+Expr::Expr(const SourceLocation &sl, AstType ast_type, QualType ty) : AstExpr(ast_type,sl),ty(ty) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::VarDeclExpr,sl),name(name) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name,
                          QualType &ty) : AstExpr(AstType::VarDeclExpr,sl),name(name),ty(ty) {}

@@ -26,10 +26,10 @@ enum class AstType : unsigned char {
 };
 class AstExpr {
 public:
-  AstType type;
+  AstType ast_type;
   SourceLocation sl;
   int indent = 0;
-  AstExpr(AstType type, const SourceLocation &sl) : type(type), sl(sl){};
+  AstExpr(AstType ast_type, const SourceLocation &sl) : ast_type(ast_type), sl(sl){};
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
@@ -46,7 +46,7 @@ struct Body : AstExpr {
 };
 struct Stmt : AstExpr {
   std::unique_ptr<Body> body;
-  Stmt(const SourceLocation &sl, AstType type, std::unique_ptr<Body> body);
+  Stmt(const SourceLocation &sl, AstType ast_type, std::unique_ptr<Body> body);
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
@@ -54,7 +54,7 @@ struct Stmt : AstExpr {
 };
 struct Expr : AstExpr {
   QualType ty;
-  Expr(const SourceLocation &sl, AstType type, QualType ty);
+  Expr(const SourceLocation &sl, AstType ast_type, QualType ty);
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;

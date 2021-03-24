@@ -39,7 +39,7 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) const {
 llvm::Value *FnProto::codegen(FusionCtx &ctx) const {
   std::vector<llvm::Type *> fn_args;
   for (auto &&arg : args) {
-    if (arg->type == AstType::VarDeclExpr) {
+    if (arg->ast_type == AstType::VarDeclExpr) {
       auto vd = reinterpret_cast<VarDeclExpr *>(arg.get());
       fn_args.push_back(vd->ty.get_type_ptr()->codegen(ctx));
     }
@@ -148,7 +148,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
     }
     if (vlhs == (llvm::Value *)~0) { // left hand side is an infered type decl
       auto *ty = vrhs->getType();
-      if (lhs->type != AstType::VarExpr) {
+      if (lhs->ast_type != AstType::VarExpr) {
         Error::ImplementMe("expected left-hand side to be varexpr");
         return nullptr;
       }
@@ -305,7 +305,7 @@ llvm::Value *ReturnStmt::codegen(FusionCtx &ctx) const {
 llvm::Value *ClassStmt::codegen(FusionCtx &ctx) const {
   std::vector<QualType> tys;
   for (const auto &line : body->body) {
-    if (line->type != AstType::VarDeclExpr) {
+    if (line->ast_type != AstType::VarDeclExpr) {
       tys.push_back(line->cast<VarDeclExpr>()->ty);
     }
   }
