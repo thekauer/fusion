@@ -36,6 +36,7 @@ void Compiler::compile(int argc, char **argv) {
 
     llvm::outs() << "parse: ";
     auto prog = p.parse();
+    prog->type_check();
     llvm::outs() << "\npretty print: \n";
     prog->pretty_print();
     llvm::outs() << "\ncodegen: \n";
@@ -73,8 +74,8 @@ void Compiler::test() {
   Parser p(l.tokens, ctx, file);
   llvm::outs() << "parse: ";
   auto prog = p.parse();
-  llvm::outs() << "\npretty print: \n";
   prog->type_check();
+  llvm::outs() << "\npretty print: \n";
   prog->pretty_print();
   llvm::outs() << "\ncodegen: \n";
   prog->codegen(ctx);
