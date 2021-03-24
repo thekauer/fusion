@@ -47,9 +47,9 @@ struct Stmt : AstExpr {
   virtual ~Stmt(){};
 };
 struct Expr : AstExpr {
-  QualType ty;
+  QualType type;
   Expr(AstType ast_type, const SourceLocation &sl);
-  Expr(AstType ast_type, const SourceLocation &sl, QualType ty);
+  Expr(AstType ast_type, const SourceLocation &sl, QualType type);
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
@@ -68,7 +68,7 @@ struct VarDeclExpr : Expr {
   std::string name;
 
   VarDeclExpr(const SourceLocation &sl, const std::string &name);
-  VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType &ty);
+  VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType &type);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
   void type_check() const override;
@@ -130,7 +130,7 @@ struct VarExpr : Expr {
 };
 
 struct TypeExpr : Expr {
-  TypeExpr(const SourceLocation &sl, QualType ty);
+  TypeExpr(const SourceLocation &sl, QualType type);
   TypeExpr(const SourceLocation &sl);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;

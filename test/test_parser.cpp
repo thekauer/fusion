@@ -195,13 +195,13 @@ TEST(parser, ResolveType) {
   ASSERT_EQ(class_body->body.size(), 2); // 2x vardecl
 
   ASSERT_EQ(class_body->body[0]->ast_type, AstType::VarDeclExpr);
-  auto a_ty = class_body->body[0]->cast<VarDeclExpr>()->ty;
+  auto a_ty = class_body->body[0]->cast<VarDeclExpr>()->type;
   ASSERT_EQ(a_ty.get_type_ptr()->get_typekind(), Type::Integral);
   EXPECT_EQ(reinterpret_cast<const IntegralType *>(a_ty.get_type_ptr())->ty,
             IntegralType::I32);
 
   ASSERT_EQ(class_body->body[1]->ast_type, AstType::VarDeclExpr);
-  auto b_ty = class_body->body[1]->cast<VarDeclExpr>()->ty;
+  auto b_ty = class_body->body[1]->cast<VarDeclExpr>()->type;
   ASSERT_EQ(b_ty.get_type_ptr()->get_typekind(), Type::Integral);
   EXPECT_EQ(reinterpret_cast<const IntegralType *>(b_ty.get_type_ptr())->ty,
             IntegralType::I32);
@@ -245,7 +245,7 @@ TEST(parser, VarDeclExpr) {
   auto second_binexpr = second->cast<BinExpr>();
 
   ASSERT_EQ(first_vardecl->name, "a");
-  ASSERT_EQ(first_vardecl->ty.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(first_vardecl->type.get_type_ptr(), &Type::get_i32());
 
   ASSERT_EQ(second_binexpr->lhs->ast_type, AstType::VarDeclExpr);
   ASSERT_EQ(second_binexpr->rhs->ast_type, AstType::ValExpr);
@@ -253,7 +253,7 @@ TEST(parser, VarDeclExpr) {
   auto second_rhs = second_binexpr->rhs->cast<ValExpr>();
 
   ASSERT_EQ(second_lhs->name, "b");
-  ASSERT_EQ(second_lhs->ty.get_type_ptr(), &Type::get_i32());
-  ASSERT_EQ(second_rhs->val.ty.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(second_lhs->type.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(second_rhs->val.type.get_type_ptr(), &Type::get_i32());
   ASSERT_EQ(second_rhs->val.as.i32, 1);
 }

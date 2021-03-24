@@ -77,7 +77,7 @@ ClassStmt::get_class_type(const std::unique_ptr<VarExpr> &name,
   std::vector<QualType> types;
   for (auto const &line : body->body) {
     if (line->ast_type == AstType::VarDeclExpr) {
-      auto t = line->cast<VarDeclExpr>()->ty;
+      auto t = line->cast<VarDeclExpr>()->type;
       types.push_back(t);
     }
   }
@@ -286,7 +286,7 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
   if (!ty) {
     serror(Error_e::Unk, "Expected type expr");
   }
-  return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->ty);
+  return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->type);
 }
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
@@ -461,12 +461,12 @@ Stmt::Stmt(AstType ast_type, const SourceLocation &sl)
 bool Stmt::is_expr() const { return false; }
 Expr::Expr(AstType ast_type, const SourceLocation &sl)
     : AstExpr(ast_type, sl) {}
-Expr::Expr(AstType ast_type, const SourceLocation &sl, QualType ty)
-    : AstExpr(ast_type, sl), ty(ty) {}
+Expr::Expr(AstType ast_type, const SourceLocation &sl, QualType type)
+    : AstExpr(ast_type, sl), type(type) {}
 bool Expr::is_expr() const { return true; }
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : Expr(AstType::VarDeclExpr,sl),name(name) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name,
-                         QualType &ty) : Expr(AstType::VarDeclExpr,sl,ty),name(name) {}
+                         QualType &type) : Expr(AstType::VarDeclExpr,sl,type),name(name) {}
 
 FnProto::FnProto(const SourceLocation &sl, const std::string &name,
                  std::unique_ptr<AstExpr> ret) : Stmt(AstType::FnProto,sl),ret(std::move(ret)),name(name) {}
@@ -484,9 +484,9 @@ FnDecl::FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto)
     : Stmt(AstType::FnDecl, sl), mods(FnModifiers::Extern),
       proto(std::move(proto)) {}
 
-ValExpr::ValExpr(const SourceLocation &sl, Lit val) : Expr(AstType::ValExpr,sl,val.ty),val(val){}
+ValExpr::ValExpr(const SourceLocation &sl, Lit val) : Expr(AstType::ValExpr,sl,val.type),val(val){}
 VarExpr::VarExpr(const SourceLocation &sl, const std::string &name) : Expr(AstType::VarExpr,sl),name(name) {}
-TypeExpr::TypeExpr(const SourceLocation &sl, QualType ty) : Expr(AstType::TypeExpr,sl,ty) {}
+TypeExpr::TypeExpr(const SourceLocation &sl, QualType type) : Expr(AstType::TypeExpr,sl,type) {}
 TypeExpr::TypeExpr(const SourceLocation &sl) : Expr(AstType::TypeExpr,sl) {}
 FnCall::FnCall(const SourceLocation &sl, const std::string &name) : Expr(AstType::FnCall,sl),name(name) {}
 FnCall::FnCall(const SourceLocation &sl, const std::string &name,

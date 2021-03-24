@@ -29,9 +29,9 @@ void FnDecl::pretty_print() const {
 }
 
 void ValExpr::pretty_print() const {
-  switch (val.ty.get_type_ptr()->get_typekind()) {
+  switch (val.type.get_type_ptr()->get_typekind()) {
   case Type::Integral: {
-    switch (static_cast<const IntegralType *>(val.ty.get_type_ptr())->ty) {
+    switch (static_cast<const IntegralType *>(val.type.get_type_ptr())->ty) {
     case IntegralType::I8:
       llvm::outs() << val.as.i8;
       return;
@@ -77,11 +77,11 @@ void ValExpr::pretty_print() const {
 }
 
 void VarDeclExpr::pretty_print() const {
-  llvm::outs() << name << " : " << ty.get_type_ptr()->get_name().data();
+  llvm::outs() << name << " : " << type.get_type_ptr()->get_name().data();
 }
 void VarExpr::pretty_print() const { llvm::outs() << name; }
 void TypeExpr::pretty_print() const {
-  llvm::outs() << ty.get_type_ptr()->get_name().data();
+  llvm::outs() << type.get_type_ptr()->get_name().data();
 }
 void FnCall::pretty_print() const {
   llvm::outs() << name << "(";

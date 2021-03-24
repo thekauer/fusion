@@ -47,7 +47,7 @@ bool is_ws(unsigned char ch);
 Kw_e is_kw(const std::string& h);
 
 struct Lit {
-  QualType ty;
+  QualType type;
   union {
     unsigned char u8;
     unsigned short u16;

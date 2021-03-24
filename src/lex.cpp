@@ -66,18 +66,18 @@ static const unsigned eq[128] = {
     Letter,    Letter,    Letter,    Lc,           Or,        Rc,
     Neg};
 
-Lit::Lit(unsigned char u8) : ty(QualType(Type::get_u8())) { as.u8 = u8; }
-Lit::Lit(unsigned short u16) : ty(QualType(Type::get_u16())) { as.u16 = u16; }
-Lit::Lit(unsigned int u32) : ty(QualType(Type::get_u16())) { as.u32 = u32; }
-Lit::Lit(unsigned long u64) : ty(QualType(Type::get_u64())) { as.u64 = u64; };
-Lit::Lit(char i8) : ty(QualType(Type::get_i8())) { as.i8 = i8; };
-Lit::Lit(short i16) : ty(QualType(Type::get_i16())) { as.i16 = i16; };
-Lit::Lit(int i32) : ty(QualType(Type::get_i32())) { as.i32 = i32; };
-Lit::Lit(long i64) : ty(QualType(Type::get_i64())) { as.i64 = i64; };
-Lit::Lit(bool b) : ty(QualType(Type::get_bool())) { as.b = b; };
-Lit::Lit(float f32) : ty(QualType(Type::get_f32())) { as.f32 = f32; };
-Lit::Lit(double f64) : ty(QualType(Type::get_f64())) { as.f64 = f64; };
-Lit::Lit(std::string_view string) : ty(QualType(Type::get_string())) {
+Lit::Lit(unsigned char u8) : type(QualType(Type::get_u8())) { as.u8 = u8; }
+Lit::Lit(unsigned short u16) : type(QualType(Type::get_u16())) { as.u16 = u16; }
+Lit::Lit(unsigned int u32) : type(QualType(Type::get_u16())) { as.u32 = u32; }
+Lit::Lit(unsigned long u64) : type(QualType(Type::get_u64())) { as.u64 = u64; };
+Lit::Lit(char i8) : type(QualType(Type::get_i8())) { as.i8 = i8; };
+Lit::Lit(short i16) : type(QualType(Type::get_i16())) { as.i16 = i16; };
+Lit::Lit(int i32) : type(QualType(Type::get_i32())) { as.i32 = i32; };
+Lit::Lit(long i64) : type(QualType(Type::get_i64())) { as.i64 = i64; };
+Lit::Lit(bool b) : type(QualType(Type::get_bool())) { as.b = b; };
+Lit::Lit(float f32) : type(QualType(Type::get_f32())) { as.f32 = f32; };
+Lit::Lit(double f64) : type(QualType(Type::get_f64())) { as.f64 = f64; };
+Lit::Lit(std::string_view string) : type(QualType(Type::get_string())) {
   as.string = string;
 };
 

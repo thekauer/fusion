@@ -51,13 +51,13 @@ void BinExpr::type_check() const {
     const Type *left_type = nullptr;
     const Type *right_type = nullptr;
     if (lhs->ast_type == AstType::VarDeclExpr) {
-        left_type = lhs->cast<VarDeclExpr>()->ty.get_type_ptr();
+        left_type = lhs->cast<VarDeclExpr>()->type.get_type_ptr();
     }
     if (lhs->ast_type == AstType::VarExpr) {
-        left_type = lhs->cast<VarDeclExpr>()->ty.get_type_ptr();
+        left_type = lhs->cast<VarDeclExpr>()->type.get_type_ptr();
     }
     if (rhs->ast_type == AstType::ValExpr) {
-      right_type = rhs->cast<ValExpr>()->val.ty.get_type_ptr();
+      right_type = rhs->cast<ValExpr>()->val.type.get_type_ptr();
     }
 
     if (left_type && right_type &&
