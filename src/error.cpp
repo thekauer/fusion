@@ -40,7 +40,7 @@ static void err_impl(Error_e code, const FSFile &file, const SourceLocation &sl,
                      const std::string &msg, llvm::raw_ostream::Colors color,
                      const std::string &title) {
   auto rsc = respawn(file, sl.pos);
-  std::string s = ": " + msg + "\n" + rsc.code + "\n";
+  std::string s = ": " + msg + "\n" + rsc.code;
   llvm::formatted_raw_ostream ro(llvm::outs());
   ro.changeColor(color, true, false);
   ro.write(title.c_str(), title.size());
