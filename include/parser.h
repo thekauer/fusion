@@ -40,9 +40,6 @@ public:
 
 struct Stmt : AstExpr {
   Stmt(AstType ast_type, const SourceLocation &sl);
-  virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
-  virtual void pretty_print() const = 0;
-  virtual void type_check() const;
   bool is_expr() const override;
   virtual ~Stmt(){};
 };
@@ -50,9 +47,6 @@ struct Expr : AstExpr {
   QualType type;
   Expr(AstType ast_type, const SourceLocation &sl);
   Expr(AstType ast_type, const SourceLocation &sl, QualType type);
-  virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
-  virtual void pretty_print() const = 0;
-  virtual void type_check() const;
   bool is_expr() const override;
   virtual ~Expr(){};
 };

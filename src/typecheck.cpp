@@ -6,8 +6,6 @@ void Body::type_check() const {
     line->type_check();
   }
 }
-void Stmt::type_check() const {}
-void Expr::type_check() const {}
 
 void VarDeclExpr::type_check() const {}
 void FnProto::type_check() const {}
