@@ -211,12 +211,11 @@ private:
   Token peek(int n = 0);
   void consume_li();
   FusionCtx &ctx;
-  const FSFile &file;
 
 public:
   Token expect(Token::Type ty, const std::string &tk);
   Parser(std::vector<Token> &tokens, FusionCtx &ctx, const FSFile &file)
-      : it(tokens.begin()), end(tokens.end()), ctx(ctx), file(file){};
+      : it(tokens.begin()), end(tokens.end()), ctx(ctx){};
   std::unique_ptr<Body> parse();
   std::unique_ptr<AstExpr> parse_expr();
 

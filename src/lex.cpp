@@ -329,7 +329,7 @@ Token Lexer::lex_neg(SourceLocation &err_loc) {
   return Token(Token::Neg, err_loc);
 }
 
-Lexer::Lexer(FSFile &file) : SourceLocation(file), file(file){};
+Lexer::Lexer(FSFile &file) : SourceLocation(file){};
 Token Lexer::next() {
   while (eq[peek()] == Space) {
     pop();

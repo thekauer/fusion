@@ -158,7 +158,6 @@ public:
   std::vector<Token> tokens;
 
 private:
-  FSFile &file;
   char lex_escape(const char esc);
   Lit nolit(const SourceLocation &s, bool f, int base);
   Lit stringlit(std::string s);
