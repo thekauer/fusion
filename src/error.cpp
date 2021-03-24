@@ -20,15 +20,16 @@ RespawnedCode respawn(const FSFile &file, unsigned int pos) {
   auto end = file.code.end();
   int line = 1;
   int col = 1;
+  auto start = it;
   while (pos--) {
     if (*it++ == '\n') {
       line++;
+      start = it;
       col = 1;
     } else {
       col++;
     }
   }
-  auto start = it;
   while (it != end && *it++ != '\n') { /*empty body*/
   }
   auto code = std::string(start, it);
