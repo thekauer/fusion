@@ -33,20 +33,12 @@ public:
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
-  virtual ~AstExpr() {}
   template <typename T> T *cast() { return reinterpret_cast<T *>(this); }
+  virtual ~AstExpr() {}
 };
 
-struct Body : AstExpr {
-  std::vector<std::unique_ptr<AstExpr>> body;
-  Body(const SourceLocation &sl, std::vector<std::unique_ptr<AstExpr>> body);
-  llvm::Value *codegen(FusionCtx &ctx) const override;
-  void pretty_print() const override;
-  void type_check() const override;
-};
 struct Stmt : AstExpr {
-  std::unique_ptr<Body> body;
-  Stmt(const SourceLocation &sl, AstType ast_type, std::unique_ptr<Body> body);
+  Stmt(const SourceLocation &sl, AstType ast_type);
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
@@ -59,6 +51,14 @@ struct Expr : AstExpr {
   virtual void pretty_print() const = 0;
   virtual void type_check() const;
   virtual ~Expr(){};
+};
+
+struct Body : AstExpr {
+  std::vector<std::unique_ptr<AstExpr>> body;
+  Body(const SourceLocation &sl, std::vector<std::unique_ptr<AstExpr>> body);
+  llvm::Value *codegen(FusionCtx &ctx) const override;
+  void pretty_print() const override;
+  void type_check() const override;
 };
 struct VarDeclExpr : AstExpr {
   std::string name;

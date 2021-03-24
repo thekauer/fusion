@@ -457,8 +457,7 @@ Body::Body(const SourceLocation &sl,
            std::vector<std::unique_ptr<AstExpr>> body)
     : AstExpr(AstType::Body, sl), body(std::move(body)) {}
 
-Stmt::Stmt(const SourceLocation &sl, AstType ast_type,
-           std::unique_ptr<Body> body) : AstExpr(ast_type,sl), body(std::move(body)){}
+Stmt::Stmt(const SourceLocation &sl, AstType ast_type) : AstExpr(ast_type,sl){}
 Expr::Expr(const SourceLocation &sl, AstType ast_type, QualType ty) : AstExpr(ast_type,sl),ty(ty) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::VarDeclExpr,sl),name(name) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name,
