@@ -51,45 +51,45 @@ static void err_impl(Error_e code, const FSFile &file, const SourceLocation &sl,
   llvm::outs() << "^\n"
                << "\n";
 }
-void error(Error_e code, const FSFile &file, const SourceLocation &sl,
+void error(Error_e code, const SourceLocation &sl,
            const std::string &msg) {
 
-  err_impl(code, file, sl, msg, llvm::raw_ostream::RED, "error: ");
+  err_impl(code, sl.file, sl, msg, llvm::raw_ostream::RED, "error: ");
 }
-void warning(Error_e code, const FSFile &file, const SourceLocation &sl,
+void warning(Error_e code, const SourceLocation &sl,
              const std::string &msg) {
-  err_impl(code, file, sl, msg, llvm::raw_ostream::MAGENTA, "warning:");
+  err_impl(code, sl.file, sl, msg, llvm::raw_ostream::MAGENTA, "warning:");
 }
-void note(Error_e code, const FSFile &file, const SourceLocation &sl,
+void note(Error_e code, const SourceLocation &sl,
           const std::string &msg) {
-  err_impl(code, file, sl, msg, llvm::raw_ostream::BLACK, "note: ");
+  err_impl(code, sl.file, sl, msg, llvm::raw_ostream::BLACK, "note: ");
 }
 
-void Error::UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
+void Error::UnkEscapeChar(const SourceLocation &sl,
                           const char ch) {
   std::ostringstream os;
   os << "Unknown escape character \'\\" << ch << "\'.";
 
-  error(Error_e::UnkEsc, file, sl, os.str());
+  error(Error_e::UnkEsc, sl, os.str());
 }
 
-void Error::ExpectedToken(const FSFile &file, const SourceLocation &sl,
+void Error::ExpectedToken(const SourceLocation &sl,
                           const std::string &msg) {
-  error(Error_e::ExpectedToken, file, sl, msg);
+  error(Error_e::ExpectedToken, sl, msg);
 }
-void Error::EmptyFnBody(const FSFile &file, const SourceLocation &sl) {
-  error(Error_e::EmptyFnBody, file, sl, "Empty Function Body");
+void Error::EmptyFnBody(const SourceLocation &sl) {
+  error(Error_e::EmptyFnBody, sl, "Empty Function Body");
 }
 
-void Error::MainNoReturn(const FSFile &file, const SourceLocation &sl) {
-  error(Error_e::MainNoreturn, file, sl,
+void Error::MainNoReturn(const SourceLocation &sl) {
+  error(Error_e::MainNoreturn, sl,
         "You must put a return statement in the main function.");
 }
-void Error::NoConversionExists(const FSFile &file, const SourceLocation &sl,
+void Error::NoConversionExists(const SourceLocation &sl,
                                std::string_view from, std::string_view to) {
   std::stringstream msg;
   msg << "No conversion exists from " << from << " to " << to;
-  error(Error_e::NoConversionExists, file, sl, msg.str());
+  error(Error_e::NoConversionExists, sl, msg.str());
 }
 
 void Error::ImplementMe(std::string_view msg) {

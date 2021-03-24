@@ -38,7 +38,7 @@ void FnDecl::type_check() const {
   
   //temporary check, if main doesnt have return statement signal an error, will be removed later for main
   if (proto->name == "main" && !has_return(body.get())) {
-    Error::MainNoReturn(sl.file, proto->sl);
+    Error::MainNoReturn(proto->sl);
   }
 
 }
@@ -62,7 +62,7 @@ void BinExpr::type_check() const {
 
     if (left_type && right_type &&
         left_type->get_name() != right_type->get_name()) {
-      Error::NoConversionExists(sl.file, sl, left_type->get_name(),
+      Error::NoConversionExists(sl, left_type->get_name(),
                                 right_type->get_name());
     }
 

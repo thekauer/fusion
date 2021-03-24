@@ -20,7 +20,7 @@ void Parser::consume_li() {
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
-    Error::ExpectedToken(file, t.sl, "Expected " + tk);
+    Error::ExpectedToken(t.sl, "Expected " + tk);
   return t;
 }
 
@@ -115,7 +115,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
     pop();
     auto namet = pop();
     if (namet.type != Token::Id) {
-      Error::ExpectedToken(file, namet.sl, "expected function name");
+      Error::ExpectedToken(namet.sl, "expected function name");
       return nullptr;
     }
     auto name = namet.getName();
@@ -376,7 +376,7 @@ std::unique_ptr<ImportExpr> Parser::parse_import() {
 std::unique_ptr<Body> Parser::parse_body() {
   auto loc = peek().sl;
   if (pop().type != Token::Gi) {
-    Error::EmptyFnBody(file, peek().sl);
+    Error::EmptyFnBody(peek().sl);
   }
   std::vector<std::unique_ptr<AstExpr>> body;
 
@@ -421,7 +421,7 @@ std::unique_ptr<ClassStmt> Parser::parse_class() {
 std::unique_ptr<Body> Parser::parse_class_body() {
   auto loc = peek().sl;
   if (pop().type != Token::Gi) {
-    Error::EmptyFnBody(file, peek().sl);
+    Error::EmptyFnBody(peek().sl);
   }
   std::vector<std::unique_ptr<AstExpr>> body;
 

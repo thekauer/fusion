@@ -408,7 +408,7 @@ char Lexer::lex_escape(const char esc) {
     return '\v';
     break;
   default:
-    Error::UnkEscapeChar(file, err_loc, esc);
+    Error::UnkEscapeChar(err_loc, esc);
     break;
   }
   return '\0';

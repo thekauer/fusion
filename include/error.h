@@ -32,22 +32,22 @@ enum class Error_e : int {
 };
 
 void serror(Error_e code, const std::string &msg);
-void error(Error_e code, const FSFile &file, const SourceLocation &sl,
+void error(Error_e code, const SourceLocation &sl,
            const std::string &msg);
-void note(Error_e code, const FSFile &file, const SourceLocation &sl,
+void note(Error_e code, const SourceLocation &sl,
           const std::string &msg);
-void warning(Error_e code, const FSFile &file, const SourceLocation &sl,
+void warning(Error_e code, const SourceLocation &sl,
              const std::string &msg);
 
 class Error {
 public:
-  static void UnkEscapeChar(const FSFile &file, const SourceLocation &sl,
+  static void UnkEscapeChar(const SourceLocation &sl,
                             const char ch);
 
-  static void ExpectedToken(const FSFile &file, const SourceLocation &sl,
+  static void ExpectedToken(const SourceLocation &sl,
                             const std::string &msg);
-  static void EmptyFnBody(const FSFile &file, const SourceLocation &sl);
-  static void MainNoReturn(const FSFile &file, const SourceLocation &sl);
-  static void NoConversionExists(const FSFile &file, const SourceLocation &sl,std::string_view from,std::string_view to);
+  static void EmptyFnBody(const SourceLocation &sl);
+  static void MainNoReturn(const SourceLocation &sl);
+  static void NoConversionExists(const SourceLocation &sl,std::string_view from,std::string_view to);
   static void ImplementMe(std::string_view msg);
 };
