@@ -46,7 +46,7 @@ static void err_impl(Error_e code, const FSFile &file, const SourceLocation &sl,
   ro.write(title.c_str(), title.size());
   ro.resetColor();
   ro.write(s.c_str(), s.size());
-  for (int i = 0; i < rsc.col; i++) {
+  for (int i = 0; i < rsc.col-1; i++) {
     llvm::outs() << " ";
   }
   llvm::outs() << "^\n"
