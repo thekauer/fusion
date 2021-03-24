@@ -2,7 +2,7 @@
 #include "parser.h"
 #include "type.h"
 #include "llvm/IR/Verifier.h"
-static bool type_check(llvm::Type *lhs, llvm::Type *rhs) {
+static bool codegen_type_check(llvm::Type *lhs, llvm::Type *rhs) {
   if (rhs->isPointerTy()) {
     return rhs->isPointerTy();
   }
@@ -39,9 +39,9 @@ llvm::Value *FnCall::codegen(FusionCtx &ctx) const {
 llvm::Value *FnProto::codegen(FusionCtx &ctx) const {
   std::vector<llvm::Type *> fn_args;
   for (auto &&arg : args) {
-    if (arg->type == AstType::VarDeclExpr) {
+    if (arg->ast_type == AstType::VarDeclExpr) {
       auto vd = reinterpret_cast<VarDeclExpr *>(arg.get());
-      fn_args.push_back(vd->ty.get_type_ptr()->codegen(ctx));
+      fn_args.push_back(vd->type.get_type_ptr()->codegen(ctx));
     }
   }
 
@@ -91,7 +91,7 @@ llvm::Value *FnDecl::codegen(FusionCtx &ctx) const {
   return fn;
 }
 llvm::Value *ValExpr::codegen(FusionCtx &ctx) const {
-  auto const &type = val.ty.get_type();
+  auto const &type = val.type.get_type();
   if (type.get_typekind() != Type::Integral) {
     return nullptr;
   }
@@ -134,7 +134,7 @@ llvm::Value *ValExpr::codegen(FusionCtx &ctx) const {
 }
 
 llvm::Value *TypeExpr::codegen(FusionCtx &ctx) const {
-  return reinterpret_cast<llvm::Value *>(ty.get_type_ptr()->codegen(ctx));
+  return reinterpret_cast<llvm::Value *>(type.get_type_ptr()->codegen(ctx));
 }
 
 llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
@@ -148,7 +148,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
     }
     if (vlhs == (llvm::Value *)~0) { // left hand side is an infered type decl
       auto *ty = vrhs->getType();
-      if (lhs->type != AstType::VarExpr) {
+      if (lhs->ast_type != AstType::VarExpr) {
         Error::ImplementMe("expected left-hand side to be varexpr");
         return nullptr;
       }
@@ -157,7 +157,7 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
       return ctx.builder.CreateStore(vrhs, var);
     }
 
-    if (!type_check(vrhs->getType(), vlhs->getType())) {
+    if (!codegen_type_check(vrhs->getType(), vlhs->getType())) {
       Error::ImplementMe("types don't match");
       return nullptr;
     }
@@ -205,17 +205,17 @@ llvm::Value *VarExpr::codegen(FusionCtx &ctx) const {
 }
 
 llvm::Value *VarDeclExpr::codegen(FusionCtx &ctx) const {
-  if (!ty.get_type_ptr()) {
+  if (!type.get_type_ptr()) {
     Error::ImplementMe("could not infer type of expression");
     return nullptr;
   }
   if (ctx.named_values.find(name) != ctx.named_values.end()) {
     return ctx.named_values[name.data()];
   }
-  if (!ty.get_type_ptr()) {
+  if (!type.get_type_ptr()) {
     return nullptr;
   }
-  auto *typ = ty.get_type_ptr();
+  auto *typ = type.get_type_ptr();
   auto *tyc = typ->codegen(ctx);
   if (tyc) {
 
@@ -305,8 +305,8 @@ llvm::Value *ReturnStmt::codegen(FusionCtx &ctx) const {
 llvm::Value *ClassStmt::codegen(FusionCtx &ctx) const {
   std::vector<QualType> tys;
   for (const auto &line : body->body) {
-    if (line->type != AstType::VarDeclExpr) {
-      tys.push_back(line->cast<VarDeclExpr>()->ty);
+    if (line->ast_type != AstType::VarDeclExpr) {
+      tys.push_back(line->cast<VarDeclExpr>()->type);
     }
   }
   auto *tyv = StructType(name->cast<VarExpr>()->name, std::move(tys)).codegen(ctx);

@@ -19,7 +19,7 @@ TEST(parser, only_primary) {
   auto p = Parser(tokens, ctx, file);
   auto expr = p.parse_expr();
   ASSERT_NE(expr, nullptr) << "expr is null";
-  ASSERT_EQ(expr->type, AstType::ValExpr);
+  ASSERT_EQ(expr->ast_type, AstType::ValExpr);
 }
 
 TEST(parser, primary_and_op) {
@@ -64,10 +64,10 @@ TEST(parser, outofbounnds) {
   try {
     auto expr = p.parse_expr();
     ASSERT_NE(expr, nullptr) << "expr is null";
-    ASSERT_EQ(expr->type, AstType::BinExpr);
+    ASSERT_EQ(expr->ast_type, AstType::BinExpr);
     auto bin = reinterpret_cast<BinExpr *>(expr.get());
-    EXPECT_EQ(bin->lhs->type, AstType::ValExpr);
-    EXPECT_EQ(bin->rhs->type, AstType::ValExpr);
+    EXPECT_EQ(bin->lhs->ast_type, AstType::ValExpr);
+    EXPECT_EQ(bin->rhs->ast_type, AstType::ValExpr);
   } catch (const std::exception &e) {
     ASSERT_EQ(1, 0) << "crashed";
   }
@@ -95,15 +95,15 @@ TEST(parser, addition) {
   auto p = Parser(tokens, ctx, file);
   auto expr = p.parse_expr();
   ASSERT_NE(expr, nullptr) << "expr is null";
-  ASSERT_EQ(expr->type, AstType::BinExpr);
+  ASSERT_EQ(expr->ast_type, AstType::BinExpr);
   auto bin = reinterpret_cast<BinExpr *>(expr.get());
 
-  EXPECT_EQ(bin->lhs->type, AstType::ValExpr);
+  EXPECT_EQ(bin->lhs->ast_type, AstType::ValExpr);
 
-  ASSERT_EQ(bin->rhs->type, AstType::BinExpr);
+  ASSERT_EQ(bin->rhs->ast_type, AstType::BinExpr);
   auto r = reinterpret_cast<BinExpr *>(bin->rhs.get());
-  EXPECT_EQ(r->lhs->type, AstType::ValExpr);
-  EXPECT_EQ(r->rhs->type, AstType::ValExpr);
+  EXPECT_EQ(r->lhs->ast_type, AstType::ValExpr);
+  EXPECT_EQ(r->rhs->ast_type, AstType::ValExpr);
 }
 TEST(parser, binexpr) {
   FusionCtx ctx;
@@ -127,10 +127,10 @@ TEST(parser, binexpr) {
   auto p = Parser(tokens, ctx, file);
   auto expr = p.parse_expr();
   ASSERT_NE(expr, nullptr) << "expr is null";
-  ASSERT_EQ(expr->type, AstType::BinExpr);
+  ASSERT_EQ(expr->ast_type, AstType::BinExpr);
   auto bin = reinterpret_cast<BinExpr *>(expr.get());
-  EXPECT_EQ(bin->lhs->type, AstType::ValExpr) << "left should be varexpr (a=)";
-  ASSERT_EQ(bin->rhs->type, AstType::BinExpr) << "right side should be 3+2";
+  EXPECT_EQ(bin->lhs->ast_type, AstType::ValExpr) << "left should be varexpr (a=)";
+  ASSERT_EQ(bin->rhs->ast_type, AstType::BinExpr) << "right side should be 3+2";
   /*
   auto r = reinterpret_cast<BinExpr*>(bin->rhs.get());
   EXPECT_EQ(r->op,Token::Add) << "Expected a +";
@@ -154,19 +154,19 @@ TEST(parser, IfStmt) {
 
   ASSERT_NE(ifstmt->body, nullptr);
   EXPECT_EQ(ifstmt->body->body.size(), 1);
-  EXPECT_EQ(ifstmt->body->body[0]->type, AstType::BinExpr);
+  EXPECT_EQ(ifstmt->body->body[0]->ast_type, AstType::BinExpr);
   auto body = ifstmt->body->body[0]->cast<BinExpr>();
-  EXPECT_EQ(body->lhs->type, AstType::ValExpr);
+  EXPECT_EQ(body->lhs->ast_type, AstType::ValExpr);
   EXPECT_EQ(body->lhs->cast<ValExpr>()->val.as.i32, 1);
-  EXPECT_EQ(body->rhs->type, AstType::ValExpr);
+  EXPECT_EQ(body->rhs->ast_type, AstType::ValExpr);
   EXPECT_EQ(body->rhs->cast<ValExpr>()->val.as.i32, 1);
 
   ASSERT_NE(ifstmt->else_body, nullptr);
   EXPECT_EQ(ifstmt->else_body->body.size(), 1);
   auto else_body = ifstmt->else_body->body[0]->cast<BinExpr>();
-  EXPECT_EQ(else_body->lhs->type, AstType::ValExpr);
+  EXPECT_EQ(else_body->lhs->ast_type, AstType::ValExpr);
   EXPECT_EQ(else_body->lhs->cast<ValExpr>()->val.as.i32, 1);
-  EXPECT_EQ(else_body->rhs->type, AstType::ValExpr);
+  EXPECT_EQ(else_body->rhs->ast_type, AstType::ValExpr);
   EXPECT_EQ(else_body->rhs->cast<ValExpr>()->val.as.i32, 1);
 }
 TEST(parser, ResolveType) {
@@ -187,28 +187,28 @@ TEST(parser, ResolveType) {
   auto body = p.parse();
   ASSERT_EQ(body->body.size(), 2); // class ,fndecl
   auto class_stmt = body->body[0].get();
-  ASSERT_EQ(class_stmt->type, AstType::ClassStmt);
+  ASSERT_EQ(class_stmt->ast_type, AstType::ClassStmt);
   auto fndecl = body->body[1].get();
-  ASSERT_EQ(fndecl->type, AstType::FnDecl);
+  ASSERT_EQ(fndecl->ast_type, AstType::FnDecl);
 
   auto class_body = class_stmt->cast<ClassStmt>()->body.get();
   ASSERT_EQ(class_body->body.size(), 2); // 2x vardecl
 
-  ASSERT_EQ(class_body->body[0]->type, AstType::VarDeclExpr);
-  auto a_ty = class_body->body[0]->cast<VarDeclExpr>()->ty;
+  ASSERT_EQ(class_body->body[0]->ast_type, AstType::VarDeclExpr);
+  auto a_ty = class_body->body[0]->cast<VarDeclExpr>()->type;
   ASSERT_EQ(a_ty.get_type_ptr()->get_typekind(), Type::Integral);
   EXPECT_EQ(reinterpret_cast<const IntegralType *>(a_ty.get_type_ptr())->ty,
             IntegralType::I32);
 
-  ASSERT_EQ(class_body->body[1]->type, AstType::VarDeclExpr);
-  auto b_ty = class_body->body[1]->cast<VarDeclExpr>()->ty;
+  ASSERT_EQ(class_body->body[1]->ast_type, AstType::VarDeclExpr);
+  auto b_ty = class_body->body[1]->cast<VarDeclExpr>()->type;
   ASSERT_EQ(b_ty.get_type_ptr()->get_typekind(), Type::Integral);
   EXPECT_EQ(reinterpret_cast<const IntegralType *>(b_ty.get_type_ptr())->ty,
             IntegralType::I32);
 
   auto fn_body = fndecl->cast<FnDecl>()->body.get();
   ASSERT_EQ(fn_body->body.size(), 1); // vardecl
-  ASSERT_EQ(fn_body->body[0]->type, AstType::VarDeclExpr);
+  ASSERT_EQ(fn_body->body[0]->ast_type, AstType::VarDeclExpr);
 
 }
 
@@ -230,30 +230,30 @@ TEST(parser, VarDeclExpr) {
   auto p = Parser(tokens, ctx, file);
   auto tle = p.parse();
   ASSERT_NE(tle, nullptr) << "top level expr is null";
-  ASSERT_EQ(tle->type, AstType::Body);
+  ASSERT_EQ(tle->ast_type, AstType::Body);
   ASSERT_EQ(tle->body.size(), 1);
   auto main = tle->body[0].get();
-  ASSERT_EQ(main->type, AstType::FnDecl);
+  ASSERT_EQ(main->ast_type, AstType::FnDecl);
   auto body = main->cast<FnDecl>()->body.get();
   ASSERT_EQ(body->body.size(), 2);
   auto first = body->body[0].get();
-  ASSERT_EQ(first->type, AstType::VarDeclExpr);
+  ASSERT_EQ(first->ast_type, AstType::VarDeclExpr);
   auto second = body->body[1].get();
-  ASSERT_EQ(second->type, AstType::BinExpr);
+  ASSERT_EQ(second->ast_type, AstType::BinExpr);
 
   auto first_vardecl = first->cast<VarDeclExpr>();
   auto second_binexpr = second->cast<BinExpr>();
 
   ASSERT_EQ(first_vardecl->name, "a");
-  ASSERT_EQ(first_vardecl->ty.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(first_vardecl->type.get_type_ptr(), &Type::get_i32());
 
-  ASSERT_EQ(second_binexpr->lhs->type, AstType::VarDeclExpr);
-  ASSERT_EQ(second_binexpr->rhs->type, AstType::ValExpr);
+  ASSERT_EQ(second_binexpr->lhs->ast_type, AstType::VarDeclExpr);
+  ASSERT_EQ(second_binexpr->rhs->ast_type, AstType::ValExpr);
   auto second_lhs = second_binexpr->lhs->cast<VarDeclExpr>();
   auto second_rhs = second_binexpr->rhs->cast<ValExpr>();
 
   ASSERT_EQ(second_lhs->name, "b");
-  ASSERT_EQ(second_lhs->ty.get_type_ptr(), &Type::get_i32());
-  ASSERT_EQ(second_rhs->val.ty.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(second_lhs->type.get_type_ptr(), &Type::get_i32());
+  ASSERT_EQ(second_rhs->val.type.get_type_ptr(), &Type::get_i32());
   ASSERT_EQ(second_rhs->val.as.i32, 1);
 }

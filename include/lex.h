@@ -11,6 +11,7 @@ class SourceLocation {
 public:
   unsigned int pos, indent,li;
   std::string::const_iterator it, end;
+  const FSFile& file;
   SourceLocation(FSFile &file);
   INLINE char peek(const int n = 0);
   INLINE char pop();
@@ -46,7 +47,7 @@ bool is_ws(unsigned char ch);
 Kw_e is_kw(const std::string& h);
 
 struct Lit {
-  QualType ty;
+  QualType type;
   union {
     unsigned char u8;
     unsigned short u16;
@@ -157,7 +158,6 @@ public:
   std::vector<Token> tokens;
 
 private:
-  FSFile &file;
   char lex_escape(const char esc);
   Lit nolit(const SourceLocation &s, bool f, int base);
   Lit stringlit(std::string s);

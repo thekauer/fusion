@@ -26,44 +26,46 @@ enum class AstType : unsigned char {
 };
 class AstExpr {
 public:
-  AstType type;
+  AstType ast_type;
   SourceLocation sl;
-  AstExpr(AstType type, const SourceLocation &sl) : type(type), sl(sl){};
+  int indent = 0;
+  AstExpr(AstType ast_type, const SourceLocation &sl) : ast_type(ast_type), sl(sl){};
   virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
   virtual void pretty_print() const = 0;
-  virtual ~AstExpr() {}
-  int indent = 0;
+  virtual void type_check() const;
   template <typename T> T *cast() { return reinterpret_cast<T *>(this); }
+  virtual bool is_expr() const = 0;
+  virtual ~AstExpr() {}
 };
 
-struct Body : AstExpr {
+struct Stmt : AstExpr {
+  Stmt(AstType ast_type, const SourceLocation &sl);
+  bool is_expr() const override;
+  virtual ~Stmt(){};
+};
+struct Expr : AstExpr {
+  QualType type;
+  Expr(AstType ast_type, const SourceLocation &sl);
+  Expr(AstType ast_type, const SourceLocation &sl, QualType type);
+  bool is_expr() const override;
+  virtual ~Expr(){};
+};
+
+struct Body : Stmt {
   std::vector<std::unique_ptr<AstExpr>> body;
   Body(const SourceLocation &sl, std::vector<std::unique_ptr<AstExpr>> body);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
-struct Stmt : AstExpr {
-  std::unique_ptr<Body> body;
-  Stmt(const SourceLocation &sl, AstType type, std::unique_ptr<Body> body);
-  virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
-  virtual void pretty_print() const = 0;
-  virtual ~Stmt(){};
-};
-struct Expr : AstExpr {
-  QualType ty;
-  Expr(const SourceLocation &sl, AstType type, QualType ty);
-  virtual llvm::Value *codegen(FusionCtx &ctx) const = 0;
-  virtual void pretty_print() const = 0;
-  virtual ~Expr(){};
-};
-struct VarDeclExpr : AstExpr {
+struct VarDeclExpr : Expr {
   std::string name;
-  QualType ty;
 
   VarDeclExpr(const SourceLocation &sl, const std::string &name);
-  VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType &ty);
+  VarDeclExpr(const SourceLocation &sl, const std::string &name, QualType &type);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 struct FnModifiers {
   using Type = unsigned char;
@@ -76,7 +78,7 @@ struct FnModifiers {
   static const Type Static = 64;
   FnModifiers() = delete;
 };
-struct FnProto : AstExpr {
+struct FnProto : Stmt {
   std::unique_ptr<AstExpr> ret;
   std::vector<std::unique_ptr<VarDeclExpr>> args;
   std::string name;
@@ -90,10 +92,11 @@ struct FnProto : AstExpr {
           std::unique_ptr<AstExpr> ret = nullptr);
 
   void pretty_print() const override;
+  void type_check() const override;
   llvm::Value *codegen(FusionCtx &ctx) const override;
 };
 
-struct FnDecl : AstExpr {
+struct FnDecl : Stmt {
   FnModifiers::Type mods = 0;
   std::unique_ptr<FnProto> proto;
   std::unique_ptr<Body> body;
@@ -102,29 +105,32 @@ struct FnDecl : AstExpr {
   FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
-struct ValExpr : AstExpr {
+struct ValExpr : Expr {
   Lit val;
   ValExpr(const SourceLocation &sl, Lit val);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
-struct VarExpr : AstExpr {
+struct VarExpr : Expr {
   std::string name;
 
   VarExpr(const SourceLocation &sl, const std::string &name);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
-struct TypeExpr : AstExpr {
-  QualType ty;
-  TypeExpr(const SourceLocation &sl, QualType ty);
+struct TypeExpr : Expr {
+  TypeExpr(const SourceLocation &sl, QualType type);
   TypeExpr(const SourceLocation &sl);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
-struct FnCall : AstExpr {
+struct FnCall : Expr {
   std::string name;
   std::vector<std::unique_ptr<AstExpr>> args;
 
@@ -133,25 +139,28 @@ struct FnCall : AstExpr {
          std::vector<std::unique_ptr<AstExpr>> args);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
-struct BinExpr : AstExpr {
+struct BinExpr : Expr {
   std::unique_ptr<AstExpr> lhs, rhs;
   Token::Type op;
   BinExpr(const SourceLocation &sl, Token::Type op,
           std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
-struct RangeExpr : AstExpr {
+struct RangeExpr : Expr {
   std::unique_ptr<ValExpr> begin, end;
   RangeExpr(const SourceLocation &sl, std::unique_ptr<ValExpr> begin,
             std::unique_ptr<ValExpr> end);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
-struct IfStmt : AstExpr {
+struct IfStmt : Stmt {
   std::unique_ptr<AstExpr> condition;
   std::unique_ptr<Body> body, else_body;
   IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
@@ -160,23 +169,26 @@ struct IfStmt : AstExpr {
          std::unique_ptr<Body> body, std::unique_ptr<Body> else_body);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
-struct ReturnStmt : AstExpr {
+struct ReturnStmt : Stmt {
   std::unique_ptr<AstExpr> expr;
   ReturnStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> expr);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
-struct ImportExpr : AstExpr {
+struct ImportExpr : Stmt {
   std::string module;
   ImportExpr(const SourceLocation &sl, const std::string &module);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
-struct ClassStmt : AstExpr {
+struct ClassStmt : Stmt {
 private:
 
 public:
@@ -188,6 +200,7 @@ public:
             std::unique_ptr<Body> body, std::unique_ptr<Type> ty);
   llvm::Value *codegen(FusionCtx &ctx) const override;
   void pretty_print() const override;
+  void type_check() const override;
 };
 
 int precedence(Token::Type op);
@@ -198,12 +211,11 @@ private:
   Token peek(int n = 0);
   void consume_li();
   FusionCtx &ctx;
-  const FSFile &file;
 
 public:
   Token expect(Token::Type ty, const std::string &tk);
   Parser(std::vector<Token> &tokens, FusionCtx &ctx, const FSFile &file)
-      : it(tokens.begin()), end(tokens.end()), ctx(ctx), file(file){};
+      : it(tokens.begin()), end(tokens.end()), ctx(ctx){};
   std::unique_ptr<Body> parse();
   std::unique_ptr<AstExpr> parse_expr();
 

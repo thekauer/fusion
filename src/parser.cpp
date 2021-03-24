@@ -1,5 +1,4 @@
 #include "parser.h"
-#include "llvm/Support/raw_os_ostream.h"
 
 Token Parser::pop() {
   if (it == end)
@@ -21,7 +20,7 @@ void Parser::consume_li() {
 Token Parser::expect(Token::Type ty, const std::string &tk) {
   auto t = pop();
   if (t.type != ty)
-    Error::ExpectedToken(file, t.sl, "Expected " + tk);
+    Error::ExpectedToken(t.sl, "Expected " + tk);
   return t;
 }
 
@@ -45,7 +44,7 @@ Type *lookup_type(AstExpr *head, const std::string& name) {
     if (!head) {
     return nullptr;
     }
-    switch (head->type) {
+    switch (head->ast_type) {
     case AstType::ClassStmt: {
       auto* pclass = head->cast<ClassStmt>();
       if (pclass->name->name == name) {
@@ -77,8 +76,8 @@ ClassStmt::get_class_type(const std::unique_ptr<VarExpr> &name,
                           const std::unique_ptr<Body> &body) {
   std::vector<QualType> types;
   for (auto const &line : body->body) {
-    if (line->type == AstType::VarDeclExpr) {
-      auto t = line->cast<VarDeclExpr>()->ty;
+    if (line->ast_type == AstType::VarDeclExpr) {
+      auto t = line->cast<VarDeclExpr>()->type;
       types.push_back(t);
     }
   }
@@ -116,7 +115,7 @@ std::unique_ptr<FnProto> Parser::parse_fnproto() {
     pop();
     auto namet = pop();
     if (namet.type != Token::Id) {
-      Error::ExpectedToken(file, namet.sl, "expected function name");
+      Error::ExpectedToken(namet.sl, "expected function name");
       return nullptr;
     }
     auto name = namet.getName();
@@ -287,13 +286,12 @@ std::unique_ptr<VarDeclExpr> Parser::parse_var_decl() {
   if (!ty) {
     serror(Error_e::Unk, "Expected type expr");
   }
-  return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->ty);
+  return std::make_unique<VarDeclExpr>(peek().sl, id.getName(), ty->type);
 }
 
 std::unique_ptr<AstExpr> Parser::parse_expr() {
   auto lhs = parse_primary();
-  if (lhs && lhs->type != AstType::IfStmt &&
-      lhs->type != AstType::ReturnStmt) // fix this
+  if (lhs && lhs->is_expr())
     return parse_binary(std::move(lhs));
   return lhs;
 }
@@ -378,7 +376,7 @@ std::unique_ptr<ImportExpr> Parser::parse_import() {
 std::unique_ptr<Body> Parser::parse_body() {
   auto loc = peek().sl;
   if (pop().type != Token::Gi) {
-    Error::EmptyFnBody(file, peek().sl);
+    Error::EmptyFnBody(peek().sl);
   }
   std::vector<std::unique_ptr<AstExpr>> body;
 
@@ -423,7 +421,7 @@ std::unique_ptr<ClassStmt> Parser::parse_class() {
 std::unique_ptr<Body> Parser::parse_class_body() {
   auto loc = peek().sl;
   if (pop().type != Token::Gi) {
-    Error::EmptyFnBody(file, peek().sl);
+    Error::EmptyFnBody(peek().sl);
   }
   std::vector<std::unique_ptr<AstExpr>> body;
 
@@ -456,202 +454,60 @@ bool Parser::is_end_of_body() {
 
 Body::Body(const SourceLocation &sl,
            std::vector<std::unique_ptr<AstExpr>> body)
-    : AstExpr(AstType::Body, sl), body(std::move(body)) {}
+    : Stmt(AstType::Body, sl), body(std::move(body)) {}
 
-Stmt::Stmt(const SourceLocation &sl, AstType type,
-           std::unique_ptr<Body> body) : AstExpr(type,sl), body(std::move(body)){}
-Expr::Expr(const SourceLocation &sl, AstType type, QualType ty) : AstExpr(type,sl),ty(ty) {}
-VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::VarDeclExpr,sl),name(name) {}
+Stmt::Stmt(AstType ast_type, const SourceLocation &sl)
+    : AstExpr(ast_type, sl) {}
+bool Stmt::is_expr() const { return false; }
+Expr::Expr(AstType ast_type, const SourceLocation &sl)
+    : AstExpr(ast_type, sl) {}
+Expr::Expr(AstType ast_type, const SourceLocation &sl, QualType type)
+    : AstExpr(ast_type, sl), type(type) {}
+bool Expr::is_expr() const { return true; }
+VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name) : Expr(AstType::VarDeclExpr,sl),name(name) {}
 VarDeclExpr::VarDeclExpr(const SourceLocation &sl, const std::string &name,
-                         QualType &ty) : AstExpr(AstType::VarDeclExpr,sl),name(name),ty(ty) {}
+                         QualType &type) : Expr(AstType::VarDeclExpr,sl,type),name(name) {}
 
 FnProto::FnProto(const SourceLocation &sl, const std::string &name,
-                 std::unique_ptr<AstExpr> ret) : AstExpr(AstType::FnProto,sl),ret(std::move(ret)),name(name) {}
+                 std::unique_ptr<AstExpr> ret) : Stmt(AstType::FnProto,sl),ret(std::move(ret)),name(name) {}
 
 FnProto::FnProto(const SourceLocation &sl, const std::string &name,
                  std::vector<std::unique_ptr<VarDeclExpr>> args,
                  std::unique_ptr<AstExpr> ret)
-    : AstExpr(AstType::FnProto,sl), ret(std::move(ret)), args(std::move(args)),
+    : Stmt(AstType::FnProto,sl), ret(std::move(ret)), args(std::move(args)),
       name(name) {}
 FnDecl::FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto,
                std::unique_ptr<Body> body, FnModifiers::Type mods)
-    : AstExpr(AstType::FnDecl, sl), mods(mods),
+    : Stmt(AstType::FnDecl, sl), mods(mods),
       proto(std::move(proto)) ,body(std::move(body)) {}
 FnDecl::FnDecl(const SourceLocation &sl, std::unique_ptr<FnProto> proto)
-    : AstExpr(AstType::FnDecl, sl), mods(FnModifiers::Extern),
+    : Stmt(AstType::FnDecl, sl), mods(FnModifiers::Extern),
       proto(std::move(proto)) {}
 
-ValExpr::ValExpr(const SourceLocation &sl, Lit val) : AstExpr(AstType::ValExpr,sl),val(val){}
-VarExpr::VarExpr(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::VarExpr,sl),name(name) {}
-TypeExpr::TypeExpr(const SourceLocation &sl, QualType ty) : AstExpr(AstType::TypeExpr,sl),ty(ty) {}
-TypeExpr::TypeExpr(const SourceLocation &sl) : AstExpr(AstType::TypeExpr,sl) {}
-FnCall::FnCall(const SourceLocation &sl, const std::string &name) : AstExpr(AstType::FnCall,sl),name(name) {}
+ValExpr::ValExpr(const SourceLocation &sl, Lit val) : Expr(AstType::ValExpr,sl,val.type),val(val){}
+VarExpr::VarExpr(const SourceLocation &sl, const std::string &name) : Expr(AstType::VarExpr,sl),name(name) {}
+TypeExpr::TypeExpr(const SourceLocation &sl, QualType type) : Expr(AstType::TypeExpr,sl,type) {}
+TypeExpr::TypeExpr(const SourceLocation &sl) : Expr(AstType::TypeExpr,sl) {}
+FnCall::FnCall(const SourceLocation &sl, const std::string &name) : Expr(AstType::FnCall,sl),name(name) {}
 FnCall::FnCall(const SourceLocation &sl, const std::string &name,
        std::vector<std::unique_ptr<AstExpr>> args)
-    : AstExpr(AstType::FnCall,sl), name(name), args(std::move(args)) {}
+    : Expr(AstType::FnCall,sl), name(name), args(std::move(args)) {}
 BinExpr::BinExpr(const SourceLocation &sl, Token::Type op,
-                 std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs) : AstExpr(AstType::BinExpr,sl),lhs(std::move(lhs)),rhs(std::move(rhs)),op(op) {}
+                 std::unique_ptr<AstExpr> lhs, std::unique_ptr<AstExpr> rhs) : Expr(AstType::BinExpr,sl),lhs(std::move(lhs)),rhs(std::move(rhs)),op(op) {}
 RangeExpr::RangeExpr(const SourceLocation &sl, std::unique_ptr<ValExpr> begin,
-                     std::unique_ptr<ValExpr> end) : AstExpr(AstType::RangeExpr,sl),begin(std::move(begin)),end(std::move(end)){}
+                     std::unique_ptr<ValExpr> end) : Expr(AstType::RangeExpr,sl),begin(std::move(begin)),end(std::move(end)){}
 IfStmt::IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
-               std::unique_ptr<Body> body) : AstExpr(AstType::IfStmt,sl),condition(std::move(condition)),body(std::move(body)){}
+               std::unique_ptr<Body> body) : Stmt(AstType::IfStmt,sl),condition(std::move(condition)),body(std::move(body)){}
 IfStmt::IfStmt(const SourceLocation &sl, std::unique_ptr<AstExpr> condition,
                std::unique_ptr<Body> body, std::unique_ptr<Body> else_body)
-    : AstExpr(AstType::IfStmt, sl), condition(std::move(condition)),
+    : Stmt(AstType::IfStmt, sl), condition(std::move(condition)),
       body(std::move(body)), else_body(std::move(else_body)) {}
 ReturnStmt::ReturnStmt(const SourceLocation &sl,
                        std::unique_ptr<AstExpr> expr)
-    : AstExpr(AstType::ReturnStmt, sl), expr(std::move(expr)) {}
-ImportExpr::ImportExpr(const SourceLocation &sl, const std::string &module) : AstExpr(AstType::ImportExpr,sl),module(module) {}
+    : Stmt(AstType::ReturnStmt, sl), expr(std::move(expr)) {}
+ImportExpr::ImportExpr(const SourceLocation &sl, const std::string &module) : Stmt(AstType::ImportExpr,sl),module(module) {}
 ClassStmt::ClassStmt(const SourceLocation &sl, std::unique_ptr<VarExpr> name,
                      std::unique_ptr<Body> body, std::unique_ptr<Type> ty)
-    : AstExpr(AstType::ClassStmt, sl), ty(std::move(ty)),
+    : Stmt(AstType::ClassStmt, sl), ty(std::move(ty)),
       body(std::move(body)),
       name(std::move(name)) {}
-
-void Body::pretty_print() const {
-  for (const auto &line : body) {
-    for (int i = 0; i < sl.indent; i++)
-      llvm::outs() << " ";
-    line->pretty_print();
-    llvm::outs() << "\n";
-  }
-}
-
-void FnProto::pretty_print() const {
-  llvm::outs() << "fn " << name << "(";
-  for (const auto &arg : args) {
-    arg->pretty_print();
-    llvm::outs() << ",";
-  }
-  if (args.size() == 0)
-    llvm::outs() << "(";
-  llvm::outs() << "\b)";
-}
-
-void FnDecl::pretty_print() const {
-  proto->pretty_print();
-  llvm::outs() << "\n";
-  body->pretty_print();
-  llvm::outs() << "\n";
-}
-
-void ValExpr::pretty_print() const {
-  switch (val.ty.get_type_ptr()->get_typekind()) {
-  case Type::Integral: {
-    switch (static_cast<const IntegralType *>(val.ty.get_type_ptr())->ty) {
-    case IntegralType::I8:
-      llvm::outs() << val.as.i8;
-      return;
-    case IntegralType::I16:
-      llvm::outs() << val.as.i16;
-      return;
-    case IntegralType::I32:
-      llvm::outs() << val.as.i32;
-      return;
-    case IntegralType::I64:
-      llvm::outs() << val.as.i64;
-      return;
-    case IntegralType::ISize:
-      llvm::outs() << val.as.i64;
-      return;
-    case IntegralType::U8:
-      llvm::outs() << val.as.u8;
-      return;
-    case IntegralType::U16:
-      llvm::outs() << val.as.u16;
-      return;
-    case IntegralType::U32:
-      llvm::outs() << val.as.u32;
-      return;
-    case IntegralType::U64:
-      llvm::outs() << val.as.u64;
-      return;
-    case IntegralType::USize:
-      llvm::outs() << val.as.u64;
-      return;
-  case IntegralType::Bool:
-    if (val.as.b) {
-      llvm::outs() << "true";
-    } else {
-      llvm::outs() << "false";
-    }
-    return;
-  }
-    }
-  default:
-    llvm::outs() << "val";
-  }
-}
-
-void VarDeclExpr::pretty_print() const {
-  llvm::outs() << name << " : " << ty.get_type_ptr()->get_name().data();
-}
-void VarExpr::pretty_print() const { llvm::outs() << name; }
-void TypeExpr::pretty_print() const {
-  llvm::outs() << ty.get_type_ptr()->get_name().data();
-}
-void FnCall::pretty_print() const {
-  llvm::outs() << name << "(";
-  for (const auto &arg : args) {
-    if (arg) {
-      arg->pretty_print();
-      llvm::outs() << ",";
-    }
-  }
-  if (args.size() == 0)
-    llvm::outs() << "(";
-  llvm::outs() << "\b)\n";
-}
-
-void BinExpr::pretty_print() const {
-  lhs->pretty_print();
-  llvm::outs() << " ";
-  switch (op) {
-  case Token::Add:
-    llvm::outs() << "+";
-    break;
-  case Token::Eq:
-    llvm::outs() << "=";
-    break;
-  case Token::Mul:
-    llvm::outs() << "*";
-    break;
-  default:
-    llvm::outs() << " op ";
-    break;
-  }
-  llvm::outs() << " ";
-  rhs->pretty_print();
-}
-
-void RangeExpr::pretty_print() const {
-  if (begin)
-    begin->pretty_print();
-  llvm::outs() << "..";
-  if (end)
-    end->pretty_print();
-}
-
-void IfStmt::pretty_print() const {
-  llvm::outs() << "if ";
-  condition->pretty_print();
-  llvm::outs() << "\n";
-  body->pretty_print();
-  if (else_body) {
-    llvm::outs() << "else\n";
-    else_body->pretty_print();
-  }
-}
-
-void ImportExpr::pretty_print() const { llvm::outs() << "import " << module; }
-
-void ReturnStmt::pretty_print() const {
-  llvm::outs() << "return ";
-  expr->pretty_print();
-}
-
-void ClassStmt::pretty_print() const {
-  llvm::outs() << "class " << name->name << "\n";
-  body->pretty_print();
-}
