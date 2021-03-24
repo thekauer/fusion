@@ -93,6 +93,15 @@ void Error::NoConversionExists(const SourceLocation &sl,
   error(Error_e::NoConversionExists, sl, msg.str());
 }
 
+void Error::SingleBacklashInCharLit(const SourceLocation &sl) {
+  error(Error_e::SingleBacklashInCharLit, sl, "Single \\ in char literal");
+  note(Error_e::SingleBacklashInCharLit, sl, "Prehaps you meant \\\\ to get the \\ charachter");
+}
+void Error::CharLitWithMoreThanOneChar(const SourceLocation &sl) {
+  error(Error_e::CharLitWithMoreThanOneChar, sl,
+        "You can only have one charachter in a charachter literal");
+}
+
 void Error::ImplementMe(std::string_view msg) {
   llvm::outs() << "Error you didn't implement: " << msg.data() << "\n";
 }

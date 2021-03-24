@@ -163,7 +163,9 @@ private:
   Lit stringlit(std::string s);
   Token lex_id_or_kw(SourceLocation &err_loc);
   Token lex_number(SourceLocation &err_loc);
+  Token lex_number_or_sub(SourceLocation &err_loc);
   Token lex_string(SourceLocation &err_loc);
+  Token lex_char(SourceLocation &err_loc);
   Token lex_newline(SourceLocation &err_loc);
   Token lex_dots(SourceLocation &err_loc);
   Token lex_eq(SourceLocation &err_loc);

@@ -44,6 +44,22 @@ TEST(Lex, Operator) {
   }
 }
 
+TEST(Lex, Literals) {
+  std::string code = "1 -1 'c' 3.2 2147483646 3147483647 1.123 1.1234567 1.12345678";
+  std::vector<Lit> lits{Lit((int)1), Lit((int)-1),    Lit('c'),         
+                        Lit((double)3.2), Lit((int)2147483646), Lit((long)3147483647),
+                        Lit((double)1.123), Lit((double)1.1234567), Lit((double)1.12345678)};
+  auto file = FSFile("", code);
+  Lexer l = Lexer(file);
+  for (auto expected : lits) {
+    auto t = l.next();
+    ASSERT_EQ(t.type, Token::Lit);
+    auto lit = t.getValue();
+    EXPECT_EQ(lit.as.u64, expected.as.u64);
+    EXPECT_EQ(lit.type.get_type_ptr(), expected.type.get_type_ptr());
+  }
+}
+
 TEST(Lex, OneInOther) {
   std::string code = "addi32i32";
   auto file = FSFile("", code);

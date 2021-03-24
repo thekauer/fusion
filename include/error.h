@@ -28,7 +28,9 @@ enum class Error_e : int {
   UnkEsc,
   CouldNotInferType,
   MainNoreturn,
-  NoConversionExists
+  NoConversionExists,
+  SingleBacklashInCharLit,
+  CharLitWithMoreThanOneChar
 };
 
 void serror(Error_e code, const std::string &msg);
@@ -49,5 +51,7 @@ public:
   static void EmptyFnBody(const SourceLocation &sl);
   static void MainNoReturn(const SourceLocation &sl);
   static void NoConversionExists(const SourceLocation &sl,std::string_view from,std::string_view to);
+  static void SingleBacklashInCharLit(const SourceLocation &sl);
+  static void CharLitWithMoreThanOneChar(const SourceLocation &sl);
   static void ImplementMe(std::string_view msg);
 };

@@ -122,13 +122,22 @@ Kw_e is_kw(const std::string& h) {
 Lit Lexer::nolit(const SourceLocation &s, bool f, int base) {
   std::string str(s.it, it);
   if (f) {
-    float D = 0.0;
+    double D = 0.0;
     D = std::stod(str);
     return Lit(D);
   } else {
-    int I = 0;
-    I = std::stoi(str);
-    return Lit(I);
+    long long I = 0;
+    I = std::stoll(str);
+    if (I <= INT_MAX) {
+      return Lit((int)I);
+    } else {
+      if (I <= LONG_MAX) {
+        return Lit((long)I);
+      } else {
+         // You need to denotate that this is eaither a big int or an unsigned integer
+         LLVM_BUILTIN_UNREACHABLE;
+      }
+    }
   }
 }
 
@@ -160,6 +169,9 @@ Token Lexer::lex_id_or_kw(SourceLocation &err_loc) {
   return Token(s, e);
 }
 Token Lexer::lex_number(SourceLocation &err_loc) {
+  if (eq[peek()] == Sub) {
+    pop();
+  }
   // Handle base
   int base = 10;
   while (eq[peek()] == Number) {
@@ -177,6 +189,14 @@ Token Lexer::lex_number(SourceLocation &err_loc) {
   return Token(nolit(err_loc, is_float, base), err_loc);
 }
 
+Token Lexer::lex_number_or_sub(SourceLocation &err_loc) {
+  if (eq[peek()] == Sub &&  eq[peek(1)] == Number) {
+    return lex_number(err_loc);
+  } else {
+    return lex_sub(err_loc);
+  }
+}
+
 Token Lexer::lex_string(SourceLocation &err_loc) {
   pop(); // pop the quote
   std::string buff;
@@ -191,6 +211,23 @@ Token Lexer::lex_string(SourceLocation &err_loc) {
   pop(); // pop the ending quote
 
   return Token(stringlit(buff), err_loc);
+}
+Token Lexer::lex_char(SourceLocation &err_loc) { 
+  pop(); //pop the '
+  if (eq[peek(1)] == Apostrophe && eq[peek()] == Backslash) { // '\'
+      Error::SingleBacklashInCharLit(err_loc);
+        return Token(Token::Null, err_loc);
+  }
+  if (eq[peek()] != Backslash && eq[peek(1)] != Apostrophe) { // eg.: 'ab'
+    Error::CharLitWithMoreThanOneChar(err_loc);
+    return Token(Token::Null,err_loc);
+  }
+  if (eq[peek()] == Backslash) {
+      return Token(Lit(lex_escape(pop())),err_loc);
+  }
+  auto ch = pop();
+  pop(); //pop the '
+  return Token(Lit(ch), err_loc);
 }
 
 Token Lexer::lex_newline(SourceLocation &err_loc) {
@@ -235,7 +272,7 @@ Token Lexer::lex_dots(SourceLocation &err_loc) {
 
 Token Lexer::lex_eq(SourceLocation &err_loc) {
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::EqEq, err_loc);
   } else {
@@ -245,7 +282,7 @@ Token Lexer::lex_eq(SourceLocation &err_loc) {
 
 Token Lexer::lex_mul(SourceLocation &err_loc) {
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::MulEq, err_loc);
   } else {
@@ -256,7 +293,7 @@ Token Lexer::lex_mul(SourceLocation &err_loc) {
 Token Lexer::lex_div(SourceLocation &err_loc) {
   // implement comments
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::DivEq, err_loc);
   }
@@ -265,7 +302,7 @@ Token Lexer::lex_div(SourceLocation &err_loc) {
 
 Token Lexer::lex_not(SourceLocation &err_loc) {
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::NotEq, err_loc);
   } else {
@@ -275,7 +312,7 @@ Token Lexer::lex_not(SourceLocation &err_loc) {
 
 Token Lexer::lex_gt(SourceLocation &err_loc) {
   pop();
-  auto n = eq[peek(1)];
+  auto n = eq[peek()];
   if (n == Eq) {
     pop();
     return Token(Token::GtEq, err_loc);
@@ -285,7 +322,7 @@ Token Lexer::lex_gt(SourceLocation &err_loc) {
 
 Token Lexer::lex_lt(SourceLocation &err_loc) {
   pop();
-  auto n = eq[peek(1)];
+  auto n = eq[peek()];
   if (n == Eq) {
     pop();
     return Token(Token::LtEq, err_loc);
@@ -295,7 +332,7 @@ Token Lexer::lex_lt(SourceLocation &err_loc) {
 
 Token Lexer::lex_add(SourceLocation &err_loc) {
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::AddEq, err_loc);
   }
@@ -304,7 +341,7 @@ Token Lexer::lex_add(SourceLocation &err_loc) {
 
 Token Lexer::lex_sub(SourceLocation &err_loc) {
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::SubEq, err_loc);
   }
@@ -313,7 +350,7 @@ Token Lexer::lex_sub(SourceLocation &err_loc) {
 
 Token Lexer::lex_mod(SourceLocation &err_loc) {
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::ModEq, err_loc);
   }
@@ -322,7 +359,7 @@ Token Lexer::lex_mod(SourceLocation &err_loc) {
 
 Token Lexer::lex_neg(SourceLocation &err_loc) {
   pop();
-  if (eq[peek(1)] == Eq) {
+  if (eq[peek()] == Eq) {
     pop();
     return Token(Token::NegEq, err_loc);
   }
@@ -344,6 +381,8 @@ Token Lexer::next() {
     return lex_number(err_loc);
   case Quote:
     return lex_string(err_loc);
+  case Apostrophe:
+    return lex_char(err_loc);
   case N:
     return lex_newline(err_loc);
   case Dot:
@@ -363,7 +402,7 @@ Token Lexer::next() {
   case Add:
     return lex_add(err_loc);
   case Sub:
-    return lex_sub(err_loc);
+    return lex_number_or_sub(err_loc);
   case Mod:
     return lex_mod(err_loc);
   case Neg:
@@ -414,7 +453,7 @@ char Lexer::lex_escape(const char esc) {
   return '\0';
 }
 
-INLINE char SourceLocation::peek(const int n) { return *it; }
+INLINE char SourceLocation::peek(const int n) { return *(it+n); }
 
 INLINE char SourceLocation::pop() {
   char r = *it;
