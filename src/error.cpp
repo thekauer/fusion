@@ -85,6 +85,12 @@ void Error::MainNoReturn(const FSFile &file, const SourceLocation &sl) {
   error(Error_e::MainNoreturn, file, sl,
         "You must put a return statement in the main function.");
 }
+void Error::NoConversionExists(const FSFile &file, const SourceLocation &sl,
+                               std::string_view from, std::string_view to) {
+  std::stringstream msg;
+  msg << "No conversion exists from " << from << " to " << to;
+  error(Error_e::NoConversionExists, file, sl, msg.str());
+}
 
 void Error::ImplementMe(std::string_view msg) {
   llvm::outs() << "Error you didn't implement: " << msg.data() << "\n";

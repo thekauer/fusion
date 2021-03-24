@@ -2,6 +2,7 @@
 #include "lex.h"
 #include <iostream>
 #include <string>
+#include <string_view>
 struct FSFile;
 class SourceLocation;
 struct RespawnedCode {
@@ -26,7 +27,8 @@ enum class Error_e : int {
   TooFewArgumentsForFs,
   UnkEsc,
   CouldNotInferType,
-  MainNoreturn
+  MainNoreturn,
+  NoConversionExists
 };
 
 void serror(Error_e code, const std::string &msg);
@@ -46,5 +48,6 @@ public:
                             const std::string &msg);
   static void EmptyFnBody(const FSFile &file, const SourceLocation &sl);
   static void MainNoReturn(const FSFile &file, const SourceLocation &sl);
+  static void NoConversionExists(const FSFile &file, const SourceLocation &sl,std::string_view from,std::string_view to);
   static void ImplementMe(std::string_view msg);
 };
