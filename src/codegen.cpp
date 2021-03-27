@@ -238,6 +238,20 @@ llvm::Value *codegen_div(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
   }
   return nullptr;
 }
+llvm::Value *codegen_mod(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+      return ctx.builder.CreateSDiv(lhs->codegen(ctx), rhs->codegen(ctx));
+
+  } else {
+    Error::ImplementMe("implement op/ for non integarl types");
+  }
+  return nullptr;
+}
 
 
 llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
@@ -257,6 +271,9 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
   }
   case Token::Div: {
     return codegen_div(ctx, lhs.get(), rhs.get());
+  }
+  case Token::Mod: {
+    return codegen_mod(ctx, lhs.get(), rhs.get());
   }
   default:
     Error::ImplementMe("Codegen: Unimplemented operator!");
