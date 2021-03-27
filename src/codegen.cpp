@@ -136,50 +136,127 @@ llvm::Value *ValExpr::codegen(FusionCtx &ctx) const {
 llvm::Value *TypeExpr::codegen(FusionCtx &ctx) const {
   return reinterpret_cast<llvm::Value *>(type.get_type_ptr()->codegen(ctx));
 }
+llvm::Value* codegen_eq(FusionCtx& ctx,AstExpr* lhs,AstExpr* rhs) {
+  auto *vlhs = lhs->codegen(ctx);
+  auto *vrhs = rhs->codegen(ctx);
+  if (!vrhs) {
+    Error::ImplementMe("No value");
+    return nullptr;
+  }
+  if (vlhs == (llvm::Value *)~0) { // left hand side is an infered type decl
+    auto *ty = vrhs->getType();
+    if (lhs->ast_type != AstType::VarExpr) {
+      Error::ImplementMe("expected left-hand side to be varexpr");
+      return nullptr;
+    }
+    std::string name = reinterpret_cast<VarExpr *>(lhs)->name;
+    auto *var = alloc(ctx, ty, name);
+    return ctx.builder.CreateStore(vrhs, var);
+  }
+
+  if (!codegen_type_check(vrhs->getType(), vlhs->getType())) {
+    Error::ImplementMe("types don't match");
+    return nullptr;
+  }
+
+  llvm::Value *var = ctx.named_values[vlhs->getName()];
+  return ctx.builder.CreateStore(vrhs, var);
+  return vrhs;
+}
+
+llvm::Value *codegen_add(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateAdd(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op+ for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_sub(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateSub(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op- for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_mul(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    auto lhs_integraltype =
+        ((IntegralType *)(lhs->cast<Expr>()->type.get_type_ptr()))->ty;
+    auto rhs_integraltype =
+        ((IntegralType *)(rhs->cast<Expr>()->type.get_type_ptr()))->ty;
+    if (lhs_integraltype==IntegralType::F32 || lhs_integraltype == IntegralType::F64 ||
+        rhs_integraltype == IntegralType::F32 ||
+        rhs_integraltype == IntegralType::F64) {
+      return ctx.builder.CreateFMul(lhs->codegen(ctx), rhs->codegen(ctx));
+    }
+    if (lhs_integraltype == IntegralType::I32 &&
+        rhs_integraltype == IntegralType::I32) {
+      return ctx.builder.CreateMul(lhs->codegen(ctx), rhs->codegen(ctx));
+    }
+    return nullptr;
+  } else {
+    Error::ImplementMe("implement op* for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_div(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    auto lhs_integraltype =
+        ((IntegralType *)(lhs->cast<Expr>()->type.get_type_ptr()))->ty;
+    if (lhs_integraltype == IntegralType::F32 ||
+        lhs_integraltype == IntegralType::F64) {
+        return ctx.builder.CreateFDiv(lhs->codegen(ctx), rhs->codegen(ctx));
+    } else {
+        //error nonfloatdivrhs
+        //note cast it to f32
+      return nullptr;
+    }
+  } else {
+    Error::ImplementMe("implement op/ for non integarl types");
+  }
+  return nullptr;
+}
+
 
 llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
+  
   switch (op) {
   case Token::Eq: {
-    auto *vlhs = lhs->codegen(ctx);
-    auto *vrhs = rhs->codegen(ctx);
-    if (!vrhs) {
-      Error::ImplementMe("No value");
-      return nullptr;
-    }
-    if (vlhs == (llvm::Value *)~0) { // left hand side is an infered type decl
-      auto *ty = vrhs->getType();
-      if (lhs->ast_type != AstType::VarExpr) {
-        Error::ImplementMe("expected left-hand side to be varexpr");
-        return nullptr;
-      }
-      std::string name = reinterpret_cast<VarExpr *>(lhs.get())->name;
-      auto *var = alloc(ctx, ty, name);
-      return ctx.builder.CreateStore(vrhs, var);
-    }
-
-    if (!codegen_type_check(vrhs->getType(), vlhs->getType())) {
-      Error::ImplementMe("types don't match");
-      return nullptr;
-    }
-
-    llvm::Value *var = ctx.named_values[vlhs->getName()];
-    return ctx.builder.CreateStore(vrhs, var);
-    return vrhs;
+    return codegen_eq(ctx, lhs.get(), rhs.get());
   }
   case Token::Add: {
-    // fix
-    auto ity = llvm::IntegerType::getInt32Ty(ctx.ctx);
-    auto callee = ctx.mod->getOrInsertFunction("addi32i32", ity, ity, ity);
-    return ctx.builder.CreateCall(callee,
-                                  {lhs->codegen(ctx), rhs->codegen(ctx)});
-    return nullptr;
+    return codegen_add(ctx, lhs.get(), rhs.get());
+  }
+  case Token::Sub: {
+    return codegen_sub(ctx, lhs.get(), rhs.get());
   }
   case Token::Mul: {
-    auto ity = llvm::IntegerType::getInt32Ty(ctx.ctx);
-    auto callee = ctx.mod->getOrInsertFunction("muli32i32", ity, ity, ity);
-    return ctx.builder.CreateCall(callee,
-                                  {lhs->codegen(ctx), rhs->codegen(ctx)});
-    return nullptr;
+    return codegen_mul(ctx, lhs.get(), rhs.get());
+  }
+  case Token::Div: {
+    return codegen_div(ctx, lhs.get(), rhs.get());
   }
   default:
     Error::ImplementMe("Codegen: Unimplemented operator!");
