@@ -430,7 +430,8 @@ llvm::Value *Body::codegen(FusionCtx &ctx) const {
   return last;
 }
 
-llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
+llvm::Value* codegen_ifelse(FusionCtx& ctx, AstExpr* condition, AstExpr* body,
+    AstExpr* else_body) {
   auto *condv = condition->codegen(ctx);
   if (!condv) {
     return nullptr;
@@ -439,45 +440,47 @@ llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
                                    "ifcond");
   llvm::Function *func = ctx.builder.GetInsertBlock()->getParent();
 
-  llvm::BasicBlock *thenbb = llvm::BasicBlock::Create(ctx.ctx, "then",func);
-  llvm::BasicBlock *elsebb = llvm::BasicBlock::Create(ctx.ctx, "else",func);
-  llvm::BasicBlock *mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge",func);
-  llvm::Value *elsev = nullptr;
-  if (else_body) {
-    ctx.builder.CreateCondBr(condv, thenbb, elsebb);
-  } else {
-    ctx.builder.CreateCondBr(condv, thenbb, mergebb);
-  }
+  llvm::BasicBlock *thenbb = llvm::BasicBlock::Create(ctx.ctx, "then", func);
+  llvm::BasicBlock *elsebb = llvm::BasicBlock::Create(ctx.ctx, "else", func);
+  llvm::BasicBlock *mergebb = llvm::BasicBlock::Create(ctx.ctx, "merge", func);
+
+  ctx.builder.CreateCondBr(condv, thenbb, elsebb);
+
   ctx.builder.SetInsertPoint(thenbb);
   auto *thenv = body->codegen(ctx);
   if (!thenv)
     return nullptr;
   ctx.builder.CreateBr(mergebb);
   thenbb = ctx.builder.GetInsertBlock();
-  if (else_body) {
 
-    func->getBasicBlockList().push_back(elsebb);
-    ctx.builder.SetInsertPoint(elsebb);
+  func->getBasicBlockList().push_back(elsebb);
+  ctx.builder.SetInsertPoint(elsebb);
 
-    elsev = else_body->codegen(ctx);
-    if (!elsev)
-      return nullptr;
+  auto *elsev = else_body->codegen(ctx);
+  if (!elsev)
+    return nullptr;
 
-    ctx.builder.CreateBr(mergebb);
-    elsebb = ctx.builder.GetInsertBlock();
-  }
+  ctx.builder.CreateBr(mergebb);
+  elsebb = ctx.builder.GetInsertBlock();
+
+
   func->getBasicBlockList().push_back(mergebb);
   ctx.builder.SetInsertPoint(mergebb);
-  /*
-  auto *pn =
-      ctx.builder.CreatePHI(llvm::Type::getInt32Ty(ctx.ctx), 2, "iftmp");
-  pn->addIncoming(thenv, thenbb);
-  if (else_body) {
-    pn->addIncoming(elsev, elsebb);
-  }
 
-  return pn;*/
-  return mergebb;
+  auto *pn = ctx.builder.CreatePHI(llvm::Type::getInt1Ty(ctx.ctx), 2, "iftmp");
+  pn->addIncoming(thenv, thenbb);
+  pn->addIncoming(elsev, elsebb);
+
+
+  return pn;
+
+}
+
+llvm::Value *IfStmt::codegen(FusionCtx &ctx) const {
+  if (body && else_body) {
+    return codegen_ifelse(ctx, condition.get(), body.get(), else_body.get());
+  }
+  return nullptr;
 }
 
 llvm::Value *ImportExpr::codegen(FusionCtx &ctx) const {
