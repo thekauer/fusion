@@ -248,11 +248,90 @@ llvm::Value *codegen_mod(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
       return ctx.builder.CreateSDiv(lhs->codegen(ctx), rhs->codegen(ctx));
 
   } else {
-    Error::ImplementMe("implement op/ for non integarl types");
+    Error::ImplementMe("implement op% for non integarl types");
   }
   return nullptr;
 }
 
+
+llvm::Value *codegen_lt(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateICmpSLT(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op< for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_lteq(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateICmpSLE(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op<= for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_gteq(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateICmpSGE(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op>= for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_gt(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateICmpSGT(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op> for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_eqeq(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateICmpEQ(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op== for non integarl types");
+  }
+  return nullptr;
+}
+llvm::Value *codegen_ne(FusionCtx &ctx, AstExpr *lhs, AstExpr *rhs) {
+  bool lhs_isintegral =
+      lhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+  bool rhs_isintegral =
+      rhs->cast<Expr>()->type.get_type_ptr()->get_typekind() == Type::Integral;
+
+  if (lhs_isintegral && rhs_isintegral) {
+    return ctx.builder.CreateICmpNE(lhs->codegen(ctx), rhs->codegen(ctx));
+  } else {
+    Error::ImplementMe("implement op!= for non integarl types");
+  }
+  return nullptr;
+}
 
 llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
   
@@ -274,6 +353,24 @@ llvm::Value *BinExpr::codegen(FusionCtx &ctx) const {
   }
   case Token::Mod: {
     return codegen_mod(ctx, lhs.get(), rhs.get());
+  }
+  case Token::Lt: {
+    return codegen_lt(ctx, lhs.get(), rhs.get());
+  }
+  case Token::LtEq: {
+    return codegen_lteq(ctx, lhs.get(), rhs.get());
+  }
+  case Token::Gt: {
+    return codegen_gt(ctx, lhs.get(), rhs.get());
+  }
+  case Token::GtEq: {
+    return codegen_gteq(ctx, lhs.get(), rhs.get());
+  }
+  case Token::EqEq: {
+    return codegen_eqeq(ctx, lhs.get(), rhs.get());
+  }
+  case Token::NotEq: {
+    return codegen_ne(ctx, lhs.get(), rhs.get());
   }
   default:
     Error::ImplementMe("Codegen: Unimplemented operator!");
