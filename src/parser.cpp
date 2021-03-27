@@ -28,12 +28,20 @@ int precedence(Token::Type op) {
   switch (op) {
   case Token::Eq:
     return 1;
+  case Token::EqEq:
+  case Token::NotEq:
+  case Token::Lt:
+  case Token::LtEq:
+  case Token::Gt:
+    return 70;
+  case Token::GtEq:
   case Token::Sub:
   case Token::Add:
-    return 10;
+    return 120;
   case Token::Mul:
   case Token::Div:
-    return 20;
+  case Token::Mod:
+    return 130;
 
   default:
     return -1;
@@ -223,7 +231,7 @@ std::unique_ptr<AstExpr> Parser::parse_binary(std::unique_ptr<AstExpr> lhs,
     }
 
     pop(); // pop the op
-    auto rhs = parse_primary();
+    auto rhs = parse_expr();
     if (!rhs) {
       return nullptr;
     }
